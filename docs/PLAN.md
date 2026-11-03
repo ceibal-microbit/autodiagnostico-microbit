@@ -7,7 +7,7 @@ Una fase por vez. Cada fase cierra con: tests en verde, revisión de `revisor` y
 Objetivo: el circuito completo funciona de punta a punta con una página mínima.
 
 - [x] Crear el repo privado `ceibal-microbit/autodiagnostico-microbit` y subir este kit.
-- [ ] Confirmar que `npm test` y el CI de GitHub pasan.
+- [x] Confirmar que `npm test` y el CI de GitHub pasan.
 - [x] En la cuenta dedicada: activar la API de Apps Script.
 - [x] Crear la Sheet de **prueba** en la unidad compartida y, desde ella, el script vinculado (*Extensiones → Apps Script*).
 - [x] Instalar clasp y hacer el primer `clasp push` al proyecto de prueba (ver `docs/DESPLIEGUE.md`).
@@ -33,7 +33,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [x] `Catalogo.js`: menú "Autodiagnóstico → Actualizar catálogo" que lee Universo original y regenera Centros con `nucleo.js`.
 - [x] Menú "Autodiagnóstico → Preparar planilla": crea las pestañas que falten, con encabezados y formato texto en las columnas libres.
 - [x] Carga inicial de Textos y Config desde `docs/INSTRUMENTO.md` y `docs/ARQUITECTURA.md`.
-- [ ] Probar con una copia del Universo real **solo en la Sheet de prueba** (incluye comprobar a mano: que el menú llama a funciones con guion bajo, que una fila con nombre `=1+1` queda como texto en Centros y cómo se ve el apóstrofo, y que Respuestas conserva el formato de texto pasadas las 1000 filas).
+- [x] Probar con una copia del Universo real **solo en la Sheet de prueba**. Hecho a mano: Preparar planilla, Actualizar catálogo (4047 centros, 157 repetidas sacadas, 2 descartadas por no tener departamento, 7 con observaciones), el control de filas cuadra, el menú ejecuta funciones con guion bajo y se revisaron las observaciones. **Quedaron sin probar a mano** (solo cubiertas por el simulador de tests): repetir Actualizar catálogo, una fila con nombre `=1+1`, el aviso de lista incompleta y el formato de texto de Respuestas pasadas las 1000 filas. Pasaron a la fase 6.
 
 ## Fase 4 — Web app (v0.4.0)
 
@@ -61,6 +61,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 - [ ] `auditor-seguridad` recorre `docs/SEGURIDAD.md` completo.
 - [ ] Pruebas de la sección 9 hechas a mano en el proyecto de prueba.
+- [ ] Pruebas de la fase 3 que no se hicieron a mano: repetir "Actualizar catálogo" (mismo resultado), fila del Universo con nombre `=1+1` (cómo se ve el apóstrofo en Centros), aviso de "catálogo se achica mucho" con una lista incompleta, y formato de texto de Respuestas pasadas las 1000 filas.
 - [ ] Logo y tipografía oficiales, si ya están.
 
 ## Fase 7 — Piloto (v1.0.0)
