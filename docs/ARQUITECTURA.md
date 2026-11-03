@@ -86,6 +86,8 @@ Las reglas de validación están en `docs/SEGURIDAD.md`, sección 3.
 
 Claves sugeridas: `d1_observa`, `d1_f_texto`, `d1_f_rec`, `d1_d_texto`, …, `d5_c_rec`, `cierre_titulo`, `cierre_1`, `cierre_2`, `intro_1`, `intro_2`. La carga inicial sale de `docs/INSTRUMENTO.md`. Las afirmaciones y preguntas de contexto pueden quedar en el código en la versión 1, porque cambiarlas cambia la versión del instrumento.
 
+**Cómo se cargan y se cambian los textos.** La app lee siempre la pestaña Textos de la Sheet. La carga inicial sale de `src/textos.js`, que se genera desde `docs/INSTRUMENTO.md` con `node tools/generar-textos.js` (un test avisa si están desfasados). "Autodiagnóstico → Preparar planilla" solo agrega las claves que faltan y nunca pisa lo que el equipo editó. Si el equipo cambia un texto en la Sheet y quiere que quede definitivo, también hay que actualizar `docs/INSTRUMENTO.md` y regenerar `src/textos.js`; si no, una Sheet nueva volvería al texto original.
+
 ### Config
 
 `max_envios_cedula_dia` (3) · `max_mails_destino_dia` (1) · `max_envios_hora` (a definir) · `segundos_minimos` (60) · `correo_equipo_alertas`.

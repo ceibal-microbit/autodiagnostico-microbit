@@ -8,7 +8,7 @@
  * - El bloque final exporta las funciones para los tests de Node; en Apps Script se ignora.
  */
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const VERSION_INSTRUMENTO = '2026.1';
 
 // ---------------------------------------------------------------------------
@@ -602,9 +602,104 @@ function machearCentro_(texto, subsistema, departamento, localidad, centros) {
   return { codigo: candidatos[0].codigo, estado: 'automatico', confianza: confianza, motivo: '' };
 }
 
+// ---------------------------------------------------------------------------
+// 8. Pestañas de la Sheet (docs/ARQUITECTURA.md)
+// ---------------------------------------------------------------------------
+
+const PESTANAS_ = {
+  universo: 'Universo original',
+  centros: 'Centros',
+  textos: 'Textos',
+  config: 'Config',
+  respuestas: 'Respuestas',
+};
+
+// Columnas de la hoja del Universo que se usan; las demás (teléfonos, mails, matrícula…) se ignoran.
+const COLUMNAS_UNIVERSO_ = ['Código Ceibal', 'Nombre Dependencia', 'Rubro', 'Tipo dependencia', 'Departamento', 'Localidad'];
+
+const ENCABEZADOS_TEXTOS_ = ['clave', 'texto'];
+const ENCABEZADOS_CONFIG_ = ['clave', 'valor', 'descripcion'];
+
+// Valores iniciales de Config: [clave, valor, descripción]. Después los edita el equipo en la Sheet.
+const CONFIG_INICIAL_ = [
+  ['max_envios_cedula_dia', 3, 'Máximo de envíos por cédula por día'],
+  ['max_mails_destino_dia', 1, 'Máximo de mails por dirección de correo por día'],
+  ['max_envios_hora', '', 'Tope general de envíos por hora (a definir después del piloto)'],
+  ['segundos_minimos', 60, 'Segundos mínimos entre que se abre la página y se envía'],
+  ['correo_equipo_alertas', '', 'Correo del equipo al que se avisa si se supera el tope (completar)'],
+];
+
+function armarEncabezadosRespuestas_() {
+  const columnas = [
+    'fecha_hora', 'version_app', 'version_instrumento', 'nombre', 'cedula', 'email', 'subsistema', 'departamento',
+    'localidad', 'centro_texto', 'centro_codigo', 'origen_macheo', 'ctx_1', 'ctx_2', 'ctx_3',
+  ];
+  for (const d of DIMENSIONES_) for (let i = 1; i <= 3; i++) columnas.push(d.id + '_i' + i);
+  for (const d of DIMENSIONES_) columnas.push(d.id + '_suma');
+  for (const d of DIMENSIONES_) columnas.push(d.id + '_nivel');
+  columnas.push('mail_enviado');
+  return columnas;
+}
+
+const ENCABEZADOS_RESPUESTAS_ = armarEncabezadosRespuestas_();
+
+// Columnas de Respuestas con formato "Texto sin formato". Incluye la cédula para no perder el cero inicial.
+const COLUMNAS_TEXTO_RESPUESTAS_ = ['nombre', 'cedula', 'email', 'localidad', 'centro_texto'];
+
+/** Las filas de [clave, …] que todavía no están en la pestaña (comparando por la clave). */
+function filasQueFaltan_(clavesExistentes, filasIniciales) {
+  const existentes = new Set(clavesExistentes.map(c => String(c).trim()));
+  return filasIniciales.filter(fila => !existentes.has(fila[0]));
+}
+
+/** Compara dos listas de encabezados (ignora espacios y mayúsculas). */
+function mismosEncabezados_(actuales, esperados) {
+  if (actuales.length < esperados.length) return false;
+  return esperados.every((e, i) => String(actuales[i]).trim().toLowerCase() === e.toLowerCase());
+}
+
+/**
+ * Convierte lo que devuelve getValues() de la hoja Universo (primera fila = encabezados) en filas con
+ * las columnas que usa limpiarUniverso_. Ignora columnas de más y filas completamente vacías.
+ * Devuelve { ok: true, filas } o { ok: false, faltan: [nombres de columnas que no se encontraron] }.
+ */
+function filasDeUniverso_(valores) {
+  if (!Array.isArray(valores) || valores.length === 0) return { ok: false, faltan: COLUMNAS_UNIVERSO_.slice() };
+  const encabezados = valores[0].map(claveSimple_);
+  const posiciones = COLUMNAS_UNIVERSO_.map(c => encabezados.indexOf(claveSimple_(c)));
+  const faltan = COLUMNAS_UNIVERSO_.filter((c, i) => posiciones[i] === -1);
+  if (faltan.length > 0) return { ok: false, faltan: faltan };
+  const filas = [];
+  for (const valor of valores.slice(1)) {
+    const fila = {};
+    COLUMNAS_UNIVERSO_.forEach((c, i) => { fila[c] = valor[posiciones[i]]; });
+    if (COLUMNAS_UNIVERSO_.every(c => fila[c] === '' || fila[c] === null || fila[c] === undefined)) continue;
+    filas.push(fila);
+  }
+  return { ok: true, filas: filas };
+}
+
+/** Texto para mostrarle al equipo cuando termina "Actualizar catálogo". */
+function resumenLimpieza_(resultado) {
+  const lineas = ['Centros en el catálogo: ' + resultado.centros.length];
+  if (resultado.duplicadas > 0) lineas.push('Filas repetidas que se sacaron: ' + resultado.duplicadas);
+  if (resultado.descartadas.length > 0) {
+    const porMotivo = {};
+    for (const d of resultado.descartadas) porMotivo[d.motivo] = (porMotivo[d.motivo] || 0) + 1;
+    lineas.push('Filas descartadas: ' + resultado.descartadas.length + ' (' +
+      Object.keys(porMotivo).map(m => m + ': ' + porMotivo[m]).join(', ') + ')');
+  }
+  const aRevisar = resultado.centros.filter(c => c.observacion !== '').length;
+  if (aRevisar > 0) lineas.push('Centros con observaciones para revisar (columna "observacion"): ' + aRevisar);
+  return lineas.join('\n');
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     VERSION, VERSION_INSTRUMENTO,
+    PESTANAS_, COLUMNAS_UNIVERSO_, ENCABEZADOS_TEXTOS_, ENCABEZADOS_CONFIG_, ENCABEZADOS_RESPUESTAS_,
+    COLUMNAS_TEXTO_RESPUESTAS_, CONFIG_INICIAL_,
+    filasQueFaltan_, mismosEncabezados_, filasDeUniverso_, resumenLimpieza_,
     DIMENSIONES_, OPCIONES_CONTEXTO_, COLUMNAS_CENTROS_,
     nivelPorSuma_, calcularPerfil_, proximoPaso_, formatearPromedio_,
     limpiarCedula_, cedulaValida_, correoValido_, sugerirCorreo_, distanciaEdicion_,

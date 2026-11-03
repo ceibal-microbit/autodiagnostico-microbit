@@ -30,9 +30,9 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 ## Fase 3 — Sheet y catálogo (v0.3.0)
 
-- [ ] `Catalogo.js`: menú "Autodiagnóstico → Actualizar catálogo" que lee Universo original y regenera Centros con `nucleo.js`.
-- [ ] Menú "Autodiagnóstico → Preparar planilla": crea las pestañas que falten, con encabezados y formato texto en las columnas libres.
-- [ ] Carga inicial de Textos y Config desde `docs/INSTRUMENTO.md` y `docs/ARQUITECTURA.md`.
+- [x] `Catalogo.js`: menú "Autodiagnóstico → Actualizar catálogo" que lee Universo original y regenera Centros con `nucleo.js`.
+- [x] Menú "Autodiagnóstico → Preparar planilla": crea las pestañas que falten, con encabezados y formato texto en las columnas libres.
+- [x] Carga inicial de Textos y Config desde `docs/INSTRUMENTO.md` y `docs/ARQUITECTURA.md`.
 - [ ] Probar con una copia del Universo real **solo en la Sheet de prueba**.
 
 ## Fase 4 — Web app (v0.4.0)
@@ -42,6 +42,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [ ] Página: adaptar `docs/prototipo/prototipo.html` a parciales de HtmlService, sin catálogo incrustado, con textos de la Sheet.
 - [ ] Decidir y aplicar cómo se comparte la lógica del buscador con el navegador (ver `docs/ARQUITECTURA.md`).
 - [ ] Versión visible en el pie.
+- [ ] Si `max_envios_hora` está vacío en Config (viene vacío de fábrica), `guardarRespuesta` usa un tope seguro por defecto en vez de no limitar.
 - [ ] Toda fila que se escriba en Respuestas pasa por `protegerFormula_` (nombre, correo, centro, etc.). Decidir con la prueba de la sección 9 si alcanza el formato "Texto sin formato" o si además va el apóstrofo, porque juntos el apóstrofo se vería literal.
 - [ ] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`; para el límite de mails por dirección, contar el correo sin la parte `+...`. Sumar un tope global de mails por hora y por día.
 - [ ] `guardarRespuesta` descarta (sin aviso) por campo trampa y por tiempo mínimo; `validarEnvio_` no los mira.
