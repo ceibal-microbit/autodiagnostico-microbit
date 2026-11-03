@@ -8,7 +8,7 @@
  * - El bloque final exporta las funciones para los tests de Node; en Apps Script se ignora.
  */
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const VERSION_INSTRUMENTO = '2026.1';
 
 // ---------------------------------------------------------------------------
