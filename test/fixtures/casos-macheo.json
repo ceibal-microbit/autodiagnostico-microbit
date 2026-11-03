@@ -306,6 +306,24 @@
    "esperado": null,
    "estado": "revisar",
    "nota": "no existe"
+  },
+  {
+   "texto": "Jardín 35",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "el número es de una escuela, no de un jardín"
+  },
+  {
+   "texto": "Escuela 7",
+   "subsistema": "DGES",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "el número es de un liceo, no de una escuela"
   }
  ]
 }

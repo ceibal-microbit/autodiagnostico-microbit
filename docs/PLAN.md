@@ -6,26 +6,27 @@ Una fase por vez. Cada fase cierra con: tests en verde, revisión de `revisor` y
 
 Objetivo: el circuito completo funciona de punta a punta con una página mínima.
 
-- [ ] Crear el repo privado `ceibal-microbit/autodiagnostico-microbit` y subir este kit.
+- [x] Crear el repo privado `ceibal-microbit/autodiagnostico-microbit` y subir este kit.
 - [ ] Confirmar que `npm test` y el CI de GitHub pasan.
-- [ ] En la cuenta dedicada: activar la API de Apps Script.
-- [ ] Crear la Sheet de **prueba** en la unidad compartida y, desde ella, el script vinculado (*Extensiones → Apps Script*).
-- [ ] Instalar clasp y hacer el primer `clasp push` al proyecto de prueba (ver `docs/DESPLIEGUE.md`).
-- [ ] Implementar como web app y abrir el link: debe mostrar "Autodiagnóstico docente micro:bit — versión 0.1.0".
-- [ ] Verificar que `SpreadsheetApp.getActiveSpreadsheet()` funcione dentro de la web app con el scope `spreadsheets.currentonly`. La página mínima muestra el nombre de la Sheet.
+- [x] En la cuenta dedicada: activar la API de Apps Script.
+- [x] Crear la Sheet de **prueba** en la unidad compartida y, desde ella, el script vinculado (*Extensiones → Apps Script*).
+- [x] Instalar clasp y hacer el primer `clasp push` al proyecto de prueba (ver `docs/DESPLIEGUE.md`).
+- [x] Implementar como web app y abrir el link: debe mostrar "Autodiagnóstico docente micro:bit — versión 0.1.0".
+- [x] Verificar que `SpreadsheetApp.getActiveSpreadsheet()` funcione dentro de la web app con el scope `spreadsheets.currentonly`. La página mínima muestra el nombre de la Sheet.
 
 ## Fase 2 — Núcleo con tests (v0.2.0)
 
 Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
-- [ ] Puntaje por dimensión, nivel por suma, promedio, próximo paso (empates y "todas consolidadas").
-- [ ] Validación de cédula uruguaya (dígito verificador) y formato.
-- [ ] Validación de correo y sugerencia de dominio ("gmial.com" → "gmail.com").
-- [ ] Validación completa de un envío (reglas de `docs/SEGURIDAD.md`, sección 3), con un catálogo recibido como parámetro.
-- [ ] Protección contra fórmulas (apóstrofo delante de `=`, `+`, `-`, `@`).
-- [ ] Normalización de texto (tildes, mayúsculas, "Nº", "nro", "esc.", "lic", "JN", "UTU"…).
-- [ ] Limpieza del Universo → filas de Centros (duplicados, fechas, departamentos raros, tipo, número, nombre visible).
-- [ ] Macheo de texto libre: pasan todos los casos de `test/fixtures/casos-macheo.json`.
+- [x] Puntaje por dimensión, nivel por suma, promedio, próximo paso (empates y "todas consolidadas").
+- [x] Validación de cédula uruguaya (dígito verificador) y formato.
+- [x] Validación de correo y sugerencia de dominio ("gmial.com" → "gmail.com").
+- [x] Validación completa de un envío (reglas de `docs/SEGURIDAD.md`, sección 3), con un catálogo recibido como parámetro.
+- [x] Protección contra fórmulas (apóstrofo delante de `=`, `+`, `-`, `@`).
+- [x] Normalización de texto (tildes, mayúsculas, "Nº", "nro", "esc.", "lic", "JN", "UTU"…).
+- [x] Limpieza del Universo → filas de Centros (duplicados, fechas, departamentos raros, tipo, número, nombre visible).
+- [x] Macheo de texto libre: pasan todos los casos de `test/fixtures/casos-macheo.json`.
+- [x] `tools/usar-entorno.js` muestra un mensaje claro si `.clasp.<entorno>.json` tiene un error de formato JSON.
 
 ## Fase 3 — Sheet y catálogo (v0.3.0)
 
@@ -41,6 +42,11 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [ ] Página: adaptar `docs/prototipo/prototipo.html` a parciales de HtmlService, sin catálogo incrustado, con textos de la Sheet.
 - [ ] Decidir y aplicar cómo se comparte la lógica del buscador con el navegador (ver `docs/ARQUITECTURA.md`).
 - [ ] Versión visible en el pie.
+- [ ] Toda fila que se escriba en Respuestas pasa por `protegerFormula_` (nombre, correo, centro, etc.). Decidir con la prueba de la sección 9 si alcanza el formato "Texto sin formato" o si además va el apóstrofo, porque juntos el apóstrofo se vería literal.
+- [ ] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`; para el límite de mails por dirección, contar el correo sin la parte `+...`. Sumar un tope global de mails por hora y por día.
+- [ ] `guardarRespuesta` descarta (sin aviso) por campo trampa y por tiempo mínimo; `validarEnvio_` no los mira.
+- [ ] `repararLocalidad_` con objetos `Date` depende de la zona horaria: confirmar que la Sheet y `appsscript.json` usan la misma. Avisar de los centros sin localidad fuera de Montevideo, porque no se podrían elegir.
+- [ ] Decidir cuándo se usa `machearCentro_` (hoy solo ayuda a revisar los "No encuentro mi centro").
 
 ## Fase 5 — PDF y mail (v0.5.0)
 

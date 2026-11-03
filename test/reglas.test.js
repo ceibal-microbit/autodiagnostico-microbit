@@ -16,6 +16,11 @@ test('solo las funciones permitidas son públicas (las demás terminan en guion 
       const nombre = m[1];
       if (!nombre.endsWith('_') && !permitidas.has(nombre)) publicasDeMas.push(`${f}: ${nombre}`);
     }
+    // También funciones asignadas a una variable global: const x = function () {} / const x = () => {}
+    for (const m of codigo.matchAll(/^(?:const|let|var)\s+([A-Za-z0-9_$]+)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z0-9_$]+\s*=>)/gm)) {
+      const nombre = m[1];
+      if (!nombre.endsWith('_') && !permitidas.has(nombre)) publicasDeMas.push(`${f}: ${nombre}`);
+    }
   }
   // nucleo.js puede tener funciones públicas en Node, pero en Apps Script también serían llamables:
   // por eso la regla aplica a todos los archivos de src/.
