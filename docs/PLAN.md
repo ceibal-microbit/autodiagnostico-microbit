@@ -7,7 +7,7 @@ Una fase por vez. Cada fase cierra con: tests en verde, revisión de `revisor` y
 Objetivo: el circuito completo funciona de punta a punta con una página mínima.
 
 - [x] Crear el repo privado `ceibal-microbit/autodiagnostico-microbit` y subir este kit.
-- [ ] Confirmar que `npm test` y el CI de GitHub pasan.
+- [x] Confirmar que `npm test` y el CI de GitHub pasan.
 - [x] En la cuenta dedicada: activar la API de Apps Script.
 - [x] Crear la Sheet de **prueba** en la unidad compartida y, desde ella, el script vinculado (*Extensiones → Apps Script*).
 - [x] Instalar clasp y hacer el primer `clasp push` al proyecto de prueba (ver `docs/DESPLIEGUE.md`).
