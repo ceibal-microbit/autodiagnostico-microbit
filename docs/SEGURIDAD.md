@@ -66,6 +66,8 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 - [ ] El mail no incluye la cédula.
 - [ ] Asunto y remitente fijos.
 - [ ] La respuesta de `guardarRespuesta` contiene solo el perfil de ese envío.
+- [ ] Los textos de la pestaña Textos los edita el equipo, pero se tratan como no confiables: en la página se muestran solo con `textContent` o `createTextNode` (nunca `innerHTML` ni `<?!=`); en el PDF y el mail se escapan `& < > " '`. Test con `<img src=x onerror=alert(1)>` en un texto.
+- [ ] La página pública no muestra el nombre de la planilla ("Planilla vinculada…" de la fase 1): sacarlo antes de publicar.
 
 ## 7. Datos personales
 
