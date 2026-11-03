@@ -36,11 +36,24 @@ function hojaOCrear_(planilla, nombre) {
   return { hoja: planilla.insertSheet(nombre), creada: true };
 }
 
+/** Agranda la grilla de la pestaña si hace falta: una hoja nueva trae solo 1000 filas y 26 columnas. */
+function asegurarTamano_(hoja, filas, columnas) {
+  if (hoja.getMaxColumns() < columnas) hoja.insertColumnsAfter(hoja.getMaxColumns(), columnas - hoja.getMaxColumns());
+  if (hoja.getMaxRows() < filas) hoja.insertRowsAfter(hoja.getMaxRows(), filas - hoja.getMaxRows());
+}
+
+/** Formato "Texto sin formato" en la columna entera (también para las filas que se agreguen después). */
+function formatoTexto_(hoja, columna) {
+  const letra = columnaALetra_(columna);
+  hoja.getRange(letra + ':' + letra).setNumberFormat('@');
+}
+
 /**
  * Escribe los encabezados si la pestaña está vacía. Si ya tiene otros distintos, no los toca.
  * Devuelve 'escritos', 'ok' o 'distintos'.
  */
 function asegurarEncabezados_(hoja, encabezados) {
+  asegurarTamano_(hoja, 1, encabezados.length);
   if (hoja.getLastRow() === 0) {
     hoja.getRange(1, 1, 1, encabezados.length).setValues([encabezados]).setFontWeight('bold');
     hoja.setFrozenRows(1);
@@ -55,7 +68,10 @@ function agregarFaltantes_(hoja, filasIniciales) {
   const ultima = hoja.getLastRow();
   const claves = ultima > 1 ? hoja.getRange(2, 1, ultima - 1, 1).getValues().map(f => f[0]) : [];
   const faltan = filasQueFaltan_(claves, filasIniciales);
-  if (faltan.length > 0) hoja.getRange(ultima + 1, 1, faltan.length, faltan[0].length).setValues(faltan);
+  if (faltan.length > 0) {
+    asegurarTamano_(hoja, ultima + faltan.length, faltan[0].length);
+    hoja.getRange(ultima + 1, 1, faltan.length, faltan[0].length).setValues(faltan);
+  }
   return faltan.length;
 }
 
@@ -78,9 +94,11 @@ function prepararPlanilla_() {
     informe.push(PESTANAS_.textos + ': los encabezados no son los esperados (clave, texto); no se agregó nada.');
   } else {
     const filas = Object.keys(TEXTOS_INICIALES_).map(clave => [clave, TEXTOS_INICIALES_[clave]]);
+    // Primero el formato de texto y después los textos: así nada se interpreta como fórmula ni como fecha.
+    formatoTexto_(textos.hoja, 2);
     const agregados = agregarFaltantes_(textos.hoja, filas);
-    textos.hoja.getRange(1, 2, textos.hoja.getMaxRows(), 1).setNumberFormat('@');
-    informe.push(PESTANAS_.textos + ': ' + agregados + ' textos agregados' + (agregados < filas.length ? ' (los demás ya estaban y no se tocaron).' : '.'));
+    informe.push(PESTANAS_.textos + ': ' + plural_(agregados, 'texto agregado', 'textos agregados') +
+      (agregados < filas.length ? ' (los demás ya estaban y no se tocaron).' : '.'));
   }
 
   const config = hojaOCrear_(planilla, PESTANAS_.config);
@@ -89,7 +107,8 @@ function prepararPlanilla_() {
     informe.push(PESTANAS_.config + ': los encabezados no son los esperados (clave, valor, descripcion); no se agregó nada.');
   } else {
     const agregadas = agregarFaltantes_(config.hoja, CONFIG_INICIAL_);
-    informe.push(PESTANAS_.config + ': ' + agregadas + ' parámetros agregados' + (agregadas < CONFIG_INICIAL_.length ? ' (los demás ya estaban y no se tocaron).' : '.'));
+    informe.push(PESTANAS_.config + ': ' + plural_(agregadas, 'parámetro agregado', 'parámetros agregados') +
+      (agregadas < CONFIG_INICIAL_.length ? ' (los demás ya estaban y no se tocaron).' : '.'));
   }
 
   const respuestas = hojaOCrear_(planilla, PESTANAS_.respuestas);
@@ -97,10 +116,7 @@ function prepararPlanilla_() {
   if (estadoRespuestas === 'distintos') {
     informe.push(PESTANAS_.respuestas + ': los encabezados no son los esperados; no se cambió el formato de las columnas.');
   } else {
-    for (const columna of COLUMNAS_TEXTO_RESPUESTAS_) {
-      const posicion = ENCABEZADOS_RESPUESTAS_.indexOf(columna) + 1;
-      respuestas.hoja.getRange(1, posicion, respuestas.hoja.getMaxRows(), 1).setNumberFormat('@');
-    }
+    for (const columna of COLUMNAS_TEXTO_RESPUESTAS_) formatoTexto_(respuestas.hoja, ENCABEZADOS_RESPUESTAS_.indexOf(columna) + 1);
     informe.push(PESTANAS_.respuestas + ': ' + describirEncabezados_(estadoRespuestas, respuestas.creada) + ' Columnas de texto libre con formato "Texto sin formato".');
   }
 
@@ -111,6 +127,10 @@ function describirEncabezados_(estado, creada) {
   if (estado === 'escritos') return (creada ? 'creada' : 'estaba vacía') + ', con sus encabezados.';
   if (estado === 'ok') return 'ya estaba lista, no se tocó.';
   return 'ya tenía otros encabezados; no se tocó (revisala a mano).';
+}
+
+function plural_(cantidad, singular, plural) {
+  return cantidad + ' ' + (cantidad === 1 ? singular : plural);
 }
 
 /** Menú: lee Universo original, lo limpia y reescribe la pestaña Centros. No toca ninguna otra. */
@@ -131,17 +151,50 @@ function actualizarCatalogo_() {
     avisar_('No se actualizó el catálogo', 'Después de limpiar no quedó ningún centro, así que no se borró nada. ' + resumenLimpieza_(resultado));
     return;
   }
-  if (!confirmar_('Actualizar catálogo', 'Se va a reemplazar todo el contenido de la pestaña "' + PESTANAS_.centros + '" con ' +
-      resultado.centros.length + ' centros. Respuestas no se toca. ¿Seguir?')) {
+
+  const centros = hojaOCrear_(planilla, PESTANAS_.centros).hoja;
+  const actuales = Math.max(0, centros.getLastRow() - 1);
+  const nuevos = resultado.centros.length;
+  if (!confirmar_('Actualizar catálogo', 'Hoy la pestaña "' + PESTANAS_.centros + '" tiene ' + actuales + ' centros y quedaría con ' + nuevos +
+      '. Respuestas no se toca. ¿Seguir?')) {
+    return;
+  }
+  if (bajaDrastica_(actuales, nuevos) && !confirmar_('¡Atención! El catálogo se achica mucho',
+      'El catálogo pasaría de ' + actuales + ' a ' + nuevos + ' centros (baja de más del 20%). Si pegaste una lista incompleta, los docentes de los centros que falten no van a poder enviar su autodiagnóstico. ¿Estás seguro de que querés reemplazarlo?')) {
     return;
   }
 
-  const centros = hojaOCrear_(planilla, PESTANAS_.centros).hoja;
-  const filas = [COLUMNAS_CENTROS_].concat(resultado.centros.map(centroAFila_));
-  centros.clearContents();
-  centros.getRange(1, 1, filas.length, COLUMNAS_CENTROS_.length).setValues(filas);
-  centros.getRange(1, 1, 1, COLUMNAS_CENTROS_.length).setFontWeight('bold');
-  centros.setFrozenRows(1);
+  // Mientras se escribe, ningún envío puede leer un catálogo a medias (el mismo bloqueo lo usa guardarRespuesta).
+  const bloqueo = LockService.getScriptLock();
+  if (!bloqueo.tryLock(30000)) {
+    avisar_('No se actualizó el catálogo', 'Hay otra operación en curso. Esperá un minuto y volvé a intentar. Centros quedó como estaba.');
+    return;
+  }
+  try {
+    escribirCentros_(centros, [COLUMNAS_CENTROS_].concat(resultado.centros.map(centroAFila_)));
+  } finally {
+    bloqueo.releaseLock();
+  }
 
   avisar_('Catálogo actualizado', resumenLimpieza_(resultado));
+}
+
+/**
+ * Escribe primero el contenido nuevo y recién después limpia lo que sobra de la versión anterior:
+ * si la escritura falla, Centros no queda vacío. Las columnas de texto se formatean antes de escribir.
+ */
+function escribirCentros_(hoja, filas) {
+  const anteriorFilas = hoja.getLastRow();
+  const anteriorColumnas = Math.max(hoja.getLastColumn(), COLUMNAS_CENTROS_.length);
+  asegurarTamano_(hoja, filas.length, COLUMNAS_CENTROS_.length);
+  for (const columna of COLUMNAS_TEXTO_CENTROS_) formatoTexto_(hoja, COLUMNAS_CENTROS_.indexOf(columna) + 1);
+  hoja.getRange(1, 1, filas.length, COLUMNAS_CENTROS_.length).setValues(filas);
+  if (anteriorFilas > filas.length) {
+    hoja.getRange(filas.length + 1, 1, anteriorFilas - filas.length, anteriorColumnas).clearContent();
+  }
+  if (anteriorColumnas > COLUMNAS_CENTROS_.length) {
+    hoja.getRange(1, COLUMNAS_CENTROS_.length + 1, filas.length, anteriorColumnas - COLUMNAS_CENTROS_.length).clearContent();
+  }
+  hoja.getRange(1, 1, 1, COLUMNAS_CENTROS_.length).setFontWeight('bold');
+  hoja.setFrozenRows(1);
 }

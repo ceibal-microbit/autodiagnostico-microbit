@@ -10,7 +10,7 @@ test('Respuestas: encabezados según docs/ARQUITECTURA.md', () => {
     'fecha_hora', 'version_app', 'version_instrumento', 'nombre', 'cedula', 'email', 'subsistema', 'departamento',
     'localidad', 'centro_texto', 'centro_codigo', 'origen_macheo', 'ctx_1', 'ctx_2', 'ctx_3',
   ]);
-  assert.deepStrictEqual(e.slice(15, 30).filter((c, i) => i < 3), ['d1_i1', 'd1_i2', 'd1_i3']);
+  assert.deepStrictEqual(e.slice(15, 18), ['d1_i1', 'd1_i2', 'd1_i3']);
   assert.strictEqual(e[29], 'd5_i3');
   assert.deepStrictEqual(e.slice(30, 35), ['d1_suma', 'd2_suma', 'd3_suma', 'd4_suma', 'd5_suma']);
   assert.deepStrictEqual(e.slice(35, 40), ['d1_nivel', 'd2_nivel', 'd3_nivel', 'd4_nivel', 'd5_nivel']);
@@ -93,4 +93,23 @@ test('resumenLimpieza_ cuenta centros, repetidos, descartados y observaciones', 
   assert.match(texto, /Filas descartadas: 1 \(sin departamento: 1\)/);
   assert.match(texto, /con observaciones para revisar \(columna "observacion"\): 7/);
   assert.strictEqual(n.resumenLimpieza_({ centros: [], descartadas: [], duplicadas: 0 }), 'Centros en el catálogo: 0');
+});
+
+test('columnaALetra_: número de columna como letra de la Sheet', () => {
+  const esperado = { 1: 'A', 2: 'B', 5: 'E', 26: 'Z', 27: 'AA', 41: 'AO', 52: 'AZ', 53: 'BA', 702: 'ZZ', 703: 'AAA' };
+  for (const [numero, letra] of Object.entries(esperado)) assert.strictEqual(n.columnaALetra_(Number(numero)), letra, numero);
+});
+
+test('bajaDrastica_: más de 20% menos centros que hoy', () => {
+  assert.strictEqual(n.bajaDrastica_(100, 80), false); // justo 20%: no
+  assert.strictEqual(n.bajaDrastica_(100, 79), true);
+  assert.strictEqual(n.bajaDrastica_(2500, 12), true);
+  assert.strictEqual(n.bajaDrastica_(100, 150), false);
+  assert.strictEqual(n.bajaDrastica_(0, 5), false); // primera carga
+  assert.strictEqual(n.bajaDrastica_(0, 0), false);
+});
+
+test('las columnas de texto de Centros existen y no incluyen código ni número', () => {
+  for (const c of n.COLUMNAS_TEXTO_CENTROS_) assert.ok(n.COLUMNAS_CENTROS_.includes(c), c);
+  assert.ok(!n.COLUMNAS_TEXTO_CENTROS_.includes('codigo') && !n.COLUMNAS_TEXTO_CENTROS_.includes('numero'));
 });

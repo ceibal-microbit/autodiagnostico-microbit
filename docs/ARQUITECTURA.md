@@ -92,11 +92,13 @@ Claves sugeridas: `d1_observa`, `d1_f_texto`, `d1_f_rec`, `d1_d_texto`, …, `d5
 
 `max_envios_cedula_dia` (3) · `max_mails_destino_dia` (1) · `max_envios_hora` (a definir) · `segundos_minimos` (60) · `correo_equipo_alertas`.
 
+Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla" las carga con esos valores iniciales; `max_envios_hora` y `correo_equipo_alertas` salen vacíos hasta que el equipo los complete.
+
 ### Respuestas
 
 `fecha_hora` · `version_app` · `version_instrumento` · `nombre` · `cedula` · `email` · `subsistema` · `departamento` · `localidad` · `centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` (`sí`, `no`, `límite`).
 
-Las columnas de texto libre (`nombre`, `email`, `centro_texto`) tienen formato "Texto sin formato".
+Las columnas de texto libre (`nombre`, `cedula`, `email`, `localidad`, `centro_texto`) tienen formato "Texto sin formato" (la cédula también, para no perder el cero inicial; se guarda siempre con 8 dígitos). El correo se guarda en minúsculas.
 
 ## Permisos (`src/appsscript.json`)
 

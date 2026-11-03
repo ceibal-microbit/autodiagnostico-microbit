@@ -1,6 +1,6 @@
 {
   "name": "autodiagnostico-microbit",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Web app de Apps Script para el autodiagnóstico docente del programa micro:bit de Ceibal",
   "scripts": {

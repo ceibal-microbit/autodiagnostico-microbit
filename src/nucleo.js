@@ -8,7 +8,7 @@
  * - El bloque final exporta las funciones para los tests de Node; en Apps Script se ignora.
  */
 
-const VERSION = '0.3.0';
+const VERSION = '0.2.0';
 const VERSION_INSTRUMENTO = '2026.1';
 
 // ---------------------------------------------------------------------------
@@ -646,6 +646,21 @@ const ENCABEZADOS_RESPUESTAS_ = armarEncabezadosRespuestas_();
 // Columnas de Respuestas con formato "Texto sin formato". Incluye la cédula para no perder el cero inicial.
 const COLUMNAS_TEXTO_RESPUESTAS_ = ['nombre', 'cedula', 'email', 'localidad', 'centro_texto'];
 
+// Columnas de Centros con formato "Texto sin formato" (todas menos el código y el número).
+const COLUMNAS_TEXTO_CENTROS_ = ['nombre', 'nombre_visible', 'subsistema', 'departamento', 'localidad', 'tipo', 'nombre_normalizado', 'observacion'];
+
+/** Número de columna (1 = A) como letra de la Sheet: 1 → "A", 27 → "AA". */
+function columnaALetra_(numero) {
+  let letras = '';
+  let resto = numero;
+  while (resto > 0) {
+    const posicion = (resto - 1) % 26;
+    letras = String.fromCharCode(65 + posicion) + letras;
+    resto = Math.floor((resto - 1) / 26);
+  }
+  return letras;
+}
+
 /** Las filas de [clave, …] que todavía no están en la pestaña (comparando por la clave). */
 function filasQueFaltan_(clavesExistentes, filasIniciales) {
   const existentes = new Set(clavesExistentes.map(c => String(c).trim()));
@@ -679,6 +694,11 @@ function filasDeUniverso_(valores) {
   return { ok: true, filas: filas };
 }
 
+/** Verdadero si el catálogo nuevo tiene más de 20% menos centros que el actual (señal de una lista pegada incompleta). */
+function bajaDrastica_(actuales, nuevos) {
+  return actuales > 0 && nuevos < actuales * 0.8;
+}
+
 /** Texto para mostrarle al equipo cuando termina "Actualizar catálogo". */
 function resumenLimpieza_(resultado) {
   const lineas = ['Centros en el catálogo: ' + resultado.centros.length];
@@ -698,8 +718,8 @@ if (typeof module !== 'undefined') {
   module.exports = {
     VERSION, VERSION_INSTRUMENTO,
     PESTANAS_, COLUMNAS_UNIVERSO_, ENCABEZADOS_TEXTOS_, ENCABEZADOS_CONFIG_, ENCABEZADOS_RESPUESTAS_,
-    COLUMNAS_TEXTO_RESPUESTAS_, CONFIG_INICIAL_,
-    filasQueFaltan_, mismosEncabezados_, filasDeUniverso_, resumenLimpieza_,
+    COLUMNAS_TEXTO_RESPUESTAS_, COLUMNAS_TEXTO_CENTROS_, CONFIG_INICIAL_, columnaALetra_,
+    filasQueFaltan_, mismosEncabezados_, filasDeUniverso_, bajaDrastica_, resumenLimpieza_,
     DIMENSIONES_, OPCIONES_CONTEXTO_, COLUMNAS_CENTROS_,
     nivelPorSuma_, calcularPerfil_, proximoPaso_, formatearPromedio_,
     limpiarCedula_, cedulaValida_, correoValido_, sugerirCorreo_, distanciaEdicion_,
