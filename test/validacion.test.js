@@ -205,3 +205,45 @@ test('un catálogo con filas rotas no hace saltar errores: se rechaza', () => {
   const r = n.validarEnvio_(envioValido(), [null, undefined]);
   assert.strictEqual(r.ok, false);
 });
+
+
+test('cédula: se guarda siempre con 8 dígitos, así que "234567-d" y "0234567-d" cuentan como la misma en los límites', () => {
+  // Cédula antigua de 7 dígitos (6 + verificador), armada con la fórmula: 2345678 → pesos sobre 0234567.
+  const pesos = [2, 9, 8, 7, 6, 3, 4];
+  const base = '0234567';
+  const suma = [...base].reduce((acc, c, i) => acc + Number(c) * pesos[i], 0);
+  const verificador = String((10 - (suma % 10)) % 10);
+  const sieteDigitos = base.slice(1) + verificador;
+  const ochoDigitos = base + verificador;
+  const a = n.validarEnvio_(envioValido({ cedula: sieteDigitos }), centros);
+  const b = n.validarEnvio_(envioValido({ cedula: ochoDigitos }), centros);
+  assert.strictEqual(a.ok, true);
+  assert.strictEqual(b.ok, true);
+  assert.strictEqual(a.datos.cedula, ochoDigitos);
+  assert.strictEqual(a.datos.cedula, b.datos.cedula);
+});
+
+test('afirmaciones: un arreglo con huecos no pasa', () => {
+  const conHueco = envioValido().r.slice();
+  delete conHueco[3];
+  assert.strictEqual(conHueco.length, 15);
+  rechazado({ r: conHueco }, 'r');
+  const sumaConHueco = Array(15).fill(3);
+  delete sumaConHueco[0];
+  assert.throws(() => n.calcularPerfil_(sumaConHueco));
+});
+
+test('texto: se rechazan caracteres invisibles y de dirección de texto', () => {
+  rechazado({ nombre: 'Ana​ Pérez' }, 'nombre');
+  rechazado({ nombre: '​ ​' }, 'nombre');
+  rechazado({ nombre: 'Ana ‮zérep' }, 'nombre');
+  rechazado({ nombre: 'Ana\u0085Pérez' }, 'nombre');
+  rechazado({ nombre: 'Ana ﻿Pérez' }, 'nombre');
+  rechazado({ centroCodigo: null, centroTexto: 'Escuela⁦ x' }, 'centro');
+});
+
+test('un correo que empieza con = o + se acepta como correo, pero hay que protegerlo al escribirlo', () => {
+  const r = n.validarEnvio_(envioValido({ email: '=2+5@x.com' }), centros);
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(n.protegerFormula_(r.datos.email), "'=2+5@x.com");
+});

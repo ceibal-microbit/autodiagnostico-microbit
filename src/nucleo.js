@@ -34,6 +34,11 @@ function nivelPorSuma_(suma) {
   return 'c';
 }
 
+/** Copia del arreglo con los huecos como undefined: every() se salta las posiciones vacías y así no pasarían. */
+function sinHuecos_(arreglo) {
+  return Array.from(arreglo);
+}
+
 function esRespuestaValida_(valor) {
   return typeof valor === 'number' && Number.isInteger(valor) && valor >= 1 && valor <= 5;
 }
@@ -43,7 +48,7 @@ function esRespuestaValida_(valor) {
  * Los niveles salen de la suma entera, nunca del promedio. Lanza error si las respuestas no son válidas.
  */
 function calcularPerfil_(respuestas) {
-  if (!Array.isArray(respuestas) || respuestas.length !== CANTIDAD_AFIRMACIONES_ || !respuestas.every(esRespuestaValida_)) {
+  if (!Array.isArray(respuestas) || respuestas.length !== CANTIDAD_AFIRMACIONES_ || !sinHuecos_(respuestas).every(esRespuestaValida_)) {
     throw new Error('Respuestas inválidas');
   }
   const dimensiones = DIMENSIONES_.map((dim, i) => {
@@ -311,7 +316,12 @@ function limpiarUniverso_(filas) {
   const vistos = new Set();
   let duplicadas = 0;
   for (const fila of filas || []) {
-    const codigo = Number(String(fila['Código Ceibal']).trim());
+    if (fila === null || typeof fila !== 'object') {
+      descartadas.push({ codigo: null, motivo: 'fila inválida' });
+      continue;
+    }
+    const textoCodigo = String(fila['Código Ceibal']).trim();
+    const codigo = /^\d{1,12}$/.test(textoCodigo) ? Number(textoCodigo) : NaN;
     if (!Number.isInteger(codigo) || codigo <= 0) {
       descartadas.push({ codigo: fila['Código Ceibal'], motivo: 'código inválido' });
       continue;
@@ -320,7 +330,6 @@ function limpiarUniverso_(filas) {
       duplicadas++;
       continue;
     }
-    vistos.add(codigo);
 
     const subsistema = String(fila['Rubro'] || '').trim().toUpperCase();
     if (SUBSISTEMAS_.indexOf(subsistema) === -1) {
@@ -338,8 +347,9 @@ function limpiarUniverso_(filas) {
       continue;
     }
 
+    vistos.add(codigo); // recién ahora: una fila inválida no debe ocultar a otra válida con el mismo código
     const observaciones = [];
-    let departamento = departamentoCanonico_(departamentoOriginal);
+    let departamento =departamentoCanonico_(departamentoOriginal);
     if (departamento === null) {
       departamento = aTitulo_(departamentoOriginal);
       observaciones.push('departamento fuera de Uruguay');
@@ -348,7 +358,8 @@ function limpiarUniverso_(filas) {
     if (localidad.corregida) observaciones.push('localidad corregida (venía como fecha)');
 
     const tipo = detectarTipo_(nombre, fila['Tipo dependencia']);
-    const numeroCodigo = numeroDelCodigo_(codigo, subsistema);
+    // El número sale del código solo en escuelas y jardines; una inspección con código 11xxxxx no es "la escuela N".
+    const numeroCodigo = tipo === 'esc' || tipo === 'jar' ? numeroDelCodigo_(codigo, subsistema) : null;
     const numero = numeroCodigo !== null ? numeroCodigo : numeroDelNombre_(nombre);
     const visible = nombreVisible_(nombre, tipo, numeroCodigo);
 
@@ -370,14 +381,15 @@ function limpiarUniverso_(filas) {
 
 /** Un centro como fila de la pestaña Centros, en el orden de COLUMNAS_CENTROS_ (vacío donde no hay dato). */
 function centroAFila_(centro) {
-  return COLUMNAS_CENTROS_.map(col => (centro[col] === null || centro[col] === undefined ? '' : centro[col]));
+  return COLUMNAS_CENTROS_.map(col => (centro[col] === null || centro[col] === undefined ? '' : protegerFormula_(centro[col])));
 }
 
 // ---------------------------------------------------------------------------
 // 6. Validación completa de un envío (docs/SEGURIDAD.md, sección 3)
 // ---------------------------------------------------------------------------
 
-const CARACTERES_DE_CONTROL_ = /[\u0000-\u001f\u007f]/;
+// Controles C0 y C1, invisibles (ancho cero, BOM) y marcas de dirección de texto (invierten lo que se ve).
+const CARACTERES_DE_CONTROL_ = /[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁯﻿]/;
 
 /** Texto recortado y con espacios simples si es un string sin caracteres de control y de largo permitido; si no, null. */
 function textoLimpio_(valor, minimo, maximo) {
@@ -410,7 +422,8 @@ function validarEnvioInterno_(envio, centros) {
   if (nombre === null || nombre.split(' ').length < 2) return falla('nombre');
 
   if (!cedulaValida_(envio.cedula)) return falla('cedula');
-  const cedula = limpiarCedula_(envio.cedula);
+  // Una sola forma guardada (8 dígitos): "1234567" y "01234567" son la misma cédula para los límites por día.
+  const cedula = limpiarCedula_(envio.cedula).padStart(8, '0');
 
   if (typeof envio.email !== 'string' || !correoValido_(envio.email.trim())) return falla('email');
   const email = envio.email.trim().toLowerCase();
@@ -461,7 +474,7 @@ function validarEnvioInterno_(envio, centros) {
   }
   const ctx = envio.ctx.slice();
 
-  if (!Array.isArray(envio.r) || envio.r.length !== CANTIDAD_AFIRMACIONES_ || !envio.r.every(esRespuestaValida_)) return falla('r');
+  if (!Array.isArray(envio.r) || envio.r.length !== CANTIDAD_AFIRMACIONES_ || !sinHuecos_(envio.r).every(esRespuestaValida_)) return falla('r');
   const r = envio.r.slice();
 
   return {
@@ -525,6 +538,18 @@ function localidadCoincide_(escrita, delCatalogo) {
   return palabrasA.every(p => palabrasB.indexOf(p) !== -1) || palabrasB.every(p => palabrasA.indexOf(p) !== -1);
 }
 
+/** Tipo de centro que nombra el texto (esc, jar, lic, utu, ifd, cerp), o null si no nombra ninguno. */
+function tipoPedidoEnTexto_(tokens) {
+  const tiene = clave => tokens.indexOf(clave) !== -1;
+  if (tiene('tecnica') || tiene('agraria')) return 'utu';
+  if (tiene('ifd')) return 'ifd';
+  if (tiene('cerp')) return 'cerp';
+  if (tiene('liceo')) return 'lic';
+  if (tiene('jardin')) return 'jar';
+  if (tiene('escuela')) return 'esc';
+  return null;
+}
+
 /**
  * Intenta encontrar el centro que escribió un docente en texto libre.
  * Devuelve { codigo, estado: 'automatico' | 'revisar', confianza: 'alta' | 'media' | 'baja', motivo }.
@@ -543,9 +568,13 @@ function machearCentro_(texto, subsistema, departamento, localidad, centros) {
   const buscadas = palabrasClave_(tokens);
   if (numero === null && buscadas.length === 0) return revisar('sin número ni nombre');
 
+  // Si el texto nombra un tipo de centro, se descartan los que son claramente de otro tipo
+  // ("Jardín 35" no es la Escuela Nº 35). Los de tipo "otro" no se descartan: el nombre no alcanza para saberlo.
+  const tipoPedido = tipoPedidoEnTexto_(tokens);
   const claveDepartamento = claveSimple_(departamento);
   const universo = centros.filter(c =>
-    c.subsistema === subsistema && claveSimple_(c.departamento) === claveDepartamento && (c.tipo === 'anexo') === pideAnexo);
+    c.subsistema === subsistema && claveSimple_(c.departamento) === claveDepartamento && (c.tipo === 'anexo') === pideAnexo &&
+    (pideAnexo || tipoPedido === null || c.tipo === 'otro' || c.tipo === tipoPedido));
 
   const porNumero = numero === null ? null : universo.filter(c => c.numero === numero);
   const porNombre = buscadas.length === 0 ? null : universo.filter(c => nombreCoincide_(buscadas, c));

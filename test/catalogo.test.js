@@ -118,3 +118,37 @@ test('centroAFila_ sigue el orden de las columnas de la pestaña Centros', () =>
   assert.strictEqual(fila[n.COLUMNAS_CENTROS_.indexOf('numero')], 35);
   assert.strictEqual(n.centroAFila_({ codigo: 1 })[1], '');
 });
+
+test('centroAFila_ protege contra fórmulas los textos que vienen del Universo', () => {
+  const fila = n.centroAFila_({ codigo: 1, nombre: '=HYPERLINK("http://x")', nombre_visible: '+cmd', localidad: '@x', observacion: '' });
+  assert.strictEqual(fila[1], "'=HYPERLINK(\"http://x\")");
+  assert.strictEqual(fila[2], "'+cmd");
+  assert.strictEqual(fila[5], "'@x");
+  assert.strictEqual(fila[0], 1);
+});
+
+test('una fila inválida no oculta a otra válida con el mismo código', () => {
+  const r = n.limpiarUniverso_([
+    { 'Código Ceibal': 50, 'Nombre Dependencia': 'Liceo 1', Rubro: 'OTRO', Departamento: 'Salto' },
+    { 'Código Ceibal': 50, 'Nombre Dependencia': 'Liceo 1', Rubro: 'DGES', Departamento: 'Salto' },
+  ]);
+  assert.strictEqual(r.centros.length, 1);
+  assert.strictEqual(r.duplicadas, 0);
+});
+
+test('códigos raros ("1e3", "0x10") y filas nulas se descartan sin romper la limpieza', () => {
+  const r = n.limpiarUniverso_([
+    null,
+    { 'Código Ceibal': '1e3', 'Nombre Dependencia': 'X', Rubro: 'DGES', Departamento: 'Salto' },
+    { 'Código Ceibal': '0x10', 'Nombre Dependencia': 'X', Rubro: 'DGES', Departamento: 'Salto' },
+    { 'Código Ceibal': 8, 'Nombre Dependencia': 'Liceo 2', Rubro: 'DGES', Departamento: 'Salto' },
+  ]);
+  assert.strictEqual(r.centros.length, 1);
+  assert.strictEqual(r.descartadas.length, 3);
+});
+
+test('una dependencia de DGEIP con código 11xxxxx que no es escuela ni jardín no recibe número del código', () => {
+  const r = n.limpiarUniverso_([{ 'Código Ceibal': 1101999, 'Nombre Dependencia': 'INSPECCIÓN DEPARTAMENTAL', Rubro: 'DGEIP', Departamento: 'Montevideo' }]);
+  assert.strictEqual(r.centros[0].tipo, 'otro');
+  assert.strictEqual(r.centros[0].numero, null);
+});

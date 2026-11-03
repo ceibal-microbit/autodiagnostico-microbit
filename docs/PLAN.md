@@ -42,6 +42,11 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [ ] Página: adaptar `docs/prototipo/prototipo.html` a parciales de HtmlService, sin catálogo incrustado, con textos de la Sheet.
 - [ ] Decidir y aplicar cómo se comparte la lógica del buscador con el navegador (ver `docs/ARQUITECTURA.md`).
 - [ ] Versión visible en el pie.
+- [ ] Toda fila que se escriba en Respuestas pasa por `protegerFormula_` (nombre, correo, centro, etc.). Decidir con la prueba de la sección 9 si alcanza el formato "Texto sin formato" o si además va el apóstrofo, porque juntos el apóstrofo se vería literal.
+- [ ] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`; para el límite de mails por dirección, contar el correo sin la parte `+...`. Sumar un tope global de mails por hora y por día.
+- [ ] `guardarRespuesta` descarta (sin aviso) por campo trampa y por tiempo mínimo; `validarEnvio_` no los mira.
+- [ ] `repararLocalidad_` con objetos `Date` depende de la zona horaria: confirmar que la Sheet y `appsscript.json` usan la misma. Avisar de los centros sin localidad fuera de Montevideo, porque no se podrían elegir.
+- [ ] Decidir cuándo se usa `machearCentro_` (hoy solo ayuda a revisar los "No encuentro mi centro").
 
 ## Fase 5 — PDF y mail (v0.5.0)
 
