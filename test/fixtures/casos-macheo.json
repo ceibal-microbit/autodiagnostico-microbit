@@ -1,0 +1,311 @@
+{
+ "_nota": "Casos de macheo para tests. Textos inspirados en cómo escriben los docentes, contra el catálogo sintético.",
+ "casos": [
+  {
+   "texto": "79",
+   "subsistema": "DGEIP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 1108079,
+   "estado": "automatico",
+   "nota": "solo el número"
+  },
+  {
+   "texto": "Esc. Nº 79",
+   "subsistema": "DGEIP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 1108079,
+   "estado": "automatico",
+   "nota": "abreviatura con Nº"
+  },
+  {
+   "texto": "esc #79",
+   "subsistema": "DGEIP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 1108079,
+   "estado": "automatico",
+   "nota": "símbolo #"
+  },
+  {
+   "texto": "ESCUELA   79  ",
+   "subsistema": "DGEIP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 1108079,
+   "estado": "automatico",
+   "nota": "espacios extra y mayúsculas"
+  },
+  {
+   "texto": "79",
+   "subsistema": "DGES",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "subsistema equivocado"
+  },
+  {
+   "texto": "Escuela 300",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 1101300,
+   "estado": "automatico",
+   "nota": "tipo inconsistente en el catálogo (figura como jardín)"
+  },
+  {
+   "texto": "escuela nro 300",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 1101300,
+   "estado": "automatico",
+   "nota": "nro"
+  },
+  {
+   "texto": "Esc 35",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 1101035,
+   "estado": "automatico",
+   "nota": "número que está solo en el código; no debe elegir el anexo"
+  },
+  {
+   "texto": "Anexo 113",
+   "subsistema": "DGEIP",
+   "departamento": "Soriano",
+   "localidad": "",
+   "esperado": 90000030,
+   "estado": "automatico",
+   "nota": "pide el anexo explícitamente"
+  },
+  {
+   "texto": "Escuela 113",
+   "subsistema": "DGEIP",
+   "departamento": "Soriano",
+   "localidad": "",
+   "esperado": 1117113,
+   "estado": "automatico",
+   "nota": "no debe elegir el anexo"
+  },
+  {
+   "texto": "Islandia",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 1101035,
+   "estado": "automatico",
+   "nota": "nombre propio sin número"
+  },
+  {
+   "texto": "Escuela 35 Arrecife",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "conflicto: el número indica otra escuela que el nombre"
+  },
+  {
+   "texto": "Noruega",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 1101003,
+   "estado": "automatico",
+   "nota": "nombre propio"
+  },
+  {
+   "texto": "Francisco Luna",
+   "subsistema": "DGEIP",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "dos escuelas con el mismo nombre"
+  },
+  {
+   "texto": "Arrecife",
+   "subsistema": "DGEIP",
+   "departamento": "Artigas",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "departamento equivocado"
+  },
+  {
+   "texto": "Jardín 302",
+   "subsistema": "DGEIP",
+   "departamento": "Canelones",
+   "localidad": "El Pinar",
+   "esperado": 1103302,
+   "estado": "automatico",
+   "nota": "jardín con número"
+  },
+  {
+   "texto": "Jardín 302",
+   "subsistema": "DGEIP",
+   "departamento": "Canelones",
+   "localidad": "Pinar",
+   "esperado": 1103302,
+   "estado": "automatico",
+   "nota": "localidad escrita parcial"
+  },
+  {
+   "texto": "JN 91",
+   "subsistema": "DGEIP",
+   "departamento": "Treinta y Tres",
+   "localidad": "",
+   "esperado": 1119091,
+   "estado": "automatico",
+   "nota": "abreviatura JN"
+  },
+  {
+   "texto": "Liceo 1",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "Pando",
+   "esperado": 90000011,
+   "estado": "automatico",
+   "nota": "número repetido en el departamento, resuelto por localidad"
+  },
+  {
+   "texto": "Liceo 1",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "Atlantida",
+   "esperado": 90000015,
+   "estado": "automatico",
+   "nota": "localidad sin tilde"
+  },
+  {
+   "texto": "Liceo 1",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "varios Liceo 1 en el departamento y sin localidad"
+  },
+  {
+   "texto": "Liceo 1",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "Localidad Inexistente",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "localidad que no existe"
+  },
+  {
+   "texto": "Liceo Pando",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "varios liceos en Pando"
+  },
+  {
+   "texto": "Liceo Tala",
+   "subsistema": "DGES",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "liceo público y privado en Tala"
+  },
+  {
+   "texto": "Lic 7",
+   "subsistema": "DGES",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 90000006,
+   "estado": "automatico",
+   "nota": "abreviatura Lic"
+  },
+  {
+   "texto": "Liceo 7 Juan del Puerto",
+   "subsistema": "DGES",
+   "departamento": "Montevideo",
+   "localidad": "",
+   "esperado": 90000006,
+   "estado": "automatico",
+   "nota": "número y nombre coinciden"
+  },
+  {
+   "texto": "UTU Solymar",
+   "subsistema": "DGETP",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": 90000022,
+   "estado": "automatico",
+   "nota": "UTU = escuela técnica"
+  },
+  {
+   "texto": "Esc técnica Solymar",
+   "subsistema": "DGETP",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": 90000022,
+   "estado": "automatico",
+   "nota": "'técnica' manda sobre 'esc'"
+  },
+  {
+   "texto": "UTU Sarandí Grande",
+   "subsistema": "DGETP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 90000027,
+   "estado": "automatico",
+   "nota": "escuela agraria"
+  },
+  {
+   "texto": "UTU",
+   "subsistema": "DGETP",
+   "departamento": "Canelones",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "sin nombre ni número"
+  },
+  {
+   "texto": "IFD Florida",
+   "subsistema": "CFE",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 90000028,
+   "estado": "automatico",
+   "nota": "IFD"
+  },
+  {
+   "texto": "CERP del Centro",
+   "subsistema": "CFE",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": 90000029,
+   "estado": "automatico",
+   "nota": "CERP"
+  },
+  {
+   "texto": "Esc 1",
+   "subsistema": "DGEIP",
+   "departamento": "Colonia",
+   "localidad": "",
+   "esperado": 1105001,
+   "estado": "automatico",
+   "nota": "número solo en el código"
+  },
+  {
+   "texto": "Escuela inventada xyz",
+   "subsistema": "DGEIP",
+   "departamento": "Florida",
+   "localidad": "",
+   "esperado": null,
+   "estado": "revisar",
+   "nota": "no existe"
+  }
+ ]
+}

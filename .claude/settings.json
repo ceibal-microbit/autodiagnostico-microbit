@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(clasp:*)",
+      "Bash(npx clasp:*)",
+      "Bash(npx @google/clasp:*)",
+      "Bash(npm exec clasp:*)",
+      "Bash(npm run entorno:*)",
+      "Read(~/.clasprc.json)",
+      "Read(**/.clasprc.json)",
+      "Edit(**/.clasprc.json)"
+    ]
+  }
+}

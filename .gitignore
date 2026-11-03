@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+
+# clasp: configuración local y credenciales (nunca al repo)
+.clasp.json
+.clasp.prueba.json
+.clasp.produccion.json
+.clasprc.json
+
+# Datos reales de Ceibal: nunca al repo
+datos/
+*.xlsx
+*.xls
+*.csv
+
+# Sistema
+.DS_Store
+Thumbs.db

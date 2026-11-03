@@ -1,0 +1,541 @@
+{
+ "_nota": "Catálogo SINTÉTICO: centros inventados con la misma estructura y los mismos problemas que la hoja 'Universo' real. No contiene datos de Ceibal.",
+ "columnas": [
+  "Código Ceibal",
+  "Nombre Dependencia",
+  "Rubro",
+  "Tipo dependencia",
+  "Departamento",
+  "Localidad"
+ ],
+ "filas": [
+  {
+   "Código Ceibal": 1101003,
+   "Nombre Dependencia": "ESCUELA NORUEGA - 1101003",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Punta Carretas"
+  },
+  {
+   "Código Ceibal": 1101012,
+   "Nombre Dependencia": "ESCUELA Nº12 - 1101012",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Cordón"
+  },
+  {
+   "Código Ceibal": 1101026,
+   "Nombre Dependencia": "ESTRELLA DEL SUR - 1101026",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Paso Molino"
+  },
+  {
+   "Código Ceibal": 1101026,
+   "Nombre Dependencia": "ESTRELLA DEL SUR - 1101026",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Paso Molino"
+  },
+  {
+   "Código Ceibal": 1101035,
+   "Nombre Dependencia": "REPÚBLICA DE ISLANDIA - 1101035",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Buceo"
+  },
+  {
+   "Código Ceibal": 90000001,
+   "Nombre Dependencia": "ANEXO ESCUELA Nº 35 - REPÚBLICA DE ISLANDIA",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Buceo"
+  },
+  {
+   "Código Ceibal": 1101096,
+   "Nombre Dependencia": "FRANCISCO LUNA - 1101096",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Nuevo París"
+  },
+  {
+   "Código Ceibal": 1101115,
+   "Nombre Dependencia": "FRANCISCO LUNA - 1101115",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Nuevo París"
+  },
+  {
+   "Código Ceibal": 1101156,
+   "Nombre Dependencia": "ESCUELA ARRECIFE - 1101156",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Simón Bolívar"
+  },
+  {
+   "Código Ceibal": 1101139,
+   "Nombre Dependencia": "ESCUELA Nº139 - 1101139",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Manga"
+  },
+  {
+   "Código Ceibal": 1101300,
+   "Nombre Dependencia": "ESCUELA Nº300",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Jardín Público",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "La Cruz De Carrasco"
+  },
+  {
+   "Código Ceibal": 1101302,
+   "Nombre Dependencia": "CEDRO AZUL - 1101302",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Peñarol"
+  },
+  {
+   "Código Ceibal": 1101245,
+   "Nombre Dependencia": "JARDÍN Nº 245",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Jardín Público",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Malvín"
+  },
+  {
+   "Código Ceibal": 90000002,
+   "Nombre Dependencia": "COLEGIO LOS ALAMOS - PRIMARIA",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Privada",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Buceo"
+  },
+  {
+   "Código Ceibal": 90000003,
+   "Nombre Dependencia": "ESCUELA RUSWELL",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Privada",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Atahualpa"
+  },
+  {
+   "Código Ceibal": 1101661,
+   "Nombre Dependencia": "ESCUELA HORIZONTE - 1101661",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "Asunción",
+   "Localidad": "Santísima Trinidad"
+  },
+  {
+   "Código Ceibal": 90000004,
+   "Nombre Dependencia": "INSPECCIÓN DEPARTAMENTAL MONTEVIDEO OESTE",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Inspección",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Centro"
+  },
+  {
+   "Código Ceibal": 90000005,
+   "Nombre Dependencia": "LICEO Nº 2 - MARÍA TERESA OLIVERA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Aguada"
+  },
+  {
+   "Código Ceibal": 90000006,
+   "Nombre Dependencia": "LICEO Nº 7 - JUAN DEL PUERTO",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Pocitos"
+  },
+  {
+   "Código Ceibal": 90000007,
+   "Nombre Dependencia": "CLE DE MONTEVIDEO - 1201112",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Centro de Lenguas Extranjeras",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Centro"
+  },
+  {
+   "Código Ceibal": 90000008,
+   "Nombre Dependencia": "COLEGIO LOS ALAMOS - SECUNDARIA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Privado",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Buceo"
+  },
+  {
+   "Código Ceibal": 90000009,
+   "Nombre Dependencia": "ESCUELA TECNICA DEL CERRO",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Utu",
+   "Departamento": "MONTEVIDEO",
+   "Localidad": "Cerro"
+  },
+  {
+   "Código Ceibal": 1103020,
+   "Nombre Dependencia": "ESCUELA Nº20 - 1103020",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "El Arenal"
+  },
+  {
+   "Código Ceibal": 1103024,
+   "Nombre Dependencia": "ESCUELA Nº 24- 1103024",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "San Ramón"
+  },
+  {
+   "Código Ceibal": 1103045,
+   "Nombre Dependencia": "ESCUELA Nº45 - 1103045",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 1103046,
+   "Nombre Dependencia": "LOS TILOS - 1103046",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 1103145,
+   "Nombre Dependencia": "ESCUELA Nº145 - 1103145",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 1103302,
+   "Nombre Dependencia": "Jardín Nº 302 de Canelones",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Jardín Público",
+   "Departamento": "CANELONES",
+   "Localidad": "El Pinar"
+  },
+  {
+   "Código Ceibal": 1103305,
+   "Nombre Dependencia": "JARDIN Nº305",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Jardín Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Neptunia"
+  },
+  {
+   "Código Ceibal": 1103171,
+   "Nombre Dependencia": "ESCUELA Nº171 - 1103171",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "CANELONES",
+   "Localidad": "2026-05-18 00:00:00"
+  },
+  {
+   "Código Ceibal": 90000010,
+   "Nombre Dependencia": "COLEGIO DEL PARQUE - PRIMARIA",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Privada",
+   "Departamento": "CANELONES",
+   "Localidad": "Solymar"
+  },
+  {
+   "Código Ceibal": 90000011,
+   "Nombre Dependencia": "LICEO Nº 1 PANDO - ALBA RIVERO",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 90000012,
+   "Nombre Dependencia": "LICEO Nº 2 PANDO - JUANA DÍAZ",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 90000013,
+   "Nombre Dependencia": "COLEGIO SOL NACIENTE - SECUNDARIA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Privado",
+   "Departamento": "CANELONES",
+   "Localidad": "Pando"
+  },
+  {
+   "Código Ceibal": 90000014,
+   "Nombre Dependencia": "LICEO Nº 1 - SAUCE",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Sauce"
+  },
+  {
+   "Código Ceibal": 90000015,
+   "Nombre Dependencia": "LICEO Nº 1 - ATLANTIDA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Atlántida"
+  },
+  {
+   "Código Ceibal": 90000016,
+   "Nombre Dependencia": "LICEO Nº 1 LAS PIEDRAS - PEDRO ARCE",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Las Piedras"
+  },
+  {
+   "Código Ceibal": 90000017,
+   "Nombre Dependencia": "LICEO Nº 1 - SOLYMAR",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Solymar"
+  },
+  {
+   "Código Ceibal": 90000018,
+   "Nombre Dependencia": "ANEXO - LICEO Nº1 SOLYMAR",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "CANELONES",
+   "Localidad": "Solymar"
+  },
+  {
+   "Código Ceibal": 90000019,
+   "Nombre Dependencia": "LICEO TALA - RAMÓN SILVA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "Tala"
+  },
+  {
+   "Código Ceibal": 90000020,
+   "Nombre Dependencia": "SAN MARCOS - TALA",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceos Privados Gratuitos",
+   "Departamento": "CANELONES",
+   "Localidad": "Tala"
+  },
+  {
+   "Código Ceibal": 90000021,
+   "Nombre Dependencia": "LICEO DIECIOCHO DE MAYO - S/N",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "CANELONES",
+   "Localidad": "2026-05-18 00:00:00"
+  },
+  {
+   "Código Ceibal": 90000022,
+   "Nombre Dependencia": "ESCUELA TECNICA SOLYMAR",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Utu",
+   "Departamento": "CANELONES",
+   "Localidad": "Solymar"
+  },
+  {
+   "Código Ceibal": 90000023,
+   "Nombre Dependencia": "SATELITE UTU - PINAR NORTE - SOLYMAR",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "CANELONES",
+   "Localidad": "Pinar Norte"
+  },
+  {
+   "Código Ceibal": 90000024,
+   "Nombre Dependencia": "ESCUELA TECNICA TALA",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Utu",
+   "Departamento": "CANELONES",
+   "Localidad": "Tala"
+  },
+  {
+   "Código Ceibal": 90000025,
+   "Nombre Dependencia": "SATELITE UTU - ESCUELA Nº 51 JOANICO",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "CANELONES",
+   "Localidad": "Joanicó"
+  },
+  {
+   "Código Ceibal": 1108005,
+   "Nombre Dependencia": "ESCUELA Nº5 - 1108005",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "FLORIDA",
+   "Localidad": "2026-05-25 00:00:00"
+  },
+  {
+   "Código Ceibal": 1108079,
+   "Nombre Dependencia": "ESCUELA Nº79 - 1108079",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "FLORIDA",
+   "Localidad": "Cerro Colorado"
+  },
+  {
+   "Código Ceibal": 1108079,
+   "Nombre Dependencia": "ESCUELA Nº79 - 1108079",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "FLORIDA",
+   "Localidad": "Cerro Colorado"
+  },
+  {
+   "Código Ceibal": 1108080,
+   "Nombre Dependencia": "LUZ DEL CAMPO - 1108080",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "FLORIDA",
+   "Localidad": "Florida"
+  },
+  {
+   "Código Ceibal": 90000026,
+   "Nombre Dependencia": "LICEO 25 DE MAYO - S/N",
+   "Rubro": "DGES",
+   "Tipo dependencia": "Liceo Público",
+   "Departamento": "FLORIDA",
+   "Localidad": "2026-05-25 00:00:00"
+  },
+  {
+   "Código Ceibal": 90000027,
+   "Nombre Dependencia": "ESCUELA AGRARIA SARANDÍ GRANDE",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Utu",
+   "Departamento": "FLORIDA",
+   "Localidad": "Sarandí Grande"
+  },
+  {
+   "Código Ceibal": 90000028,
+   "Nombre Dependencia": "IFD FLORIDA MAESTRA ELENA PAZ",
+   "Rubro": "CFE",
+   "Tipo dependencia": "Centro de Formación Docente Publico",
+   "Departamento": "FLORIDA",
+   "Localidad": "Florida"
+  },
+  {
+   "Código Ceibal": 90000029,
+   "Nombre Dependencia": "CERP DEL CENTRO",
+   "Rubro": "CFE",
+   "Tipo dependencia": "Centro de Formación Docente Publico",
+   "Departamento": "FLORIDA",
+   "Localidad": "Florida"
+  },
+  {
+   "Código Ceibal": 1117113,
+   "Nombre Dependencia": "ESCUELA Nº113- 1117113",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública Especial",
+   "Departamento": "SORIANO",
+   "Localidad": "Dolores"
+  },
+  {
+   "Código Ceibal": 90000030,
+   "Nombre Dependencia": "ANEXO ESCUELA Nº 113 DOLORES",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "SORIANO",
+   "Localidad": "Dolores"
+  },
+  {
+   "Código Ceibal": 1117020,
+   "Nombre Dependencia": "ESCUELA Nº20 - 1117020",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "SORIANO",
+   "Localidad": "Mercedes"
+  },
+  {
+   "Código Ceibal": 1105001,
+   "Nombre Dependencia": "PRIMEROS PASOS - 1105001",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "COLONIA",
+   "Localidad": "Colonia Del Sacramento"
+  },
+  {
+   "Código Ceibal": 1105002,
+   "Nombre Dependencia": "ESCUELA Nº2 - 1105002",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "COLONIA",
+   "Localidad": "Carmelo"
+  },
+  {
+   "Código Ceibal": 1114018,
+   "Nombre Dependencia": "ESCUELA Nº18 - 1114018",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "ROCHA",
+   "Localidad": "2026-04-19 00:00:00"
+  },
+  {
+   "Código Ceibal": 1114001,
+   "Nombre Dependencia": "ESCUELA Nº1 - 1114001",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "ROCHA",
+   "Localidad": "Rocha"
+  },
+  {
+   "Código Ceibal": 1119091,
+   "Nombre Dependencia": "JARDIN Nº 91",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Jardín Público",
+   "Departamento": "TREINTA Y TRES",
+   "Localidad": "Vergara"
+  },
+  {
+   "Código Ceibal": 1102001,
+   "Nombre Dependencia": "SOL DE ARTIGAS - 1102001",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "ARTIGAS",
+   "Localidad": "Artigas"
+  },
+  {
+   "Código Ceibal": 1102004,
+   "Nombre Dependencia": "ESCUELA Nº4 - 1102004",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Escuela Pública",
+   "Departamento": "ARTIGAS",
+   "Localidad": "Pintado"
+  },
+  {
+   "Código Ceibal": 90000031,
+   "Nombre Dependencia": "SATÉLITE UTU - FRONTERA - YAGUARÓN",
+   "Rubro": "DGETP",
+   "Tipo dependencia": "Satélite o Anexo",
+   "Departamento": "Rio Grande do Sul",
+   "Localidad": "Jaguarão"
+  },
+  {
+   "Código Ceibal": 90000032,
+   "Nombre Dependencia": "CENTRO DE PASANTÍA DE PRUEBA",
+   "Rubro": "DGEIP",
+   "Tipo dependencia": "Centro De Enseñanza",
+   "Departamento": null,
+   "Localidad": null
+  }
+ ]
+}

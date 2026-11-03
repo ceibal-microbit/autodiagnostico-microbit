@@ -1,0 +1,697 @@
+<title>Autodiagnóstico docente micro:bit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: asistente de una columna con la identidad del sitio micro:bit de Ceibal — franja verde Ceibal arriba, tarjetas planas
+   de color por dimensión (la paleta de "Formación y recursos"), botones píldora, íconos de LEDs 5×5. Tema claro único, como el sitio. */
+:root {
+  color-scheme: light;
+  --bg: #F9FAFB;
+  --surface: #FFFFFF;
+  --ink: #111111;
+  --muted: #4B5563;
+  --line: #E5E7EB;
+  --teal-dark: #00635D;      /* verde Ceibal: barra superior, botones */
+  --teal: #00A096;           /* acentos y enlaces */
+  --teal-soft: #E3F3F1;
+  --mb-green: #026902;       /* verde micro:bit: bordes de botón secundario */
+  --c1: #7BCDC1; --c1-ink: #0E5F55;   /* aqua */
+  --c2: #D17EB2; --c2-ink: #6E2357;   /* rosa */
+  --c3: #F2E616; --c3-ink: #6B5F00;   /* amarillo */
+  --c4: #27B2D9; --c4-ink: #0B4F66;   /* celeste */
+  --c5: #E6665D; --c5-ink: #7A1E17;   /* coral */
+  --purple: #5A2382;
+  --danger: #B42318;
+  --font-display: "Ceibal Mozaic", "Figtree", Verdana, sans-serif;
+  --font-body: "Ceibal Mozaic", "Figtree", Verdana, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r: 10px;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--teal-dark); }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; text-wrap: balance; margin: 0; font-weight: 600; }
+h1 { font-size: clamp(2rem, 6.5vw, 2.9rem); }
+h2 { font-size: clamp(1.55rem, 5vw, 2.1rem); }
+h3 { font-size: 1.15rem; }
+p { margin: 0; }
+a { color: var(--teal-dark); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+
+.proto { background: var(--purple); color: #FFFFFF; font-size: 0.82rem; font-weight: 600; text-align: center; padding-block: 7px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topband { background: var(--teal-dark); color: #FFFFFF; padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); font-weight: 600; font-size: 0.95rem; }
+.topband-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topbar-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+.brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; color: var(--mb-green); display: flex; align-items: center; gap: 8px; }
+.brand .logo-slot { font-size: 0.68rem; font-weight: 600; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 6px; padding: 3px 7px; }
+.prog { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+.prog-leds { display: flex; gap: 4px; }
+.prog-leds i { width: 10px; height: 10px; border-radius: 3px; background: var(--line); display: block; }
+.prog-leds i.on { background: var(--teal); }
+.prog-leds i.now { background: var(--teal-dark); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--teal-dark); }
+@media (max-width: 440px) { .brand .logo-slot { display: none; } .prog > span:first-child { display: none; } }
+
+main { padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--teal-dark); font-weight: 700; }
+.lede { font-size: 1.08rem; color: var(--muted); max-width: 60ch; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.note { font-size: 0.9rem; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-size: 0.86em; }
+
+.btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { border: 2px solid var(--teal-dark); border-radius: 25px; padding: 11px 24px; font-weight: 700; cursor: pointer; background: var(--teal-dark); color: #FFFFFF; }
+.btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+.btn.ghost { background: var(--surface); color: var(--ink); border-color: var(--mb-green); }
+.btn.white { background: #FFFFFF; color: var(--ink); border-color: #FFFFFF; }
+.btn.link { background: none; border: 0; padding: 6px 2px; color: var(--teal-dark); text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
+.nav .hint { font-size: 0.88rem; color: var(--muted); align-self: center; }
+
+/* LEDs 5×5 */
+.led5 { display: grid; grid-template-columns: repeat(5, var(--px, 8px)); gap: calc(var(--px, 8px) * 0.35); }
+.led5 i { width: var(--px, 8px); height: var(--px, 8px); border-radius: 22%; background: currentColor; opacity: 0.18; display: block; }
+.led5 i.on { opacity: 1; }
+
+/* Formulario */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label, .legend { font-weight: 700; }
+.field .help { font-size: 0.86rem; color: var(--muted); }
+.field .err { font-size: 0.88rem; color: var(--danger); font-weight: 700; }
+input[type=text], input[type=email], select { width: 100%; padding: 12px 16px; border: 1.5px solid #B9C2CC; border-radius: 25px; background: var(--surface); }
+select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--teal-dark) 50%), linear-gradient(135deg, var(--teal-dark) 50%, transparent 50%); background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+input[type=text]:focus, input[type=email]:focus, select:focus { border-color: var(--teal-dark); outline: none; box-shadow: 0 0 0 3px var(--teal-soft); }
+input.bad { border-color: var(--danger); }
+select:disabled, input:disabled { opacity: 0.5; }
+.check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.check input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--teal-dark); flex: none; }
+
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--surface); cursor: pointer; width: 100%; }
+.opt:hover { border-color: var(--teal); }
+.opt[aria-checked="true"] { border-color: var(--teal-dark); background: var(--teal-soft); }
+.opt .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; margin-top: 3px; display: grid; place-items: center; }
+.opt[aria-checked="true"] .dot { border-color: var(--teal-dark); }
+.opt[aria-checked="true"] .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teal-dark); }
+.opt small { display: block; color: var(--muted); font-size: 0.82rem; }
+
+/* Buscador de centros */
+.ta { position: relative; }
+.sug { list-style: none; margin: 6px 0 0; padding: 4px; border: 1.5px solid var(--line); border-radius: var(--r); background: var(--surface); max-height: 360px; overflow-y: auto; }
+.sug li { padding: 9px 12px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
+.sug li[aria-selected="true"], .sug li:hover { background: var(--teal-soft); }
+.sug .nm { font-weight: 700; }
+.sug .meta { font-size: 0.82rem; color: var(--muted); }
+.sug .none { border-top: 1px solid var(--line); margin-top: 4px; border-radius: 0 0 6px 6px; color: var(--teal-dark); font-weight: 700; }
+.sug .empty { cursor: default; color: var(--muted); font-size: 0.9rem; }
+.chosen { display: flex; gap: 12px; align-items: center; justify-content: space-between; border: 1.5px solid var(--teal-dark); background: var(--teal-soft); border-radius: var(--r); padding: 12px 16px; flex-wrap: wrap; }
+.chosen .nm { font-weight: 700; color: var(--teal-dark); }
+.chosen .meta { font-size: 0.85rem; color: var(--muted); }
+.chosen.pending { border-color: var(--c5); background: #FDECEA; }
+.chosen.pending .nm { color: var(--c5-ink); }
+
+/* Hero */
+.hero { background: var(--teal-dark); color: #FFFFFF; border-radius: var(--r); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
+.hero .eyebrow { color: #BFEDE7; }
+.hero .lede { color: #E4F4F2; }
+.hero-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 360px; }
+.hero-tiles span { aspect-ratio: 1; border-radius: 8px; display: grid; place-items: center; max-width: 100%; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.95rem; color: var(--muted); }
+.facts b { color: var(--ink); }
+
+/* Dimensión */
+.dimband { border-radius: var(--r); padding: 22px 22px 20px; display: flex; gap: 18px; align-items: center; }
+.dimband > div:last-child { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.dimband .eyebrow { color: inherit; opacity: 0.85; }
+.dimband h2 { color: var(--ink); }
+.dimband .ico { flex: none; width: 74px; height: 74px; border-radius: 14px; background: rgba(255,255,255,0.55); display: grid; place-items: center; }
+@media (max-width: 440px) { .dimband .ico { width: 58px; height: 58px; } .dimband .led5 { --px: 7px !important; } }
+
+/* Escala Likert */
+.item { display: flex; flex-direction: column; gap: 12px; padding-block: 18px; border-top: 1px solid var(--line); }
+.item:first-of-type { border-top: 0; padding-top: 4px; }
+.item .q { display: flex; gap: 12px; }
+.item .n { font-weight: 700; color: var(--teal-dark); min-width: 2ch; }
+.likert { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.lk { border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 10px 4px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.lk:hover { border-color: var(--teal); }
+.lk .leds { display: flex; gap: 3px; color: var(--teal-dark); }
+.lk .leds i { width: 6px; height: 6px; border-radius: 1.5px; background: currentColor; opacity: 0.18; display: block; }
+.lk .leds i.on { opacity: 1; }
+.lk .v { font-weight: 700; font-size: 1.1rem; line-height: 1; }
+.lk .t { font-size: 0.78rem; color: var(--muted); line-height: 1.1; text-align: center; }
+.lk[aria-checked="true"] { border-color: var(--teal-dark); background: var(--teal-dark); color: #FFFFFF; }
+.lk[aria-checked="true"] .t { color: #FFFFFF; font-weight: 700; }
+.lk[aria-checked="true"] .leds { color: #FFFFFF; }
+.scale-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.86rem; color: var(--muted); }
+.scale-key b { color: var(--ink); }
+
+/* Revisión */
+.rev { display: flex; flex-direction: column; gap: 0; }
+.rev-sec { display: flex; flex-direction: column; gap: 8px; padding-block: 16px; border-top: 1px solid var(--line); }
+.rev-sec:first-child { border-top: 0; padding-top: 0; }
+.rev-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.kv { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); gap: 4px 14px; font-size: 0.94rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .kv { grid-template-columns: 1fr; } .kv dd { margin-bottom: 6px; } }
+
+/* Perfil */
+.levels-key { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 7px; border-radius: 25px; padding: 4px 12px 4px 10px; font-size: 0.84rem; font-weight: 700; white-space: nowrap; border: 1.5px solid var(--teal-dark); color: var(--teal-dark); background: var(--surface); }
+.chip .lv { display: inline-flex; gap: 3px; }
+.chip .lv i { width: 8px; height: 8px; border-radius: 2px; background: var(--teal-dark); opacity: 0.2; display: block; }
+.chip .lv i.on { opacity: 1; }
+.chip.c { background: var(--teal-dark); color: #FFFFFF; }
+.chip.c .lv i { background: #FFFFFF; }
+.next { border-radius: var(--r); padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; background: var(--teal-soft); border: 2px solid var(--teal-dark); }
+.dim { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; }
+.dim-top { display: flex; align-items: center; gap: 14px; padding: 14px 20px; }
+.dim-top h3 { min-width: 0; flex: 1; }
+.dim-top .ico { flex: none; width: 46px; height: 46px; border-radius: 10px; background: rgba(255,255,255,0.55); display: grid; place-items: center; }
+.dim-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dim-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.meter { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
+.meter-bar { position: relative; height: 10px; border-radius: 5px; display: grid; grid-template-columns: 1.5fr 1.3fr 1.2fr; gap: 2px; }
+.meter-bar span { display: block; height: 100%; background: #E9EEF0; }
+.meter-bar span:nth-child(1) { border-radius: 5px 0 0 5px; }
+.meter-bar span:nth-child(2) { background: #D6EAE7; }
+.meter-bar span:nth-child(3) { background: #B5DDD7; border-radius: 0 5px 5px 0; }
+.meter-bar b { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%, -50%); border: 3px solid var(--surface); background: var(--teal-dark); box-shadow: 0 0 0 1px var(--teal-dark); }
+.meter-lbl { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter-lbl strong { color: var(--ink); }
+.observa { font-size: 0.92rem; color: var(--muted); }
+.rec { background: var(--bg); border-radius: 8px; padding: 12px 14px; }
+.rec b { display: block; color: var(--teal-dark); }
+.cierre { display: flex; flex-direction: column; gap: 10px; padding: 24px 22px; border-radius: var(--r); background: var(--purple); color: #FFFFFF; }
+.cierre h3 { font-size: 1.3rem; }
+details.team { border: 1.5px dashed #B9C2CC; border-radius: var(--r); padding: 14px 18px; background: var(--surface); }
+details.team summary { cursor: pointer; font-weight: 700; }
+details.team .tbl { overflow-x: auto; margin-top: 12px; }
+details.team table { border-collapse: collapse; font-size: 0.82rem; width: 100%; }
+details.team td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+details.team td:first-child { font-family: var(--font-mono); color: var(--muted); white-space: nowrap; }
+.saving { display: flex; align-items: center; gap: 14px; color: var(--muted); padding-block: 40px; justify-content: center; }
+.saving .prog-leds i { animation: blink 0.9s infinite; }
+.saving .prog-leds i:nth-child(2) { animation-delay: 0.15s; } .saving .prog-leds i:nth-child(3) { animation-delay: 0.3s; } .saving .prog-leds i:nth-child(4) { animation-delay: 0.45s; } .saving .prog-leds i:nth-child(5) { animation-delay: 0.6s; }
+@keyframes blink { 0%, 100% { background: var(--line); } 50% { background: var(--teal-dark); } }
+@media (prefers-reduced-motion: reduce) { .saving .prog-leds i { animation: none; background: var(--teal-dark); } }
+footer { background: var(--surface); border-top: 1px solid var(--line); text-align: center; font-size: 0.82rem; color: var(--muted); padding-block: 18px 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+</style>
+
+<div class="proto">Prototipo navegable · catálogo de centros SINTÉTICO · las respuestas no se guardan</div>
+<div class="topband"><div class="topband-in">Programa micro:bit · Ceibal</div></div>
+<header class="topbar"><div class="topbar-in">
+  <div class="brand"><span class="logo-slot">LOGO</span>Autodiagnóstico docente</div>
+  <div class="prog" id="prog" aria-live="polite"></div>
+</div></header>
+<main><div class="wrap" id="app"></div></main>
+<footer>Programa micro:bit · Ceibal · Prototipo para revisión interna. La tipografía Ceibal Mozaic se reemplaza aquí por Figtree.</footer>
+
+<script>
+const CAT = {"deps":["Artigas","Asunción","Canelones","Colonia","Florida","Montevideo","Rio Grande do Sul","Rocha","Soriano","Treinta y Tres"],"c":[[1101003,"ESCUELA NORUEGA - 1101003","DGEIP",5,"Punta Carretas","esc",3],[1101012,"ESCUELA Nº12 - 1101012","DGEIP",5,"Cordón","esc",12],[1101026,"ESTRELLA DEL SUR - 1101026","DGEIP",5,"Paso Molino","esc",26],[1101035,"REPÚBLICA DE ISLANDIA - 1101035","DGEIP",5,"Buceo","esc",35],[90000001,"ANEXO ESCUELA Nº 35 - REPÚBLICA DE ISLANDIA","DGEIP",5,"Buceo","anexo",35],[1101096,"FRANCISCO LUNA - 1101096","DGEIP",5,"Nuevo París","esc",96],[1101115,"FRANCISCO LUNA - 1101115","DGEIP",5,"Nuevo París","esc",115],[1101156,"ESCUELA ARRECIFE - 1101156","DGEIP",5,"Simón Bolívar","esc",156],[1101139,"ESCUELA Nº139 - 1101139","DGEIP",5,"Manga","esc",139],[1101300,"ESCUELA Nº300","DGEIP",5,"La Cruz De Carrasco","jar",300],[1101302,"CEDRO AZUL - 1101302","DGEIP",5,"Peñarol","esc",302],[1101245,"JARDÍN Nº 245","DGEIP",5,"Malvín","jar",245],[90000002,"COLEGIO LOS ALAMOS - PRIMARIA","DGEIP",5,"Buceo","esc",null],[90000003,"ESCUELA RUSWELL","DGEIP",5,"Atahualpa","esc",null],[1101661,"ESCUELA HORIZONTE - 1101661","DGEIP",1,"Santísima Trinidad","esc",661],[90000004,"INSPECCIÓN DEPARTAMENTAL MONTEVIDEO OESTE","DGEIP",5,"Centro","otro",null],[90000005,"LICEO Nº 2 - MARÍA TERESA OLIVERA","DGES",5,"Aguada","lic",2],[90000006,"LICEO Nº 7 - JUAN DEL PUERTO","DGES",5,"Pocitos","lic",7],[90000007,"CLE DE MONTEVIDEO - 1201112","DGES",5,"Centro","otro",null],[90000008,"COLEGIO LOS ALAMOS - SECUNDARIA","DGES",5,"Buceo","lic",null],[90000009,"ESCUELA TECNICA DEL CERRO","DGETP",5,"Cerro","utu",null],[1103020,"ESCUELA Nº20 - 1103020","DGEIP",2,"El Arenal","esc",20],[1103024,"ESCUELA Nº 24- 1103024","DGEIP",2,"San Ramón","esc",24],[1103045,"ESCUELA Nº45 - 1103045","DGEIP",2,"Pando","esc",45],[1103046,"LOS TILOS - 1103046","DGEIP",2,"Pando","esc",46],[1103145,"ESCUELA Nº145 - 1103145","DGEIP",2,"Pando","esc",145],[1103302,"Jardín Nº 302 de Canelones","DGEIP",2,"El Pinar","jar",302],[1103305,"JARDIN Nº305","DGEIP",2,"Neptunia","jar",305],[1103171,"ESCUELA Nº171 - 1103171","DGEIP",2,"18 de Mayo","esc",171],[90000010,"COLEGIO DEL PARQUE - PRIMARIA","DGEIP",2,"Solymar","esc",null],[90000011,"LICEO Nº 1 PANDO - ALBA RIVERO","DGES",2,"Pando","lic",1],[90000012,"LICEO Nº 2 PANDO - JUANA DÍAZ","DGES",2,"Pando","lic",2],[90000013,"COLEGIO SOL NACIENTE - SECUNDARIA","DGES",2,"Pando","lic",null],[90000014,"LICEO Nº 1 - SAUCE","DGES",2,"Sauce","lic",1],[90000015,"LICEO Nº 1 - ATLANTIDA","DGES",2,"Atlántida","lic",1],[90000016,"LICEO Nº 1 LAS PIEDRAS - PEDRO ARCE","DGES",2,"Las Piedras","lic",1],[90000017,"LICEO Nº 1 - SOLYMAR","DGES",2,"Solymar","lic",1],[90000018,"ANEXO - LICEO Nº1 SOLYMAR","DGES",2,"Solymar","anexo",1],[90000019,"LICEO TALA - RAMÓN SILVA","DGES",2,"Tala","lic",null],[90000020,"SAN MARCOS - TALA","DGES",2,"Tala","lic",null],[90000021,"LICEO DIECIOCHO DE MAYO - S/N","DGES",2,"18 de Mayo","lic",null],[90000022,"ESCUELA TECNICA SOLYMAR","DGETP",2,"Solymar","utu",null],[90000023,"SATELITE UTU - PINAR NORTE - SOLYMAR","DGETP",2,"Pinar Norte","anexo",null],[90000024,"ESCUELA TECNICA TALA","DGETP",2,"Tala","utu",null],[90000025,"SATELITE UTU - ESCUELA Nº 51 JOANICO","DGETP",2,"Joanicó","anexo",51],[1108005,"ESCUELA Nº5 - 1108005","DGEIP",4,"25 de Mayo","esc",5],[1108079,"ESCUELA Nº79 - 1108079","DGEIP",4,"Cerro Colorado","esc",79],[1108080,"LUZ DEL CAMPO - 1108080","DGEIP",4,"Florida","esc",80],[90000026,"LICEO 25 DE MAYO - S/N","DGES",4,"25 de Mayo","lic",null],[90000027,"ESCUELA AGRARIA SARANDÍ GRANDE","DGETP",4,"Sarandí Grande","utu",null],[90000028,"IFD FLORIDA MAESTRA ELENA PAZ","CFE",4,"Florida","ifd",null],[90000029,"CERP DEL CENTRO","CFE",4,"Florida","cerp",null],[1117113,"ESCUELA Nº113- 1117113","DGEIP",8,"Dolores","esc",113],[90000030,"ANEXO ESCUELA Nº 113 DOLORES","DGEIP",8,"Dolores","anexo",113],[1117020,"ESCUELA Nº20 - 1117020","DGEIP",8,"Mercedes","esc",20],[1105001,"PRIMEROS PASOS - 1105001","DGEIP",3,"Colonia Del Sacramento","esc",1],[1105002,"ESCUELA Nº2 - 1105002","DGEIP",3,"Carmelo","esc",2],[1114018,"ESCUELA Nº18 - 1114018","DGEIP",7,"19 de Abril","esc",18],[1114001,"ESCUELA Nº1 - 1114001","DGEIP",7,"Rocha","esc",1],[1119091,"JARDIN Nº 91","DGEIP",9,"Vergara","jar",91],[1102001,"SOL DE ARTIGAS - 1102001","DGEIP",0,"Artigas","esc",1],[1102004,"ESCUELA Nº4 - 1102004","DGEIP",0,"Pintado","esc",4],[90000031,"SATÉLITE UTU - FRONTERA - YAGUARÓN","DGETP",6,"Jaguarão","anexo",null]]};
+
+/* ---------- Instrumento ---------- */
+const VERSION = "2026.1";
+const SUBS = [
+  { id: "DGEIP", nm: "DGEIP", ds: "Educación Inicial y Primaria" },
+  { id: "DGES", nm: "DGES", ds: "Educación Secundaria" },
+  { id: "DGETP", nm: "DGETP", ds: "Educación Técnico Profesional (UTU)" },
+  { id: "CFE", nm: "CFE", ds: "Consejo de Formación en Educación" },
+];
+const CTX = [
+  { q: "¿Hace cuánto tiempo utilizás micro:bit?", o: ["Todavía no la utilicé.", "La utilicé alguna vez.", "Hace menos de un año.", "Entre uno y dos años.", "Hace más de dos años."] },
+  { q: "¿Participaste en alguna instancia de formación sobre micro:bit durante los últimos dos años?", o: ["No.", "Sí, en un curso introductorio.", "Sí, en más de una instancia de formación (por ejemplo: cursos y talleres).", "Sí, y además continúo explorando recursos o propuestas de forma autónoma."] },
+  { q: "¿Con qué frecuencia utilizás actualmente micro:bit con tus estudiantes?", o: ["Todavía no la utilizo.", "La utilicé de forma puntual.", "Algunas veces durante el año.", "Con bastante frecuencia (mensualmente).", "Forma parte habitual de mis propuestas."] },
+];
+const SCALE = ["Nada", "Poco", "En parte", "Bastante", "Mucho"];
+const REC_F = "Te recomendamos:", REC_C = "Tu próximo desafío puede ser:";
+const DIMS = [
+  { nm: "Autonomía técnica", corto: "Autonomía técnica",
+    items: ["Puedo crear o modificar programas en MakeCode para utilizarlos con micro:bit sin necesitar apoyo permanente de otra persona.",
+            "Cuando surge una dificultad técnica durante una actividad con micro:bit puedo identificar posibles causas y buscar una solución.",
+            "Me siento capaz de explorar nuevas funciones, componentes o posibilidades de micro:bit por mi cuenta."],
+    observa: "Tu nivel de confianza y autonomía para utilizar la tecnología, resolver dificultades y explorar nuevas posibilidades.",
+    f: ["Tu perfil muestra que uno de tus próximos pasos puede estar en ganar mayor confianza en el uso técnico de micro:bit. Explorar MakeCode, modificar programas existentes y familiarizarte con la resolución de pequeños problemas puede ayudarte a trabajar con mayor autonomía.", "comenzar con actividades simples de la Guía y del Cuaderno de Actividades micro:bit y animarte a modificar pequeñas partes de los programas propuestos."],
+    d: ["Ya contás con algunas herramientas para trabajar con micro:bit de manera autónoma, aunque todavía pueden surgir situaciones en las que necesites apoyo o mayor confianza.", "seguir explorando MakeCode, modificar programas existentes y enfrentarte progresivamente a pequeños desafíos técnicos que te permitan ganar seguridad y autonomía."],
+    c: ["La autonomía técnica aparece como una de tus fortalezas. Contás con herramientas para explorar, modificar y resolver situaciones de manera independiente.", "poner esa autonomía al servicio del diseño de propuestas pedagógicas más complejas o acompañar a otros docentes que están comenzando."] },
+  { nm: "Uso pedagógico", corto: "Uso pedagógico",
+    items: ["Integro micro:bit en actividades vinculadas con objetivos de aprendizaje de mi área o nivel.",
+            "Puedo adaptar o diseñar actividades con micro:bit de acuerdo con las necesidades de mis estudiantes.",
+            "Utilizo micro:bit como parte de secuencias, proyectos o experiencias de aprendizaje y no únicamente como una actividad puntual."],
+    observa: "En qué medida micro:bit está integrada a tus propuestas de enseñanza y vinculada con intenciones pedagógicas concretas.",
+    f: ["Tu principal oportunidad puede estar en avanzar desde el conocimiento de la herramienta hacia su integración en propuestas de enseñanza.", "elegir un contenido u objetivo de aprendizaje de tu planificación y explorar de qué manera micro:bit podría ayudarte a abordarlo."],
+    d: ["Ya comenzaste a integrar micro:bit en tus propuestas de enseñanza, aunque todavía existe margen para profundizar su vínculo con los objetivos de aprendizaje y darle mayor continuidad en el aula.", "avanzar desde actividades puntuales hacia secuencias o proyectos en los que micro:bit tenga un propósito pedagógico claro y se vincule de forma más sostenida con tu planificación."],
+    c: ["micro:bit ya forma parte de tus decisiones pedagógicas y aparece integrada a objetivos de aprendizaje.", "profundizar propuestas de mayor duración, explorar nuevas metodologías o documentar experiencias que puedan inspirar a otros docentes."] },
+  { nm: "Apropiación pedagógica y condiciones para el uso", corto: "Apropiación pedagógica",
+    items: ["Encuentro oportunidades dentro de mi planificación para incorporar actividades con micro:bit.",
+            "Me siento seguro/a al implementar actividades con micro:bit frente a mis estudiantes, incluso cuando pueden surgir situaciones imprevistas.",
+            "Puedo seleccionar o adaptar propuestas con micro:bit sin depender exclusivamente de actividades ya diseñadas por otras personas."],
+    observa: "En qué medida lográs incorporar micro:bit a tu práctica con confianza, flexibilidad y capacidad para tomar decisiones pedagógicas propias.",
+    f: ["Es posible que todavía existan algunas barreras para incorporar micro:bit con mayor autonomía o frecuencia.", "comenzar con propuestas acotadas, adaptar actividades existentes y avanzar progresivamente hacia diseños propios."],
+    d: ["Ya contás con experiencias que te permiten incorporar micro:bit en tus propuestas, aunque todavía podés fortalecer tu confianza para adaptar actividades, tomar decisiones propias y responder con mayor flexibilidad a situaciones imprevistas.", "partir de propuestas conocidas e introducir modificaciones graduales que respondan a tus objetivos y a las características de tu grupo."],
+    c: ["Mostrás un alto nivel de confianza para tomar decisiones pedagógicas vinculadas con micro:bit y adaptar las propuestas a las necesidades de tus estudiantes.", "experimentar con nuevos formatos, problemas abiertos o propuestas creadas por vos."] },
+  { nm: "Cultura tecnológica vinculada a micro:bit en el centro educativo", corto: "Cultura del centro",
+    items: ["En mi centro educativo conozco cómo acceder a las placas micro:bit y otros recursos disponibles para utilizarlas.",
+            "En mi centro existen condiciones que facilitan la incorporación de micro:bit en las propuestas de aula.",
+            "El uso de micro:bit es conocido, compartido o promovido entre distintos docentes de mi centro educativo."],
+    observa: "Las condiciones del centro educativo para facilitar el acceso, la circulación y el uso sostenido de micro:bit.",
+    f: ["Tu respuesta muestra que puede haber oportunidades para mejorar las condiciones de acceso, circulación o conocimiento de micro:bit dentro de tu centro.", "conocer qué recursos están disponibles, conversar con otros docentes que utilizan micro:bit e identificar oportunidades para compartir experiencias."],
+    d: ["En tu centro ya existen algunas condiciones y experiencias que favorecen el uso de micro:bit, aunque todavía pueden fortalecerse su circulación, visibilidad y aprovechamiento entre docentes.", "identificar qué recursos y experiencias ya existen en el centro y generar oportunidades para compartirlos, organizarlos o hacerlos más accesibles a otros docentes."],
+    c: ["Tu centro cuenta con condiciones favorables para el uso de micro:bit y existe una cultura que facilita su incorporación.", "contribuir a que esas experiencias circulen dentro del centro y que nuevos docentes puedan sumarse y participar de las iniciativas que se proponen desde el centro y desde Ceibal."] },
+  { nm: "Trabajo colaborativo e interdisciplinario", corto: "Trabajo colaborativo",
+    items: ["Existe un intercambio de ideas, experiencias o recursos sobre micro:bit con otros docentes.",
+            "He trabajado o me siento en condiciones de trabajar con otros docentes en propuestas que integren micro:bit.",
+            "Identifico posibilidades de conectar el uso de micro:bit con diferentes áreas, asignaturas o campos de conocimiento."],
+    observa: "El grado en que el uso de micro:bit se vincula con el intercambio entre colegas y con propuestas que trascienden una única área de conocimiento.",
+    f: ["Una oportunidad de desarrollo puede estar en conectar tu experiencia con micro:bit con la de otros docentes o áreas de conocimiento.", "identificar un colega, área o proyecto con el que pueda existir un punto de encuentro y pensar una primera actividad conjunta."],
+    d: ["Ya existen algunos intercambios o experiencias de colaboración en torno a micro:bit, pero todavía hay oportunidades para ampliar el trabajo conjunto y conectar la tecnología con otras áreas de conocimiento.", "buscar una oportunidad concreta para planificar o desarrollar una actividad con otro docente, partiendo de un objetivo, contenido o problema compartido."],
+    c: ["El intercambio y el trabajo con otros docentes aparecen como una fortaleza en tu perfil.", "impulsar proyectos interdisciplinarios de mayor alcance o compartir tu experiencia con otros equipos docentes."] },
+];
+const LVL = { f: "A fortalecer", d: "En desarrollo", c: "Consolidada" };
+const LVN = { f: 1, d: 2, c: 3 };
+const ICONS = [
+  ["..#..", ".###.", "#.#.#", "..#..", "..#.."],   // flecha: autonomía técnica
+  [".....", "....#", "...#.", "#.#..", ".#..."],   // tilde: uso pedagógico
+  [".#.#.", "#####", "#####", ".###.", "..#.."],   // corazón: apropiación
+  ["..#..", ".###.", "#####", ".#.#.", ".###."],   // casa: centro educativo
+  ["###..", "#.#..", "#####", "..#.#", "..###"],   // cuadros enlazados: colaboración
+].map(r => r.join(""));
+const ico = (i, px) => `<span class="led5" style="--px:${px}px;color:var(--c${i + 1}-ink)" aria-hidden="true">${[...ICONS[i]].map(c => `<i class="${c === "#" ? "on" : ""}"></i>`).join("")}</span>`;
+const chip = l => `<span class="chip ${l}"><span class="lv" aria-hidden="true">${[1, 2, 3].map(k => `<i class="${k <= LVN[l] ? "on" : ""}"></i>`).join("")}</span>${LVL[l]}</span>`;
+const nivel = s => s <= 7 ? "f" : s <= 11 ? "d" : "c";
+
+/* ---------- Estado ---------- */
+const STEPS = ["inicio", "datos", "experiencia", "d0", "d1", "d2", "d3", "d4", "revision", "perfil"];
+const blank = () => ({ step: 0, nombre: "", email: "", cedula: "", sub: "", dep: "", loc: "", centro: null, centroTexto: "", origen: "", ctx: [null, null, null], r: Array(15).fill(null), touched: {} });
+let S = blank();
+
+/* ---------- Utilidades ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[º°]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const fmt1 = x => x.toFixed(1).replace(".", ",");
+const MVD = "Montevideo";
+
+function emailValido(v) { return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(v || "").trim()); }
+const DOMINIOS = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "ceibal.edu.uy", "anep.edu.uy", "adinet.com.uy", "vera.com.uy", "live.com", "icloud.com"];
+function sugerirEmail(v) {
+  const m = String(v || "").trim().toLowerCase().match(/^([^\s@]+)@([^\s@]+)$/); if (!m) return null;
+  const dom = m[2]; if (DOMINIOS.includes(dom)) return null;
+  let best = null, bd = 3;
+  for (const d of DOMINIOS) { const k = lev(dom, d); if (k > 0 && k < bd) { bd = k; best = d; } }
+  return best ? m[1] + "@" + best : null;
+}
+function lev(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return dp[a.length][b.length];
+}
+function cedulaDigits(v) { return String(v || "").replace(/\D/g, ""); }
+function cedulaValida(v) {
+  const d = cedulaDigits(v);
+  if (d.length < 7 || d.length > 8) return false;
+  const base = d.slice(0, -1).padStart(7, "0"), dv = +d.slice(-1), w = [2, 9, 8, 7, 6, 3, 4];
+  const s = [...base].reduce((a, c, i) => a + (+c) * w[i], 0);
+  return (10 - (s % 10)) % 10 === dv;
+}
+function cedulaFmt(v) {
+  const d = cedulaDigits(v); if (d.length < 2) return d;
+  const base = d.slice(0, -1), dv = d.slice(-1);
+  return base.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + dv;
+}
+
+/* ---------- Catálogo ---------- */
+const CENTROS = CAT.c.map(([cod, nm, rub, di, loc, tipo, num]) => ({ cod, nm, rub, dep: CAT.deps[di], loc, tipo, num, nn: norm(nm).replace(/\b\d{6,}\b/g, "").trim(), ln: norm(loc) }));
+const DEPTOS = [...new Set(CENTROS.map(c => c.dep))].sort((a, b) => a.localeCompare(b, "es"));
+function localidades(sub, dep) {
+  return [...new Set(CENTROS.filter(c => c.rub === sub && c.dep === dep).map(c => c.loc))].sort((a, b) => a.localeCompare(b, "es"));
+}
+function candidatos() {
+  return CENTROS.filter(c => c.rub === S.sub && c.dep === S.dep && (S.dep === MVD || c.loc === S.loc));
+}
+const TIPOS = { escuela: "esc", esc: "esc", jardin: "jar", jn: "jar", jardines: "jar", liceo: "lic", lic: "lic", utu: "utu", tecnica: "utu", ifd: "ifd", cerp: "cerp", anexo: "anexo", satelite: "anexo" };
+const AULA = new Set(["esc", "jar", "lic", "utu", "ifd", "cerp"]);
+function bigrams(s) { const b = new Map(); for (let i = 0; i < s.length - 1; i++) { const g = s.slice(i, i + 2); b.set(g, (b.get(g) || 0) + 1); } return b; }
+function dice(a, b) {
+  if (!a || !b) return 0; if (a === b) return 1; if (a.length < 2 || b.length < 2) return 0;
+  const A = bigrams(a), B = bigrams(b); let inter = 0;
+  for (const [g, n] of A) inter += Math.min(n, B.get(g) || 0);
+  return (2 * inter) / (a.length - 1 + b.length - 1);
+}
+function simTexto(resto, c) {
+  if (!resto) return 0;
+  const hay = c.nn + " " + c.ln;
+  if (hay.includes(resto)) return 1;
+  const rt = resto.split(" "), ht = hay.split(" ");
+  let tot = 0;
+  for (const t of rt) { let best = 0; for (const h of ht) best = Math.max(best, dice(t, h)); tot += best; }
+  return tot / rt.length;
+}
+function buscar(q) {
+  const cand = candidatos();
+  const nq = norm(q).replace(/\b(nro|n|no)\b/g, " ").replace(/\s+/g, " ").trim();
+  if (!nq) return cand.slice().sort(ordenBase).slice(0, 12).map(c => ({ c, s: 0 }));
+  const toks = nq.split(" ");
+  const tiposQ = toks.filter(t => TIPOS[t]).map(t => TIPOS[t]);
+  const tipo = ["anexo", "utu", "ifd", "cerp", "lic", "jar", "esc"].find(t => tiposQ.includes(t)) || null;
+  const numTok = toks.find(t => /^\d+$/.test(t)); const num = numTok ? +numTok : null;
+  const resto = toks.filter(t => !TIPOS[t] && !/^\d+$/.test(t)).join(" ");
+  const out = [];
+  for (const c of cand) {
+    let s = 0;
+    if (num !== null) {
+      if (c.num === num) s += 60;
+      else if (String(c.cod) === numTok) s += 80;
+      else continue;
+    }
+    if (resto) {
+      const t = simTexto(resto, c);
+      if (num === null && t < 0.55) continue;
+      s += t * 40;
+    }
+    if (tipo) {
+      const grupo = (tipo === "esc" || tipo === "jar") ? ["esc", "jar"] : [tipo];
+      if (grupo.includes(c.tipo)) s += 15; else if (num === null && !resto) continue; else s -= 10;
+    } else if (c.tipo === "anexo") s -= 8;
+    if (!AULA.has(c.tipo) && c.tipo !== "anexo") s -= 6;
+    out.push({ c, s });
+  }
+  return out.sort((a, b) => b.s - a.s || ordenBase(a.c, b.c)).slice(0, 8);
+}
+function ordenBase(a, b) {
+  const ra = AULA.has(a.tipo) ? 0 : a.tipo === "anexo" ? 1 : 2, rb = AULA.has(b.tipo) ? 0 : b.tipo === "anexo" ? 1 : 2;
+  return ra - rb || (a.num ?? 9999) - (b.num ?? 9999) || a.nm.localeCompare(b.nm, "es");
+}
+const centroLabel = c => {
+  const l = c.nm.replace(/\s*-\s*\d{6,}\s*$/, "");
+  if (c.num && !/\d/.test(l) && (c.tipo === "esc" || c.tipo === "jar")) return `${c.tipo === "jar" ? "Jardín" : "Escuela"} Nº ${c.num} · ${l}`;
+  return l;
+};
+
+/* ---------- Puntajes ---------- */
+function resultados() {
+  return DIMS.map((d, i) => {
+    const r = S.r.slice(i * 3, i * 3 + 3), suma = r.reduce((a, b) => a + b, 0);
+    return { i, d, suma, prom: suma / 3, lvl: nivel(suma) };
+  });
+}
+
+/* ---------- Progreso ---------- */
+function renderProg() {
+  const p = $("#prog");
+  if (S.step === 0 || S.step === STEPS.length - 1) { p.innerHTML = S.step ? '<span>Perfil listo</span>' : ""; return; }
+  const total = STEPS.length - 2, cur = S.step;
+  let leds = ""; for (let i = 1; i <= total; i++) leds += `<i class="${i < cur ? "on" : i === cur ? "now" : ""}"></i>`;
+  p.innerHTML = `<span>Paso ${cur} de ${total}</span><span class="prog-leds" aria-hidden="true">${leds}</span>`;
+}
+function go(n) { S.step = n; render(); window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" }); const h = $("#app h2, #app h1"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); } }
+
+/* ---------- Pantallas ---------- */
+function render() {
+  renderProg();
+  const k = STEPS[S.step], app = $("#app");
+  if (k === "inicio") return vInicio(app);
+  if (k === "datos") return vDatos(app);
+  if (k === "experiencia") return vExperiencia(app);
+  if (k.startsWith("d")) return vDim(app, +k.slice(1));
+  if (k === "revision") return vRevision(app);
+  if (k === "perfil") return vPerfil(app);
+}
+
+function vInicio(app) {
+  app.innerHTML = `
+  <div class="hero">
+    <div class="eyebrow">Programa micro:bit</div>
+    <h1>Autodiagnóstico docente</h1>
+    <p class="lede">Este breve autodiagnóstico busca ayudarte a identificar tus fortalezas y oportunidades de desarrollo en el uso pedagógico de micro:bit. No hay respuestas correctas o incorrectas.</p>
+    <div class="hero-tiles" aria-hidden="true">${DIMS.map((d, i) => `<span style="background:var(--c${i + 1})">${ico(i, 6)}</span>`).join("")}</div>
+  </div>
+  <p>Te invitamos a responder pensando en tu experiencia actual. Al finalizar, recibirás una devolución orientativa con algunas recomendaciones para seguir avanzando.</p>
+  <div class="facts"><span><b>15</b> afirmaciones en 5 dimensiones</span><span><b>3</b> preguntas sobre tu experiencia</span><span>Unos <b>6 minutos</b></span></div>
+  <div class="btns">
+    <button class="btn" id="start">Comenzar</button>
+    <button class="btn link" id="demo">Ver con respuestas de ejemplo</button>
+  </div>`;
+  $("#start").onclick = () => go(1);
+  $("#demo").onclick = cargarEjemplo;
+}
+
+function datosValidos() {
+  const e = {};
+  if (norm(S.nombre).split(" ").filter(Boolean).length < 2) e.nombre = "Escribí tu nombre y apellido.";
+  if (!emailValido(S.email)) e.email = S.email.trim() ? "Revisá el correo: falta algo o tiene un carácter de más." : "Escribí tu correo electrónico.";
+  if (!cedulaValida(S.cedula)) e.cedula = cedulaDigits(S.cedula).length < 7 ? "Escribí tu cédula completa, con el dígito verificador." : "El dígito verificador no coincide. Revisá los números.";
+  if (!S.sub) e.sub = "Elegí tu subsistema.";
+  if (!S.dep) e.dep = "Elegí tu departamento.";
+  if (S.dep && S.dep !== MVD && !S.loc) e.loc = "Elegí tu localidad.";
+  if (!S.centro && !(S.origen === "pendiente de revisión" && norm(S.centroTexto).length >= 3)) e.centro = "Buscá y elegí tu centro educativo.";
+  return e;
+}
+
+function vDatos(app) {
+  app.innerHTML = `
+  <div class="stack"><div class="eyebrow">Tus datos</div><h2>¿Quién completa el autodiagnóstico?</h2>
+  <p class="lede">Usamos estos datos para asociar tus respuestas a tu centro educativo.</p></div>
+  <div class="panel">
+    <div class="field"><label for="nombre">Nombre y apellido</label>
+      <input type="text" id="nombre" autocomplete="name" value="${esc(S.nombre)}"><div class="err" id="e-nombre"></div></div>
+    <div class="field"><label for="cedula">Cédula de identidad</label>
+      <input type="text" id="cedula" inputmode="numeric" autocomplete="off" placeholder="1.234.567-8" value="${esc(S.cedula)}">
+      <div class="help">Con el dígito verificador, el número después del guion.</div><div class="err" id="e-cedula"></div></div>
+    <div class="field"><label for="email">Correo electrónico</label>
+      <input type="email" id="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.email)}">
+      <div class="help">Te vamos a enviar tu perfil a este correo.</div><div class="err" id="e-email"></div><div id="sug-email"></div></div>
+  </div>
+  <div class="panel">
+    <div class="field"><div class="legend" id="l-sub">Subsistema</div>
+      <div class="seg" role="radiogroup" aria-labelledby="l-sub">${SUBS.map(s => `<button type="button" class="opt" role="radio" data-sub="${s.id}" aria-checked="${S.sub === s.id}"><span class="dot"></span><span><b>${s.nm}</b><small>${s.ds}</small></span></button>`).join("")}</div>
+      <div class="err" id="e-sub"></div></div>
+    <div class="field"><label for="dep">Departamento</label>
+      <select id="dep"><option value="">Elegí un departamento</option>${DEPTOS.map(d => `<option ${S.dep === d ? "selected" : ""}>${esc(d)}</option>`).join("")}</select><div class="err" id="e-dep"></div></div>
+    <div class="field" id="f-loc"></div>
+    <div class="field" id="f-centro"></div>
+  </div>
+  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">Siguiente</button></div>`;
+
+  const upd = () => {
+    const e = datosValidos();
+    for (const k of ["nombre", "email", "cedula", "sub", "dep", "loc", "centro"]) { const el = $("#e-" + k); if (el) el.textContent = S.touched[k] ? (e[k] || "") : ""; }
+    $("#nombre").classList.toggle("bad", !!(S.touched.nombre && e.nombre));
+    $("#cedula").classList.toggle("bad", !!(S.touched.cedula && e.cedula));
+    $("#email").classList.toggle("bad", !!(S.touched.email && e.email));
+    const sg = sugerirEmail(S.email), box = $("#sug-email");
+    if (box.dataset.sg !== (sg || "")) {
+      box.dataset.sg = sg || "";
+      box.innerHTML = sg ? `<button type="button" class="btn link" id="fix-email">¿Quisiste decir ${esc(sg)}?</button>` : "";
+      if (sg) { const fb = $("#fix-email"); fb.onmousedown = e => e.preventDefault(); fb.onclick = () => { S.email = sg; $("#email").value = sg; upd(); }; }
+    }
+    $("#next").disabled = Object.keys(e).length > 0;
+    $("#hint").textContent = Object.keys(e).length ? "Completá todos los campos para seguir." : "";
+  };
+  $("#nombre").oninput = e => { S.nombre = e.target.value; upd(); };
+  $("#nombre").onblur = () => { S.touched.nombre = true; upd(); };
+  $("#email").oninput = e => { S.email = e.target.value; upd(); };
+  $("#email").onblur = e => { S.touched.email = true; S.email = S.email.trim(); e.target.value = S.email; upd(); };
+  $("#cedula").oninput = e => { S.cedula = e.target.value; upd(); };
+  $("#cedula").onblur = e => { S.touched.cedula = true; if (cedulaDigits(S.cedula).length >= 7) { S.cedula = cedulaFmt(S.cedula); e.target.value = S.cedula; } upd(); };
+  app.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => {
+    S.sub = b.dataset.sub; S.touched.sub = true; S.loc = ""; resetCentro();
+    app.querySelectorAll("[data-sub]").forEach(x => x.setAttribute("aria-checked", x === b)); renderLoc(); renderCentro(); upd();
+  });
+  $("#dep").onchange = e => { S.dep = e.target.value; S.touched.dep = true; S.loc = ""; resetCentro(); renderLoc(); renderCentro(); upd(); };
+
+  function resetCentro() { S.centro = null; S.centroTexto = ""; S.origen = ""; }
+  function renderLoc() {
+    const f = $("#f-loc");
+    if (!S.dep) { f.innerHTML = ""; return; }
+    if (S.dep === MVD) { f.innerHTML = `<div class="help">En Montevideo buscás tu centro directamente, sin elegir barrio.</div>`; return; }
+    if (!S.sub) { f.innerHTML = `<label for="loc">Localidad</label><select id="loc" disabled><option>Primero elegí el subsistema</option></select>`; return; }
+    const ls = localidades(S.sub, S.dep);
+    f.innerHTML = `<label for="loc">Localidad</label><select id="loc"><option value="">Elegí una localidad (${ls.length})</option>${ls.map(l => `<option ${S.loc === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select><div class="err" id="e-loc"></div>`;
+    $("#loc").onchange = e => { S.loc = e.target.value; S.touched.loc = true; resetCentro(); renderCentro(); upd(); };
+  }
+  function renderCentro() {
+    const f = $("#f-centro");
+    const listo = S.sub && S.dep && (S.dep === MVD || S.loc);
+    if (!listo) { f.innerHTML = `<label for="cq">Centro educativo</label><input type="text" id="cq" disabled placeholder="Primero elegí subsistema, departamento${S.dep === MVD ? "" : " y localidad"}">`; return; }
+    if (S.centro || S.origen === "pendiente de revisión") {
+      const c = S.centro;
+      f.innerHTML = `<div class="legend">Centro educativo</div>
+        <div class="chosen ${c ? "" : "pending"}"><div>${c
+          ? `<div class="nm">${esc(centroLabel(c))}</div><div class="meta">${esc(c.loc)} · ${esc(c.dep)} · Código Ceibal <span class="mono">${c.cod}</span></div>`
+          : `<div class="nm">${esc(S.centroTexto)}</div><div class="meta">No está en la lista. Lo registramos tal como lo escribiste y el equipo lo va a asociar con la lista oficial.</div>`}
+        </div><button class="btn link" id="cambiar">Cambiar</button></div><div class="err" id="e-centro"></div>`;
+      $("#cambiar").onclick = () => { const t = S.centro ? "" : S.centroTexto; resetCentro(); renderCentro(t); upd(); $("#cq").focus(); };
+      return;
+    }
+    const n = candidatos().length;
+    f.innerHTML = `<label for="cq">Centro educativo</label>
+      <div class="ta"><input type="text" id="cq" role="combobox" aria-expanded="true" aria-controls="sug" aria-autocomplete="list" autocomplete="off" placeholder="Escribí el número o el nombre, por ejemplo: escuela 45" value="${esc(arguments[0] || "")}">
+      <ul class="sug" id="sug" role="listbox"></ul></div>
+      <div class="help">${n} centro${n === 1 ? "" : "s"} de ${esc(S.sub)} en ${esc(S.dep === MVD ? MVD : S.loc)}.</div><div class="err" id="e-centro"></div>`;
+    const inp = $("#cq"), ul = $("#sug"); let act = -1, res = [];
+    const draw = () => {
+      const q = inp.value; res = buscar(q);
+      let h = res.map((r, i) => `<li role="option" id="o${i}" data-i="${i}" aria-selected="${i === act}"><span class="nm">${esc(centroLabel(r.c))}</span><span class="meta">${esc(r.c.loc)} · Código <span class="mono">${r.c.cod}</span></span></li>`).join("");
+      if (!res.length && q.trim()) h = `<li class="empty" aria-disabled="true">No encontramos coincidencias en ${esc(S.dep === MVD ? MVD : S.loc)}. Probá con el número o con otra palabra del nombre.</li>`;
+      if (norm(q).length >= 3) h += `<li role="option" class="none" id="o${res.length}" data-none="1" aria-selected="${act === res.length}">No encuentro mi centro: registrar «${esc(q.trim())}»</li>`;
+      ul.innerHTML = h; ul.hidden = !h;
+      inp.setAttribute("aria-activedescendant", act >= 0 ? "o" + act : "");
+    };
+    const pick = i => {
+      if (i === res.length) { S.centro = null; S.centroTexto = inp.value.trim(); S.origen = "pendiente de revisión"; }
+      else { S.centro = res[i].c; S.centroTexto = inp.value.trim() || centroLabel(res[i].c); S.origen = "elegido por docente"; }
+      S.touched.centro = true; renderCentro(); upd();
+    };
+    inp.oninput = () => { act = -1; draw(); };
+    inp.onkeydown = e => {
+      const max = res.length + (norm(inp.value).length >= 3 ? 1 : 0) - 1;
+      if (e.key === "ArrowDown") { act = Math.min(max, act + 1); draw(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { act = Math.max(0, act - 1); draw(); e.preventDefault(); }
+      else if (e.key === "Enter" && act >= 0) { pick(act); e.preventDefault(); }
+    };
+    ul.onmousedown = e => e.preventDefault();
+    ul.onclick = e => { const li = e.target.closest("li[role=option]"); if (li) pick(li.dataset.none ? res.length : +li.dataset.i); };
+    draw();
+  }
+  renderLoc(); renderCentro(); upd();
+  $("#back").onclick = () => go(0);
+  $("#next").onclick = () => go(2);
+}
+
+function vExperiencia(app) {
+  app.innerHTML = `
+  <div class="stack"><div class="eyebrow">Tu experiencia</div><h2>Empecemos por conocer un poco tu experiencia</h2>
+  <p class="lede">Estas preguntas nos ayudan a comprender tu trayectoria. No forman parte del puntaje del autodiagnóstico.</p></div>
+  ${CTX.map((c, qi) => `<div class="panel"><div class="legend" id="lq${qi}">${qi + 1}. ${esc(c.q)}</div>
+    <div class="stack" role="radiogroup" aria-labelledby="lq${qi}" style="gap:8px">${c.o.map((o, oi) => `<button type="button" class="opt" role="radio" data-q="${qi}" data-o="${oi}" aria-checked="${S.ctx[qi] === oi}"><span class="dot"></span><span>${esc(o)}</span></button>`).join("")}</div></div>`).join("")}
+  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">Siguiente</button></div>`;
+  const upd = () => { const ok = S.ctx.every(v => v !== null); $("#next").disabled = !ok; $("#hint").textContent = ok ? "" : `Respondiste ${S.ctx.filter(v => v !== null).length} de 3.`; };
+  app.querySelectorAll("[data-q]").forEach(b => b.onclick = () => {
+    const q = +b.dataset.q; S.ctx[q] = +b.dataset.o;
+    app.querySelectorAll(`[data-q="${q}"]`).forEach(x => x.setAttribute("aria-checked", x === b)); upd();
+  });
+  upd();
+  $("#back").onclick = () => go(1);
+  $("#next").onclick = () => go(3);
+}
+
+function leds(n, on) { let h = ""; for (let i = 1; i <= n; i++) h += `<i class="${i <= on ? "on" : ""}"></i>`; return h; }
+
+function vDim(app, di) {
+  const d = DIMS[di];
+  app.innerHTML = `
+  <div class="dimband" style="background:var(--c${di + 1});color:var(--c${di + 1}-ink)"><div class="ico">${ico(di, 9)}</div>
+    <div><div class="eyebrow">Dimensión ${di + 1} de 5</div><h2>${esc(d.nm)}</h2></div></div>
+  <div class="stack"><p class="lede">${di === 0 ? "Ahora sí: ¿cómo es tu vínculo actual con la placa micro:bit? " : ""}Para cada afirmación, indicá cuánto te representa actualmente.</p>
+  <div class="scale-key">${SCALE.map((s, i) => `<span><b>${i + 1}</b> ${s}</span>`).join("")}</div></div>
+  <div class="panel">${d.items.map((it, j) => { const k = di * 3 + j; return `
+    <div class="item"><div class="q"><span class="n">${k + 1}.</span><p id="it${k}">${esc(it)}</p></div>
+      <div class="likert" role="radiogroup" aria-labelledby="it${k}">${SCALE.map((s, v) => `<button type="button" class="lk" role="radio" data-k="${k}" data-v="${v + 1}" aria-checked="${S.r[k] === v + 1}" aria-label="${v + 1}, ${s}"><span class="leds" aria-hidden="true">${leds(5, v + 1)}</span><span class="v">${v + 1}</span><span class="t">${s}</span></button>`).join("")}</div>
+    </div>`; }).join("")}</div>
+  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">${di === 4 ? "Revisar respuestas" : "Siguiente"}</button></div>`;
+  const upd = () => { const n = S.r.slice(di * 3, di * 3 + 3).filter(v => v !== null).length; $("#next").disabled = n < 3; $("#hint").textContent = n < 3 ? `Respondiste ${n} de 3.` : ""; };
+  app.querySelectorAll(".lk").forEach(b => b.onclick = () => {
+    const k = +b.dataset.k; S.r[k] = +b.dataset.v;
+    app.querySelectorAll(`.lk[data-k="${k}"]`).forEach(x => x.setAttribute("aria-checked", x === b)); upd();
+  });
+  upd();
+  $("#back").onclick = () => go(S.step - 1);
+  $("#next").onclick = () => go(S.step + 1);
+}
+
+function vRevision(app) {
+  const c = S.centro;
+  app.innerHTML = `
+  <div class="stack"><div class="eyebrow">Revisión</div><h2>Revisá tus respuestas antes de enviar</h2>
+  <p class="lede">Podés volver a cualquier sección para cambiar algo.</p></div>
+  <div class="panel rev">
+    <div class="rev-sec"><div class="rev-head"><h3>Tus datos</h3><button class="btn link" data-go="1">Editar</button></div>
+      <dl class="kv"><dt>Nombre</dt><dd>${esc(S.nombre)}</dd><dt>Cédula</dt><dd class="mono">${esc(cedulaFmt(S.cedula))}</dd><dt>Correo</dt><dd>${esc(S.email)}</dd>
+      <dt>Subsistema</dt><dd>${esc(S.sub)}</dd><dt>Departamento</dt><dd>${esc(S.dep)}</dd>${S.dep !== MVD ? `<dt>Localidad</dt><dd>${esc(S.loc)}</dd>` : ""}
+      <dt>Centro</dt><dd>${c ? esc(centroLabel(c)) + ` <span class="mono note">(${c.cod})</span>` : esc(S.centroTexto) + ' <span class="note">(no está en la lista)</span>'}</dd></dl></div>
+    <div class="rev-sec"><div class="rev-head"><h3>Tu experiencia</h3><button class="btn link" data-go="2">Editar</button></div>
+      <dl class="kv">${CTX.map((q, i) => `<dt>${esc(q.q)}</dt><dd>${esc(q.o[S.ctx[i]])}</dd>`).join("")}</dl></div>
+    ${DIMS.map((d, di) => `<div class="rev-sec"><div class="rev-head"><h3>${di + 1}. ${esc(d.corto)}</h3><button class="btn link" data-go="${3 + di}">Editar</button></div>
+      <dl class="kv">${d.items.map((it, j) => { const k = di * 3 + j; return `<dt>${k + 1}. ${esc(it)}</dt><dd><span class="mono">${S.r[k]}</span> · ${SCALE[S.r[k] - 1]}</dd>`; }).join("")}</dl></div>`).join("")}
+  </div>
+  <div class="nav"><button class="btn ghost" id="back">Volver</button><button class="btn" id="send">Enviar y ver mi perfil</button></div>`;
+  app.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(+b.dataset.go));
+  $("#back").onclick = () => go(7);
+  $("#send").onclick = () => {
+    S.fecha = new Date();
+    app.innerHTML = `<div class="saving" role="status"><span class="prog-leds">${leds(5, 0)}</span>Guardando tus respuestas…</div>`;
+    setTimeout(() => go(9), 900);
+  };
+}
+
+function vPerfil(app) {
+  const res = resultados();
+  const min = Math.min(...res.map(r => r.suma));
+  const foco = res.filter(r => r.suma === min);
+  const todas = res.every(r => r.lvl === "c");
+  const pos = v => ((v - 1) / 4 * 100).toFixed(1) + "%";
+  const nextTxt = todas
+    ? `<p>Todas tus dimensiones aparecen consolidadas. Un buen próximo paso puede ser compartir tu experiencia y acompañar a otros docentes que están comenzando.</p>`
+    : `<h3>${foco.slice(0, 2).map(r => esc(r.d.corto)).join(" y ")}</h3><p>${foco.length > 1 ? "Son las dimensiones" : "Es la dimensión"} con menor puntaje en tu perfil. Te sugerimos empezar por ${foco.length > 1 ? "alguna de ellas" : "ahí"} al usar la Guía.</p>`;
+  app.innerHTML = `
+  <div class="stack"><div class="eyebrow">Tu perfil</div><h2>${esc(S.nombre.split(" ")[0] || "")}${S.nombre ? ", este" : "Este"} es tu momento actual con micro:bit</h2>
+  <p class="lede">Para cada dimensión calculamos el promedio de tus respuestas, de 1 a 5.</p>
+  <div class="levels-key">${chip("f")}<span class="note">1,0 a 2,4</span>${chip("d")}<span class="note">2,5 a 3,7</span>${chip("c")}<span class="note">3,8 a 5,0</span></div></div>
+  <div class="next"><div class="eyebrow">Tu próximo paso</div>${nextTxt}</div>
+  ${res.map(r => { const t = r.d[r.lvl]; return `<article class="dim">
+    <div class="dim-top" style="background:var(--c${r.i + 1})"><span class="ico">${ico(r.i, 6)}</span><h3>${r.i + 1}. ${esc(r.d.nm)}</h3></div>
+    <div class="dim-body">
+    <div class="dim-row">${chip(r.lvl)}<div class="meter"><div class="meter-bar"><span></span><span></span><span></span><b style="left:${pos(r.prom)}"></b></div>
+      <div class="meter-lbl"><span>1</span><span>Promedio <strong>${fmt1(r.prom)}</strong></span><span>5</span></div></div></div>
+    <p class="observa"><b>Qué observa:</b> ${esc(r.d.observa)}</p>
+    <p>${esc(t[0])}</p>
+    <p class="rec"><b>${r.lvl === "c" ? REC_C : REC_F}</b>${esc(t[1].charAt(0).toUpperCase() + t[1].slice(1))}</p>
+  </div></article>`; }).join("")}
+  <div class="cierre"><h3>No existe un único camino para avanzar con micro:bit.</h3>
+    <p>Tu perfil refleja tu momento actual y puede cambiar a medida que experimentás, aprendés y compartís con otros.</p>
+    <p>Nuestra sugerencia es que uses estas orientaciones para elegir qué dimensión fortalecer y, a partir de esa reflexión, puedas utilizar la Guía según tus propios intereses y necesidades.</p></div>
+  <div class="btns"><button class="btn ghost" disabled>Descargar mi perfil (PDF)</button><span class="note">En la versión final se genera el PDF y también se envía a ${esc(S.email)}.</span></div>
+  ${filaGuardada(res)}
+  <div class="btns"><button class="btn ghost" id="again">Empezar de nuevo</button></div>`;
+  $("#again").onclick = () => { S = blank(); go(0); };
+}
+
+function filaGuardada(res) {
+  const c = S.centro, f = S.fecha || new Date();
+  const p = n => String(n).padStart(2, "0");
+  const rows = [
+    ["fecha_hora", `${f.getFullYear()}-${p(f.getMonth() + 1)}-${p(f.getDate())} ${p(f.getHours())}:${p(f.getMinutes())}`],
+    ["version_instrumento", VERSION], ["nombre", S.nombre], ["cedula", cedulaDigits(S.cedula)], ["email", S.email.trim().toLowerCase()],
+    ["subsistema", S.sub], ["departamento", S.dep], ["localidad", S.dep === MVD ? "(no se pide)" : S.loc],
+    ["centro_texto", S.centroTexto], ["centro_codigo", c ? c.cod : ""], ["origen_macheo", S.origen],
+    ...CTX.map((q, i) => [`ctx_${i + 1}`, `${S.ctx[i] + 1} · ${q.o[S.ctx[i]]}`]),
+    ...S.r.map((v, k) => [`d${Math.floor(k / 3) + 1}_i${k % 3 + 1}`, v]),
+    ...res.map(r => [`d${r.i + 1}_suma`, r.suma]), ...res.map(r => [`d${r.i + 1}_nivel`, LVL[r.lvl]]),
+  ];
+  return `<details class="team"><summary>Para el equipo del programa: así se guardaría esta respuesta</summary>
+    <p class="note" style="margin-top:10px">Una fila en la pestaña Respuestas de la Sheet (${rows.length} columnas). El docente no ve esta sección en la versión final.</p>
+    <div class="tbl"><table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${esc(v)}</td></tr>`).join("")}</table></div></details>`;
+}
+
+/* ---------- Ejemplo ---------- */
+function cargarEjemplo() {
+  const c = CENTROS.find(x => x.rub === "DGEIP" && x.dep === "Canelones" && x.loc === "Pando" && x.tipo === "esc" && x.num) || CENTROS[0];
+  S = Object.assign(blank(), {
+    nombre: "Docente de Ejemplo", email: "docente.ejemplo@gmail.com", cedula: "1.234.567-2", sub: c.rub, dep: c.dep, loc: c.loc,
+    centro: c, centroTexto: "escuela " + c.num, origen: "elegido por docente",
+    ctx: [3, 1, 2], r: [4, 4, 3, 2, 2, 1, 3, 3, 2, 5, 4, 4, 2, 3, 3],
+  });
+  go(8);
+}
+
+render();
+</script>
