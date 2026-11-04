@@ -15,7 +15,8 @@
 - Tres páginas: datos, experiencia y afirmaciones (las 15 en una sola página, agrupadas por dimensión). La intro va arriba de la primera página.
 - Cada sección es una tarjeta que contiene las tarjetas de sus preguntas. Subsistema, departamento y localidad son desplegables comunes.
 - Sin pantalla de revisión antes de enviar: se corrige con "Atrás".
-- El perfil queda como en el prototipo, por ahora.
+- El perfil queda como en el prototipo, por ahora. "Tu próximo paso" nombra la dimensión con su nombre completo de `docs/INSTRUMENTO.md`.
+- El avance se guarda solo en la pestaña del navegador (incluida la cédula) y se borra al enviar, al cerrarla o si tiene más de 6 horas, para no perder las respuestas si el celular recarga la página.
 - El código de la página queda visible para quien abra las herramientas del navegador, y no se ofusca: no protege de verdad y complica arreglar errores. Por eso la página no lleva nada secreto. Se acepta que el catálogo de centros (con los Códigos Ceibal) quede visible.
 
 ## Solución
@@ -80,6 +81,8 @@
 
 ## Mails y topes
 
+- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó.
+- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular.
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
 - Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.

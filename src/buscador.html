@@ -1,0 +1,329 @@
+<script>
+/*
+ * buscador.html — Lógica de la página sin pantalla: normalizar, validar, buscar centros y armar el envío.
+ *
+ * Apps Script no puede entregarle un .js al navegador, por eso esto vive acá. La fuente de verdad de las
+ * reglas es src/nucleo.js: test/buscador.test.js les pasa los mismos casos a las dos versiones y falla si
+ * dan resultados distintos. Si cambiás una regla, cambiala en los dos lados.
+ *
+ * El servidor valida todo de nuevo: esto solo sirve para avisarle antes al docente.
+ */
+
+/* ---------- Copia de nucleo.js ---------- */
+
+function claveSimple(texto) {
+  if (texto === null || texto === undefined) return '';
+  return String(texto)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+var ABREVIATURAS = { esc: 'escuela', lic: 'liceo', jn: 'jardin', utu: 'escuela tecnica' };
+var PALABRAS_NUMERO = new Set(['n', 'no', 'nro', 'nr', 'num', 'numero']);
+
+function normalizarTexto(texto) {
+  var base = claveSimple(String(texto === null || texto === undefined ? '' : texto).replace(/[º°ª]/g, ' '));
+  if (!base) return '';
+  var salida = [];
+  base.split(' ').forEach(function (palabra) {
+    if (PALABRAS_NUMERO.has(palabra)) return;
+    salida.push(Object.prototype.hasOwnProperty.call(ABREVIATURAS, palabra) ? ABREVIATURAS[palabra] : palabra);
+  });
+  return salida.join(' ');
+}
+
+function limpiarCedula(texto) {
+  if (typeof texto !== 'string' || texto.length > 20) return null;
+  var sinSeparadores = texto.replace(/[.\-\s]/g, '');
+  return /^\d{7,8}$/.test(sinSeparadores) ? sinSeparadores : null;
+}
+
+function cedulaValida(texto) {
+  var digitos = limpiarCedula(texto);
+  if (digitos === null) return false;
+  var completa = digitos.padStart(8, '0');
+  var pesos = [2, 9, 8, 7, 6, 3, 4];
+  var suma = 0;
+  for (var i = 0; i < 7; i++) suma += Number(completa[i]) * pesos[i];
+  return (10 - (suma % 10)) % 10 === Number(completa[7]);
+}
+
+var REGEX_CORREO = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+
+function correoValido(texto) {
+  if (typeof texto !== 'string' || texto.length > 254) return false;
+  var arroba = texto.indexOf('@');
+  if (arroba < 1 || arroba > 64) return false;
+  return REGEX_CORREO.test(texto);
+}
+
+var DOMINIOS_CONOCIDOS = [
+  'gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'yahoo.com.ar', 'icloud.com', 'live.com',
+  'ceibal.edu.uy', 'anep.edu.uy', 'adinet.com.uy', 'vera.com.uy',
+];
+
+function distanciaEdicion(a, b) {
+  var anterior = [];
+  for (var j = 0; j <= b.length; j++) anterior.push(j);
+  for (var i = 1; i <= a.length; i++) {
+    var actual = [i];
+    for (var k = 1; k <= b.length; k++) {
+      var costo = a[i - 1] === b[k - 1] ? 0 : 1;
+      actual.push(Math.min(anterior[k] + 1, actual[k - 1] + 1, anterior[k - 1] + costo));
+    }
+    anterior = actual;
+  }
+  return anterior[b.length];
+}
+
+function sugerirCorreo(correo) {
+  if (!correoValido(correo)) return null;
+  var arroba = correo.lastIndexOf('@');
+  var dominio = correo.slice(arroba + 1).toLowerCase();
+  if (DOMINIOS_CONOCIDOS.indexOf(dominio) !== -1) return null;
+  var mejor = null;
+  var mejorDistancia = Infinity;
+  DOMINIOS_CONOCIDOS.forEach(function (conocido) {
+    var maxima = conocido.length >= 8 ? 2 : 1;
+    var d = distanciaEdicion(dominio, conocido);
+    if (d <= maxima && d < mejorDistancia) {
+      mejor = conocido;
+      mejorDistancia = d;
+    }
+  });
+  return mejor === null ? null : correo.slice(0, arroba + 1) + mejor;
+}
+
+function formatearPromedio(suma) {
+  var decimas = Math.round((suma * 10) / 3);
+  return Math.floor(decimas / 10) + ',' + (decimas % 10);
+}
+
+/* ---------- Texto y cédula ---------- */
+
+var MONTEVIDEO = 'Montevideo';
+// Los mismos caracteres que rechaza el servidor. Al pegar un texto en el celular pueden venir sin que se vean.
+var CARACTERES_INVISIBLES = /[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁯﻿]/g;
+
+/** Saca los caracteres invisibles y deja espacios simples. */
+function textoProlijo(texto) {
+  return String(texto === null || texto === undefined ? '' : texto).replace(CARACTERES_INVISIBLES, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function nombreValido(texto) {
+  var limpio = textoProlijo(texto);
+  return limpio.length >= 3 && limpio.length <= 120 && limpio.split(' ').length >= 2;
+}
+
+function soloDigitos(texto) {
+  return String(texto === null || texto === undefined ? '' : texto).replace(/\D/g, '');
+}
+
+/** 12345672 → 1.234.567-2 */
+function formatearCedula(texto) {
+  var d = soloDigitos(texto);
+  if (d.length < 2) return d;
+  return d.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + d.slice(-1);
+}
+
+/* ---------- Catálogo y buscador ---------- */
+
+/** Las filas que manda el servidor ([codigo, visible, subsistema, departamento, localidad, tipo, numero, normalizado]) como objetos. */
+function centrosDesdeServidor(filas) {
+  return filas.map(function (f) {
+    return { codigo: f[0], visible: String(f[1]), subsistema: f[2], departamento: f[3], localidad: String(f[4]), tipo: f[5], numero: f[6], normalizado: String(f[7]), localidadClave: claveSimple(f[4]) };
+  });
+}
+
+function unicosOrdenados(lista) {
+  return Array.from(new Set(lista)).sort(function (a, b) { return a.localeCompare(b, 'es'); });
+}
+
+/**
+ * Solo los departamentos donde el docente puede llegar a elegir un centro, para que nadie quede trabado:
+ * con centros de ese subsistema y, fuera de Montevideo, con al menos una localidad con nombre.
+ */
+function departamentosDe(centros, subsistema) {
+  return unicosOrdenados(centros.filter(function (c) {
+    return c.subsistema === subsistema && (c.departamento === MONTEVIDEO || c.localidad !== '');
+  }).map(function (c) { return c.departamento; }));
+}
+
+/** Solo las localidades con nombre: un centro sin localidad no se puede elegir fuera de Montevideo. */
+function localidadesDe(centros, subsistema, departamento) {
+  return unicosOrdenados(centros.filter(function (c) {
+    return c.subsistema === subsistema && c.departamento === departamento && c.localidad !== '';
+  }).map(function (c) { return c.localidad; }));
+}
+
+function candidatosDe(centros, subsistema, departamento, localidad) {
+  return centros.filter(function (c) {
+    return c.subsistema === subsistema && c.departamento === departamento && (departamento === MONTEVIDEO || c.localidad === localidad);
+  });
+}
+
+var TIPOS_BUSCADOS = { escuela: 'esc', jardin: 'jar', jardines: 'jar', liceo: 'lic', tecnica: 'utu', ifd: 'ifd', cerp: 'cerp', anexo: 'anexo', satelite: 'anexo' };
+var TIPOS_DE_AULA = new Set(['esc', 'jar', 'lic', 'utu', 'ifd', 'cerp']);
+var PRIORIDAD_DE_TIPOS = ['anexo', 'utu', 'ifd', 'cerp', 'lic', 'jar', 'esc'];
+var RESULTADOS_CON_TEXTO = 8;
+var RESULTADOS_SIN_TEXTO = 12;
+var MESES = new Set(['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'septiembre', 'octubre', 'noviembre', 'diciembre']);
+
+function paresDeLetras(texto) {
+  var pares = new Map();
+  for (var i = 0; i < texto.length - 1; i++) {
+    var par = texto.slice(i, i + 2);
+    pares.set(par, (pares.get(par) || 0) + 1);
+  }
+  return pares;
+}
+
+/** Parecido entre dos palabras, de 0 a 1: tolera errores de tipeo. */
+function parecido(a, b) {
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  if (a.length < 2 || b.length < 2) return 0;
+  var paresA = paresDeLetras(a);
+  var paresB = paresDeLetras(b);
+  var comunes = 0;
+  paresA.forEach(function (cantidad, par) { comunes += Math.min(cantidad, paresB.get(par) || 0); });
+  return (2 * comunes) / (a.length - 1 + b.length - 1);
+}
+
+function parecidoConCentro(resto, centro) {
+  if (!resto) return 0;
+  var texto = centro.normalizado + ' ' + centro.localidadClave;
+  if (texto.indexOf(resto) !== -1) return 1;
+  var palabrasCentro = texto.split(' ');
+  var palabras = resto.split(' ');
+  var total = 0;
+  palabras.forEach(function (p) {
+    var mejor = 0;
+    palabrasCentro.forEach(function (c) { mejor = Math.max(mejor, parecido(p, c)); });
+    total += mejor;
+  });
+  return total / palabras.length;
+}
+
+/** Orden sin texto: escuelas, jardines, liceos, UTU e IFD/CERP; después anexos; después el resto (docs/DECISIONES.md). */
+function ordenBase(a, b) {
+  var rango = function (c) { return TIPOS_DE_AULA.has(c.tipo) ? 0 : c.tipo === 'anexo' ? 1 : 2; };
+  var numero = function (c) { return c.numero === null || c.numero === undefined ? 9999 : c.numero; };
+  return rango(a) - rango(b) || numero(a) - numero(b) || a.visible.localeCompare(b.visible, 'es');
+}
+
+/** Busca entre los candidatos lo que escribió el docente. Devuelve los centros, del más parecido al menos. */
+function buscarCentros(candidatos, consulta) {
+  // "esc35" o "n35" se leen como "esc 35" y "n 35".
+  var normalizada = normalizarTexto(String(consulta === null || consulta === undefined ? '' : consulta).replace(/([A-Za-zº°ª])(\d)/g, '$1 $2'));
+  if (!normalizada) return candidatos.slice().sort(ordenBase).slice(0, RESULTADOS_SIN_TEXTO);
+  var palabras = normalizada.split(' ');
+  var pedidos = palabras.filter(function (p) { return TIPOS_BUSCADOS[p]; }).map(function (p) { return TIPOS_BUSCADOS[p]; });
+  var tipo = PRIORIDAD_DE_TIPOS.find(function (t) { return pedidos.indexOf(t) !== -1; }) || null;
+  // El 25 de "25 de Mayo" es parte del nombre, no el número del centro (la misma regla que numeroDelNombre_ en nucleo.js).
+  var posicionNumero = palabras.findIndex(function (p, i) {
+    return /^\d+$/.test(p) && !(palabras[i + 1] === 'de' && MESES.has(palabras[i + 2]));
+  });
+  var palabraNumero = posicionNumero === -1 ? null : palabras[posicionNumero];
+  var numero = palabraNumero ? Number(palabraNumero) : null;
+  var resto = palabras.filter(function (p, i) { return !TIPOS_BUSCADOS[p] && i !== posicionNumero; }).join(' ');
+  var encontrados = [];
+  candidatos.forEach(function (c) {
+    var puntos = 0;
+    if (numero !== null) {
+      if (c.numero === numero) puntos += 60;
+      else if (String(c.codigo) === palabraNumero) puntos += 80;
+      else return;
+    }
+    if (resto) {
+      var similitud = parecidoConCentro(resto, c);
+      if (numero === null && similitud < 0.55) return;
+      puntos += similitud * 40;
+    }
+    if (tipo) {
+      var grupo = tipo === 'esc' || tipo === 'jar' ? ['esc', 'jar'] : [tipo];
+      if (grupo.indexOf(c.tipo) !== -1) puntos += 15;
+      else if (numero === null && !resto) return;
+      else puntos -= 10;
+    } else if (c.tipo === 'anexo') {
+      puntos -= 8;
+    }
+    if (!TIPOS_DE_AULA.has(c.tipo) && c.tipo !== 'anexo') puntos -= 6;
+    encontrados.push({ centro: c, puntos: puntos });
+  });
+  return encontrados
+    .sort(function (a, b) { return b.puntos - a.puntos || ordenBase(a.centro, b.centro); })
+    .slice(0, RESULTADOS_CON_TEXTO)
+    .map(function (e) { return e.centro; });
+}
+
+/* ---------- Envío y avance ---------- */
+
+var LARGO_MINIMO_CENTRO = 3;
+var CANTIDAD_CONTEXTO = 3;
+var CANTIDAD_AFIRMACIONES = 15;
+var PAGINAS = 3;
+// Un avance más viejo que esto se descarta: en una computadora compartida, reabrir la pestaña no debe recuperar datos ajenos.
+var EDAD_MAXIMA_AVANCE = 6 * 60 * 60 * 1000;
+
+/** Un estado vacío del formulario. abiertoEn es la hora del servidor, no la del celular. */
+function estadoVacio(abiertoEn) {
+  return {
+    paso: 0, nombre: '', cedula: '', email: '', subsistema: '', departamento: '', localidad: '',
+    centroCodigo: null, centroTexto: '', centroLibre: false,
+    ctx: [null, null, null], r: new Array(CANTIDAD_AFIRMACIONES).fill(null), abiertoEn: abiertoEn,
+  };
+}
+
+/** Arma lo que recibe guardarRespuesta (contrato en docs/ARQUITECTURA.md). ctx en el estado va de 0 a k-1; al servidor, de 1 a k. */
+function armarEnvio(estado, trampa) {
+  return {
+    nombre: textoProlijo(estado.nombre),
+    cedula: textoProlijo(estado.cedula),
+    email: textoProlijo(estado.email).toLowerCase(),
+    subsistema: estado.subsistema,
+    departamento: estado.departamento,
+    localidad: estado.departamento === MONTEVIDEO ? '' : estado.localidad,
+    centroCodigo: estado.centroLibre ? null : estado.centroCodigo,
+    centroTexto: textoProlijo(estado.centroTexto),
+    ctx: estado.ctx.map(function (v) { return v + 1; }),
+    r: estado.r.slice(),
+    abiertoEn: estado.abiertoEn,
+    trampa: trampa,
+  };
+}
+
+/**
+ * Valida lo guardado en la pestaña antes de usarlo: si algo no cierra, devuelve null y se empieza de cero.
+ * Un centro que ya no está en el catálogo se borra, y el docente lo vuelve a elegir.
+ */
+function restaurarAvance(texto, centros, versionInstrumento, ahora) {
+  var a;
+  try { a = JSON.parse(texto); } catch (e) { return null; }
+  if (!a || typeof a !== 'object' || a.versionInstrumento !== versionInstrumento) return null;
+  var esTexto = function (v) { return typeof v === 'string' && v.length <= 300; };
+  if (!['nombre', 'cedula', 'email', 'subsistema', 'departamento', 'localidad', 'centroTexto'].every(function (k) { return esTexto(a[k]); })) return null;
+  if (!Number.isInteger(a.paso) || a.paso < 0 || a.paso >= PAGINAS) return null;
+  if (typeof a.abiertoEn !== 'number' || !Number.isFinite(a.abiertoEn)) return null;
+  if (ahora - a.abiertoEn > EDAD_MAXIMA_AVANCE) return null;
+  if (!Array.isArray(a.ctx) || a.ctx.length !== CANTIDAD_CONTEXTO || !a.ctx.every(function (v) { return v === null || (Number.isInteger(v) && v >= 0 && v <= 4); })) return null;
+  if (!Array.isArray(a.r) || a.r.length !== CANTIDAD_AFIRMACIONES || !a.r.every(function (v) { return v === null || (Number.isInteger(v) && v >= 1 && v <= 5); })) return null;
+  var estado = estadoVacio(a.abiertoEn);
+  ['paso', 'nombre', 'cedula', 'email', 'subsistema', 'departamento', 'localidad', 'centroTexto', 'ctx', 'r'].forEach(function (k) { estado[k] = a[k]; });
+  estado.centroLibre = a.centroLibre === true;
+  // Si el catálogo cambió y el departamento o la localidad ya no se pueden elegir, se vuelven a elegir.
+  var sinDepartamento = a.departamento !== '' && departamentosDe(centros, a.subsistema).indexOf(a.departamento) === -1;
+  var sinLocalidad = !sinDepartamento && a.departamento !== '' && a.departamento !== MONTEVIDEO && a.localidad !== '' && localidadesDe(centros, a.subsistema, a.departamento).indexOf(a.localidad) === -1;
+  if (sinDepartamento) estado.departamento = '';
+  if (sinDepartamento || sinLocalidad) { estado.localidad = ''; estado.centroLibre = false; }
+  var existe = Number.isInteger(a.centroCodigo) && candidatosDe(centros, estado.subsistema, estado.departamento, estado.localidad).some(function (c) { return c.codigo === a.centroCodigo; });
+  estado.centroCodigo = existe ? a.centroCodigo : null;
+  if (!existe && !estado.centroLibre) estado.centroTexto = '';
+  // Sin todos los datos no se puede estar más allá de la primera página.
+  if (!estado.centroCodigo && !estado.centroLibre) estado.paso = 0;
+  return estado;
+}
+</script>

@@ -202,7 +202,7 @@ test('Preparar planilla carga todos los textos y la configuración iniciales', (
   const filasTextos = e.hojas.get('Textos').filas().slice(1);
   assert.deepStrictEqual(Object.fromEntries(filasTextos), TEXTOS_INICIALES_);
   const config = e.hojas.get('Config').filas().slice(1);
-  assert.strictEqual(config.length, 5);
+  assert.strictEqual(config.length, nucleo.CONFIG_INICIAL_.length);
   assert.deepStrictEqual(config.find(f => f[0] === 'segundos_minimos').slice(0, 2), ['segundos_minimos', 60]);
 });
 

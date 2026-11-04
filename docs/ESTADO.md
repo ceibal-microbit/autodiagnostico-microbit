@@ -11,13 +11,13 @@ Este archivo es el "pase de posta": resume dónde está el proyecto y qué se de
 | 1 — Preparación (v0.1.0) | Cerrada. Verificada en Google. |
 | 2 — Núcleo con tests (v0.2.0) | Cerrada. Mergeada. |
 | 3 — Sheet y catálogo (v0.3.0) | Cerrada. Probada a mano con el Universo real en la Sheet de prueba. |
-| 4 — Web app (v0.4.0) | **En curso.** El prototipo ya está rehecho (formulario simple, celular primero). Falta conectarlo con el servidor. |
+| 4 — Web app (v0.4.0) | **En curso.** Página y servidor programados y probados con Chrome y tests. Falta la prueba real en la Sheet de prueba y en celulares. |
 | 5 — PDF y mail · 6 — Auditoría · 7 — Piloto | Pendientes. |
 
 **Qué existe hoy**
-- `src/nucleo.js`: puntajes y niveles, cédula, correo, protección contra fórmulas, normalización, limpieza del Universo, validación de envíos, macheo de texto libre. 170 tests en verde y CI de GitHub en verde.
+- `src/nucleo.js`: puntajes y niveles, cédula, correo, protección contra fórmulas, normalización, limpieza del Universo, validación de envíos, macheo de texto libre. Tests en verde y CI de GitHub en verde.
 - `src/Catalogo.js` y `src/textos.js`: menú **Autodiagnóstico** en la Sheet con "Preparar planilla" y "Actualizar catálogo". Probado con el Universo real: 4047 centros, 157 filas repetidas sacadas, 2 descartadas por no tener departamento, 7 con observaciones.
-- `src/Codigo.js`: solo la página mínima de la fase 1 (muestra versión y nombre de la planilla). `obtenerDatosIniciales` y `guardarRespuesta` son todavía "esqueletos". `src/Correo.js` está vacío.
+- `src/Codigo.js`, `src/index.html`, `src/app.html`, `src/buscador.html` y `src/estilos.html`: la web app (formulario, guardado y perfil en pantalla). Todavía no manda mails. `src/Correo.js` está vacío.
 
 ## Decisiones tomadas después de `DECISIONES.md`
 
@@ -51,7 +51,7 @@ Versiones
 La lista completa está en `docs/PLAN.md`. Lo que falta decidir:
 - Cómo conviven el formato "Texto sin formato" y el apóstrofo delante de `=`, `+`, `-`, `@` en Respuestas (se decide con la prueba de la sección 9 de `docs/SEGURIDAD.md`).
 
-Pendiente de fases posteriores que no hay que perder: las cuatro pruebas manuales de la fase 3 que no se hicieron (están en la fase 6 del plan), sacar de la página pública el nombre de la planilla, campo trampa y tiempo mínimo en `guardarRespuesta`.
+Pendiente de fases posteriores que no hay que perder: las cuatro pruebas manuales de la fase 3 que no se hicieron (están en la fase 6 del plan), subir los topes de prueba antes del piloto.
 
 ## Pendientes fuera del código
 Legal (consentimiento, plazo de conservación, registro ante la URCDP) · logo oficial y tipografía Ceibal Mozaic · links definitivos de la Guía y del Cuaderno de Actividades.

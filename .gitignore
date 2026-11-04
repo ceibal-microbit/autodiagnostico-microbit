@@ -2,9 +2,8 @@
 node_modules/
 
 # clasp: configuración local y credenciales (nunca al repo)
-.clasp.json
-.clasp.prueba.json
-.clasp.produccion.json
+.clasp*.json
+!.clasp.*.example.json
 .clasprc.json
 
 # Datos reales de Ceibal: nunca al repo

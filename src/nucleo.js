@@ -2,7 +2,7 @@
  * nucleo.js — Lógica pura del autodiagnóstico.
  *
  * Reglas (ver CLAUDE.md):
- * - Sin servicios de Google (SpreadsheetApp, MailApp, etc.): todo se testea con Node.
+ * - Sin servicios de Google: todo se testea con Node.
  * - Sin require/import/export: en Apps Script todos los archivos comparten el espacio global.
  * - Toda función termina en guion bajo: así el navegador no puede llamarla (test/reglas.test.js).
  * - El bloque final exporta las funciones para los tests de Node; en Apps Script se ignora.
@@ -624,10 +624,19 @@ const ENCABEZADOS_CONFIG_ = ['clave', 'valor', 'descripcion'];
 const CONFIG_INICIAL_ = [
   ['max_envios_cedula_dia', 3, 'Máximo de envíos por cédula por día'],
   ['max_mails_destino_dia', 1, 'Máximo de mails por dirección de correo por día'],
-  ['max_envios_hora', '', 'Tope general de envíos por hora (a definir después del piloto)'],
+  ['max_envios_hora', 20, 'Tope general de envíos por hora (mínimo mientras se prueba: subirlo antes del piloto)'],
+  ['max_mails_hora', 10, 'Tope general de mails por hora (mínimo mientras se prueba: subirlo antes del piloto)'],
+  ['max_mails_dia', 20, 'Tope general de mails por día (mínimo mientras se prueba: subirlo antes del piloto)'],
   ['segundos_minimos', 60, 'Segundos mínimos entre que se abre la página y se envía'],
   ['correo_equipo_alertas', '', 'Correo del equipo al que se avisa si se supera el tope (completar)'],
+  ['modo_mail', 'apagado', 'apagado: no sale ningún mail. solo_lista: solo a correos_de_prueba. activo: a los docentes (recién en el piloto)'],
+  ['correos_de_prueba', '', 'Correos propios a los que se puede mandar con modo_mail en solo_lista, separados por coma'],
 ];
+
+// Si un tope falta en Config o no es un número válido, se usa este valor: nunca "sin límite".
+const TOPES_POR_DEFECTO_ = { max_envios_cedula_dia: 3, max_mails_destino_dia: 1, max_envios_hora: 20, max_mails_hora: 10, max_mails_dia: 20, segundos_minimos: 60 };
+// Por encima de esto se considera un error de tipeo (o una celda con una fecha) y también se usa el valor por defecto.
+const TOPES_MAXIMOS_ = { max_envios_cedula_dia: 100, max_mails_destino_dia: 10, max_envios_hora: 100000, max_mails_hora: 1500, max_mails_dia: 1500, segundos_minimos: 600 };
 
 function armarEncabezadosRespuestas_() {
   const columnas = [
@@ -644,7 +653,8 @@ function armarEncabezadosRespuestas_() {
 const ENCABEZADOS_RESPUESTAS_ = armarEncabezadosRespuestas_();
 
 // Columnas de Respuestas con formato "Texto sin formato". Incluye la cédula para no perder el cero inicial.
-const COLUMNAS_TEXTO_RESPUESTAS_ = ['nombre', 'cedula', 'email', 'localidad', 'centro_texto'];
+// También las versiones: según la configuración de la Sheet, "2026.1" podría convertirse en un número o una fecha.
+const COLUMNAS_TEXTO_RESPUESTAS_ = ['version_app', 'version_instrumento', 'nombre', 'cedula', 'email', 'localidad', 'centro_texto'];
 
 // Columnas de Centros con formato "Texto sin formato" (todas menos el código y el número).
 const COLUMNAS_TEXTO_CENTROS_ = ['nombre', 'nombre_visible', 'subsistema', 'departamento', 'localidad', 'tipo', 'nombre_normalizado', 'observacion'];
@@ -711,7 +721,157 @@ function resumenLimpieza_(resultado) {
   }
   const aRevisar = resultado.centros.filter(c => c.observacion !== '').length;
   if (aRevisar > 0) lineas.push('Centros con observaciones para revisar (columna "observacion"): ' + aRevisar);
+  const sinLocalidad = resultado.centros.filter(c => c.localidad === '' && c.departamento !== 'Montevideo' && DEPARTAMENTOS_.indexOf(c.departamento) !== -1).length;
+  if (sinLocalidad > 0) lineas.push('Centros sin localidad fuera de Montevideo (los docentes no los van a poder elegir): ' + sinLocalidad);
   return lineas.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// 9. Web app: lectura de la Sheet, límites y fila de Respuestas (fase 4)
+// ---------------------------------------------------------------------------
+
+const MILISEGUNDOS_HORA_ = 3600000;
+const MILISEGUNDOS_DIA_ = 86400000;
+const MINUTOS_DE_REINTENTO_ = 10;
+const TEXTO_NIVEL_ = { f: 'A fortalecer', d: 'En desarrollo', c: 'Consolidada' };
+
+/** Quita el apóstrofo que protegerFormula_ le puso a un texto. Otros textos y tipos de valor pasan sin cambios. */
+function quitarProteccion_(valor) {
+  return typeof valor === 'string' && /^'(?:[\t\r\n]|\s*[=+\-@])/.test(valor) ? valor.slice(1) : valor;
+}
+
+/**
+ * Convierte lo que devuelve getValues() de la pestaña Centros en objetos para validar y buscar.
+ * Deja afuera los departamentos fuera de Uruguay: no se le ofrecen al docente y un envío con ellos se rechaza.
+ * Si los encabezados no son los esperados devuelve una lista vacía.
+ */
+function centrosDeFilas_(valores) {
+  if (!Array.isArray(valores) || valores.length < 2 || !mismosEncabezados_(valores[0], COLUMNAS_CENTROS_)) return [];
+  const centros = [];
+  for (const fila of valores.slice(1)) {
+    const centro = {};
+    COLUMNAS_CENTROS_.forEach((columna, i) => { centro[columna] = quitarProteccion_(fila[i]); });
+    centro.codigo = Number(centro.codigo);
+    if (!Number.isInteger(centro.codigo) || centro.codigo <= 0) continue;
+    if (DEPARTAMENTOS_.indexOf(centro.departamento) === -1) continue;
+    centro.numero = centro.numero === '' || centro.numero === null || centro.numero === undefined ? null : Number(centro.numero);
+    centros.push(centro);
+  }
+  return centros;
+}
+
+/** Solo las columnas que usa el buscador, en el orden de docs/ARQUITECTURA.md. */
+function centrosParaNavegador_(centros) {
+  // Siempre texto: una celda con una fecha haría fallar entera la respuesta de google.script.run.
+  return centros.map(c => [c.codigo, String(c.nombre_visible), String(c.subsistema), String(c.departamento), String(c.localidad), String(c.tipo), c.numero, String(c.nombre_normalizado)]);
+}
+
+/** Los textos de la Sheet, siempre como texto (mismo motivo que arriba). */
+function textosParaNavegador_(textos) {
+  const salida = {};
+  Object.keys(textos).forEach(clave => { salida[clave] = String(textos[clave]); });
+  return salida;
+}
+
+/** Lo que devuelve getValues() de una pestaña [clave, valor, ...] como objeto clave → valor. Ignora la fila de encabezados. */
+function clavesDeFilas_(valores) {
+  const salida = {};
+  if (!Array.isArray(valores)) return salida;
+  for (const fila of valores.slice(1)) {
+    const clave = String(fila[0]).trim();
+    if (/^[a-z][a-z0-9_]*$/.test(clave)) salida[clave] = fila[1];
+  }
+  return salida;
+}
+
+/** Valor de un tope de Config, o el valor por defecto si falta, no es un entero mayor que cero o supera el máximo razonable. */
+function topeDeConfig_(config, clave) {
+  const crudo = config[clave];
+  const esNumerico = typeof crudo === 'number' || (typeof crudo === 'string' && crudo.trim() !== '');
+  const valor = esNumerico ? Number(crudo) : NaN;
+  return Number.isInteger(valor) && valor > 0 && valor <= TOPES_MAXIMOS_[clave] ? valor : TOPES_POR_DEFECTO_[clave];
+}
+
+/**
+ * Verdadero si el envío se descarta sin aviso: campo trampa completo, o enviado antes del tiempo mínimo.
+ * abiertoEn es la hora del servidor al cargar la página, así un celular con el reloj mal no perjudica a nadie.
+ */
+function envioDescartado_(envio, ahora, segundosMinimos) {
+  if (envio.trampa !== undefined && envio.trampa !== null && envio.trampa !== '') return true;
+  if (typeof envio.abiertoEn !== 'number' || !Number.isFinite(envio.abiertoEn)) return true;
+  return ahora - envio.abiertoEn < segundosMinimos * 1000;
+}
+
+/** Número de día calendario en Uruguay (UTC-3 todo el año), para contar los envíos "por día". */
+function diaEnUruguay_(milisegundos) {
+  return Math.floor((milisegundos - 3 * MILISEGUNDOS_HORA_) / MILISEGUNDOS_DIA_);
+}
+
+/**
+ * Decide si un envío entra según los topes. filas = [[fecha_hora, cedula], ...] de Respuestas.
+ * Devuelve { ok: true } o { ok: false, motivo: 'cedula' | 'hora' }. El motivo es solo para el registro interno.
+ */
+function revisarLimites_(filas, cedula, ahora, topes) {
+  let enLaHora = 0;
+  let deLaCedula = 0;
+  const hoy = diaEnUruguay_(ahora);
+  for (const fila of filas) {
+    const fecha = fila[0];
+    const legible = !!fecha && typeof fecha.getTime === 'function' && !isNaN(fecha.getTime());
+    if (!legible && !fecha && (fila[1] === '' || fila[1] === null || fila[1] === undefined)) continue; // fila vacía
+    // Una fecha ilegible cuenta como de ahora: un cambio de formato en la Sheet nunca puede apagar los topes.
+    const momento = legible ? fecha.getTime() : ahora;
+    if (ahora - momento < MILISEGUNDOS_HORA_) enLaHora++;
+    if (diaEnUruguay_(momento) === hoy && String(quitarProteccion_(fila[1])).padStart(8, '0') === cedula) deLaCedula++;
+  }
+  if (deLaCedula >= topes.max_envios_cedula_dia) return { ok: false, motivo: 'cedula' };
+  if (enLaHora >= topes.max_envios_hora) return { ok: false, motivo: 'hora' };
+  return { ok: true };
+}
+
+/**
+ * Verdadero si en los últimos minutos ya hay una fila con la misma cédula y las mismas respuestas: pasa cuando se
+ * guardó, pero con mala señal el aviso no llegó al celular y el docente reintentó. filas = filas de Respuestas.
+ */
+function esReintento_(filas, datos, ahora) {
+  const posicion = columna => ENCABEZADOS_RESPUESTAS_.indexOf(columna);
+  const posCedula = posicion('cedula');
+  const posContexto = posicion('ctx_1');
+  const posRespuestas = posicion('d1_i1');
+  const iguales = (fila, desde, valores) => valores.every((v, i) => Number(fila[desde + i]) === v);
+  return filas.some(fila => {
+    const fecha = fila[0];
+    if (!fecha || typeof fecha.getTime !== 'function' || isNaN(fecha.getTime())) return false;
+    if (ahora - fecha.getTime() >= MINUTOS_DE_REINTENTO_ * 60000) return false;
+    return String(quitarProteccion_(fila[posCedula])).padStart(8, '0') === datos.cedula &&
+      iguales(fila, posContexto, datos.ctx) && iguales(fila, posRespuestas, datos.r);
+  });
+}
+
+/** Un envío ya validado como fila de Respuestas, en el orden de ENCABEZADOS_RESPUESTAS_. Protege los textos libres. */
+function filaDeRespuesta_(datos, fecha, mailEnviado) {
+  const valores = {
+    fecha_hora: fecha,
+    version_app: VERSION,
+    version_instrumento: VERSION_INSTRUMENTO,
+    nombre: protegerFormula_(datos.nombre),
+    cedula: datos.cedula,
+    email: protegerFormula_(datos.email),
+    subsistema: datos.subsistema,
+    departamento: datos.departamento,
+    localidad: protegerFormula_(datos.localidad),
+    centro_texto: protegerFormula_(datos.centroTexto),
+    centro_codigo: datos.centroCodigo === null ? '' : datos.centroCodigo,
+    origen_macheo: datos.origenMacheo,
+    mail_enviado: mailEnviado,
+  };
+  datos.ctx.forEach((v, i) => { valores['ctx_' + (i + 1)] = v; });
+  datos.r.forEach((v, k) => { valores['d' + (Math.floor(k / 3) + 1) + '_i' + (k % 3 + 1)] = v; });
+  for (const d of datos.perfil.dimensiones) {
+    valores[d.id + '_suma'] = d.suma;
+    valores[d.id + '_nivel'] = TEXTO_NIVEL_[d.nivel];
+  }
+  return ENCABEZADOS_RESPUESTAS_.map(columna => valores[columna]);
 }
 
 if (typeof module !== 'undefined') {
@@ -728,5 +888,7 @@ if (typeof module !== 'undefined') {
     aTitulo_, repararLocalidad_, detectarTipo_, limpiarUniverso_, centroAFila_,
     validarEnvio_,
     machearCentro_,
+    TOPES_POR_DEFECTO_, TOPES_MAXIMOS_, quitarProteccion_, centrosDeFilas_, centrosParaNavegador_, textosParaNavegador_, clavesDeFilas_, topeDeConfig_,
+    envioDescartado_, diaEnUruguay_, revisarLimites_, esReintento_, filaDeRespuesta_,
   };
 }

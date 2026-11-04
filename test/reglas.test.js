@@ -36,6 +36,37 @@ test('src/ no usa require, import ni export (no existen en Apps Script)', () => 
   }
 });
 
+const archivosHtml = fs.readdirSync(SRC).filter(f => f.endsWith('.html'));
+
+test('ninguna página interpreta como HTML lo que viene del docente o de la Sheet', () => {
+  assert.ok(archivosHtml.length >= 4);
+  for (const f of archivosHtml) {
+    const codigo = fs.readFileSync(path.join(SRC, f), 'utf8');
+    for (const prohibido of ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'eval(', 'new Function']) {
+      assert.ok(!codigo.includes(prohibido), `${f} usa ${prohibido}`);
+    }
+    // <?!= no escapa: solo se permite para incluir los parciales propios.
+    for (const m of codigo.matchAll(/<\?!=([^?]*)\?>/g)) assert.match(m[1].trim(), /^incluir_\('[a-z]+'\)$/, `${f}: ${m[0]}`);
+  }
+});
+
+test('los parciales que se incluyen existen', () => {
+  const indice = fs.readFileSync(path.join(SRC, 'index.html'), 'utf8');
+  for (const m of indice.matchAll(/incluir_\('([a-z]+)'\)/g)) assert.ok(archivosHtml.includes(`${m[1]}.html`), m[1]);
+});
+
+test('la página no muestra el nombre de la planilla', () => {
+  for (const f of archivosHtml) assert.ok(!/planilla \?>|Planilla vinculada/.test(fs.readFileSync(path.join(SRC, f), 'utf8')), f);
+  assert.ok(!fs.readFileSync(path.join(SRC, 'Codigo.js'), 'utf8').includes('getName'));
+});
+
+test('fase 4: ningún archivo usa un servicio de correo (no puede salir ningún mail)', () => {
+  for (const f of fs.readdirSync(SRC).filter(a => a !== 'appsscript.json')) {
+    const codigo = fs.readFileSync(path.join(SRC, f), 'utf8');
+    assert.ok(!/\b(MailApp|GmailApp|sendEmail)\b/.test(codigo), `${f} usa un servicio de correo`);
+  }
+});
+
 test('el manifiesto pide solo los permisos documentados', () => {
   const manifiesto = JSON.parse(fs.readFileSync(path.join(SRC, 'appsscript.json'), 'utf8'));
   assert.deepStrictEqual([...manifiesto.oauthScopes].sort(), [
