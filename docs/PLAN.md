@@ -52,7 +52,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [x] Al leer Centros en `obtenerDatosIniciales`, quitar el apóstrofo que `protegerFormula_` puso delante de algún nombre.
 - [x] Toda fila que se escriba en Respuestas pasa por `protegerFormula_` (nombre, correo, centro, etc.), junto con el formato "Texto sin formato", como pide `docs/SEGURIDAD.md`.
 - [ ] Con la prueba de la sección 9 en la Sheet de prueba, ver cómo queda un nombre que empieza con `=`. Si el apóstrofo se ve literal y el formato alcanza, decidir si se saca.
-- [x] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`.
+- [x] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`. Pasado el límite se ve el perfil y no se guarda. Un reintento idéntico en 10 minutos no suma otra fila.
 - [x] `guardarRespuesta` descarta (sin aviso) por campo trampa y por tiempo mínimo; `validarEnvio_` no los mira.
 - [x] Avisar de los centros sin localidad fuera de Montevideo al actualizar el catálogo, porque no se podrían elegir.
 - [ ] `repararLocalidad_` con objetos `Date` depende de la zona horaria: confirmar que la Sheet de prueba usa `America/Montevideo`, igual que `appsscript.json`.

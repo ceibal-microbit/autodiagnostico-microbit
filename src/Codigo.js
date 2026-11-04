@@ -9,12 +9,15 @@
  * El servidor no confía en el navegador: valida todo y recalcula el perfil.
  */
 
-// Mensaje único ante cualquier rechazo: no dice qué falló ni si una cédula ya respondió (docs/SEGURIDAD.md).
+// Mensaje único ante cualquier rechazo: no dice qué falló (docs/SEGURIDAD.md).
 const MENSAJE_RECHAZO_ = 'No pudimos guardar tu respuesta. Intentá más tarde.';
 // Filas de Respuestas que se revisan para los topes: alcanza de sobra para el último día.
 const FILAS_A_REVISAR_ = 8000;
 // Columnas de Respuestas que hacen falta para los topes: de fecha_hora (1) a cedula (5).
 const COLUMNAS_A_REVISAR_ = 5;
+// Filas y columnas que se miran para detectar un reintento: las más recientes, hasta la última respuesta (d5_i3).
+const FILAS_PARA_REINTENTO_ = 200;
+const COLUMNAS_PARA_REINTENTO_ = ENCABEZADOS_RESPUESTAS_.indexOf('d5_i3') + 1;
 
 function doGet() {
   const plantilla = HtmlService.createTemplateFromFile('index');
@@ -82,10 +85,20 @@ function procesarEnvio_(envio) {
   try {
     const hoja = hojaDeRespuestas_(planilla);
     const ahora = new Date();
+    // Se guardó, pero el aviso no llegó al celular y el docente reintentó: ve su perfil y no se suma otra fila.
+    if (esReintento_(filasRecientes_(hoja), datos, ahora.getTime())) {
+      console.warn('Envío no guardado: reintento de una fila reciente');
+      return respuestaOk;
+    }
     const limites = revisarLimites_(filasParaLimites_(hoja), datos.cedula, ahora.getTime(), {
       max_envios_cedula_dia: topeDeConfig_(config, 'max_envios_cedula_dia'),
       max_envios_hora: topeDeConfig_(config, 'max_envios_hora'),
     });
+    // Pasado el límite de su cédula ve su perfil y no se guarda nada: un rechazo revelaría si esa cédula ya respondió hoy.
+    if (!limites.ok && limites.motivo === 'cedula') {
+      console.warn('Envío no guardado: tope de la cédula');
+      return respuestaOk;
+    }
     if (!limites.ok) {
       console.warn('Envío rechazado por el tope: ' + limites.motivo);
       return { ok: false, mensaje: MENSAJE_RECHAZO_ };
@@ -137,6 +150,14 @@ function filasParaLimites_(hoja) {
   if (ultima < 2) return [];
   const desde = Math.max(2, ultima - FILAS_A_REVISAR_ + 1);
   return hoja.getRange(desde, 1, ultima - desde + 1, COLUMNAS_A_REVISAR_).getValues().map(fila => [fila[0], fila[4]]);
+}
+
+/** Las últimas filas de Respuestas, hasta la columna de la última afirmación. */
+function filasRecientes_(hoja) {
+  const ultima = hoja.getLastRow();
+  if (ultima < 2) return [];
+  const desde = Math.max(2, ultima - FILAS_PARA_REINTENTO_ + 1);
+  return hoja.getRange(desde, 1, ultima - desde + 1, COLUMNAS_PARA_REINTENTO_).getValues();
 }
 
 /** Incluye un parcial HTML dentro de una plantilla: <?!= incluir_('estilos') ?> */

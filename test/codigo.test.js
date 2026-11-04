@@ -78,6 +78,8 @@ function envioValido(cambios = {}) {
     r: [4, 4, 3, 2, 2, 1, 3, 3, 2, 5, 4, 4, 2, 3, 3], abiertoEn: HACE_DOS_MINUTOS(), trampa: '',
   }, cambios);
 }
+// Respuestas distintas en cada envío, para que no cuenten como un reintento.
+const respuestasNumero = i => [(i % 5) + 1, (Math.floor(i / 5) % 5) + 1, 3, 2, 2, 1, 3, 3, 2, 5, 4, 4, 2, 3, 3];
 const filasGuardadas = e => e.hojas.Respuestas.datos.slice(1);
 const columna = nombre => n.ENCABEZADOS_RESPUESTAS_.indexOf(nombre);
 const aPlano = v => JSON.parse(JSON.stringify(v));
@@ -247,28 +249,69 @@ test('el tiempo mínimo sale de Config', () => {
   assert.strictEqual(filasGuardadas(e).length, 1);
 });
 
-test('desde el 4.º envío de la misma cédula en el día se rechaza con el mensaje genérico', () => {
+test('desde el 4.º envío de la misma cédula en el día se ve el perfil y no se guarda: no revela si ya respondió', () => {
   const e = entorno();
-  for (let i = 0; i < 3; i++) assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
-  assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido())), RECHAZO);
-  assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido({ cedula: '12345672' }))), RECHAZO);
+  const respuestas = [];
+  for (let i = 0; i < 5; i++) respuestas.push(aPlano(e.guardarRespuesta(envioValido({ r: respuestasNumero(i) }))));
   assert.strictEqual(filasGuardadas(e).length, 3);
+  assert.deepStrictEqual(Object.keys(respuestas[3]), Object.keys(respuestas[0]));
+  assert.deepStrictEqual(Object.keys(respuestas[3].perfil), Object.keys(respuestas[0].perfil));
+  assert.strictEqual(respuestas[3].ok, true);
+  assert.strictEqual(respuestas[4].perfil.dimensiones.length, 5);
+  assert.ok(e.registro.some(r => /tope de la cédula/.test(r)));
+  assert.ok(!e.registro.some(r => /12345672/.test(r)));
   assert.strictEqual(e.bloqueos.tomados, e.bloqueos.liberados);
+});
+
+test('un reintento con la misma cédula y las mismas respuestas no suma otra fila', () => {
+  const e = entorno();
+  const primero = aPlano(e.guardarRespuesta(envioValido()));
+  const segundo = aPlano(e.guardarRespuesta(envioValido()));
+  assert.deepStrictEqual(segundo, primero);
+  assert.strictEqual(filasGuardadas(e).length, 1);
+  assert.ok(e.registro.some(r => /reintento/.test(r)));
+});
+
+test('no es un reintento si cambia una respuesta, el contexto o la cédula', () => {
+  const e = entorno({ config: { max_envios_cedula_dia: 50 } });
+  const otraCedula = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
+  e.guardarRespuesta(envioValido());
+  e.guardarRespuesta(envioValido({ r: respuestasNumero(7) }));
+  e.guardarRespuesta(envioValido({ ctx: [2, 2, 3] }));
+  e.guardarRespuesta(envioValido({ cedula: otraCedula }));
+  assert.strictEqual(filasGuardadas(e).length, 4);
+});
+
+test('esReintento_: solo cuenta dentro de los 10 minutos y con fechas legibles', () => {
+  const datos = n.validarEnvio_(envioValido(), VALIDOS).datos;
+  const ahora = Date.now();
+  const fila = minutos => n.filaDeRespuesta_(datos, new Date(ahora - minutos * 60000), 'no');
+  assert.strictEqual(n.esReintento_([fila(9)], datos, ahora), true);
+  assert.strictEqual(n.esReintento_([fila(10)], datos, ahora), false);
+  assert.strictEqual(n.esReintento_([], datos, ahora), false);
+  const sinFecha = fila(1);
+  sinFecha[0] = 'texto';
+  assert.strictEqual(n.esReintento_([sinFecha], datos, ahora), false);
+  const otra = n.filaDeRespuesta_(Object.assign({}, datos, { cedula: '99999999' }), new Date(ahora), 'no');
+  assert.strictEqual(n.esReintento_([otra], datos, ahora), false);
 });
 
 test('la misma cédula con y sin cero inicial cuenta como una sola', () => {
   const e = entorno({ config: { max_envios_cedula_dia: 1 } });
   const sieteDigitos = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
   assert.ok(sieteDigitos, 'tiene que haber un dígito verificador correcto');
-  assert.strictEqual(e.guardarRespuesta(envioValido({ cedula: sieteDigitos })).ok, true);
-  assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido({ cedula: '0' + sieteDigitos }))), RECHAZO);
+  e.guardarRespuesta(envioValido({ cedula: sieteDigitos }));
+  e.guardarRespuesta(envioValido({ cedula: '0' + sieteDigitos, r: respuestasNumero(9) }));
+  assert.strictEqual(filasGuardadas(e).length, 1);
+  assert.ok(e.registro.some(r => /tope de la cédula/.test(r)));
 });
 
 test('al llegar al tope por hora se rechaza y queda registrado', () => {
   const e = entorno({ config: { max_envios_hora: 2, max_envios_cedula_dia: 50 } });
-  assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
-  assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
-  assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido())), RECHAZO);
+  assert.strictEqual(e.guardarRespuesta(envioValido({ r: respuestasNumero(1) })).ok, true);
+  assert.strictEqual(e.guardarRespuesta(envioValido({ r: respuestasNumero(2) })).ok, true);
+  assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido({ r: respuestasNumero(3) }))), RECHAZO);
+  assert.strictEqual(filasGuardadas(e).length, 2);
   assert.ok(e.registro.some(r => /tope: hora/.test(r)));
 });
 

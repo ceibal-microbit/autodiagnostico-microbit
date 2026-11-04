@@ -51,7 +51,8 @@ Si algo falla, se rechaza el envío completo con un mensaje genérico.
 
 Los valores salen de la pestaña Config y se ajustan después del piloto.
 
-- [ ] Máximo 3 envíos por cédula por día.
+- [ ] Máximo 3 envíos guardados por cédula por día; desde el 4.º se ve el perfil y no se guarda, para no revelar si esa cédula ya respondió.
+- [ ] Un reintento con la misma cédula y las mismas respuestas en 10 minutos no suma otra fila.
 - [ ] Máximo 1 mail por día a la misma dirección; los siguientes envíos se guardan sin mail.
 - [ ] Tope general de envíos por hora; al superarlo, mensaje de "intentá más tarde" y aviso al equipo.
 - [ ] Campo trampa invisible: si viene completo, se descarta sin aviso.
@@ -100,7 +101,8 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 | Centro inventado | Código inexistente | Rechazado |
 | Texto enorme | Nombre de 50.000 caracteres | Rechazado |
 | HTML en el nombre | `<b>Hola</b><img src=x onerror=alert(1)>` | Texto plano en pantalla, PDF y mail |
-| Envíos repetidos | 5 envíos con la misma cédula | Desde el 4.º, rechazado |
+| Envíos repetidos | 5 envíos con la misma cédula y respuestas distintas | Todos ven su perfil; en la Sheet quedan 3 filas |
+| Reintento | 2 envíos seguidos con la misma cédula y las mismas respuestas | Los 2 ven su perfil; en la Sheet queda 1 fila |
 | Mails cerrados | Con `modo_mail` en `apagado`, un envío con un correo propio | No llega ningún mail; `mail_enviado` queda en `no` |
 | Solo la lista | Con `modo_mail` en `solo_lista`, un envío con un correo propio que no está en `correos_de_prueba` | No llega ningún mail |
 | Mail a terceros | Con `modo_mail` en `solo_lista`, 3 envíos con el mismo correo de `correos_de_prueba` | Llega 1 mail |

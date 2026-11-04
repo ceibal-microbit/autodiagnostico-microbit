@@ -15,7 +15,7 @@ El script está **vinculado** a la Sheet. Hay dos copias completas (Sheet + scri
 1. El docente abre el link de la web app → `doGet()` devuelve la página.
 2. La página llama a `obtenerDatosIniciales()` → recibe centros, textos y versión. La búsqueda de centros ocurre en el navegador, sin más llamadas.
 3. El docente completa y envía → la página llama a `guardarRespuesta(envio)`.
-4. El servidor valida, aplica límites, recalcula, escribe la fila (con bloqueo), genera el PDF y manda el mail.
+4. El servidor valida, recalcula, aplica límites, escribe la fila (con bloqueo), genera el PDF y manda el mail. Si es un reintento reciente o la cédula ya llegó a su límite del día, devuelve el perfil sin escribir.
 5. Devuelve el perfil → la página lo muestra.
 
 La página llama al servidor con `google.script.run`. Solo hay dos funciones públicas; todo lo demás termina en guion bajo.

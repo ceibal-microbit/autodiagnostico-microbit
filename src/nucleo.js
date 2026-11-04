@@ -732,6 +732,7 @@ function resumenLimpieza_(resultado) {
 
 const MILISEGUNDOS_HORA_ = 3600000;
 const MILISEGUNDOS_DIA_ = 86400000;
+const MINUTOS_DE_REINTENTO_ = 10;
 const TEXTO_NIVEL_ = { f: 'A fortalecer', d: 'En desarrollo', c: 'Consolidada' };
 
 /** Quita el apóstrofo que protegerFormula_ le puso a un texto. Otros textos y tipos de valor pasan sin cambios. */
@@ -828,6 +829,25 @@ function revisarLimites_(filas, cedula, ahora, topes) {
   return { ok: true };
 }
 
+/**
+ * Verdadero si en los últimos minutos ya hay una fila con la misma cédula y las mismas respuestas: pasa cuando se
+ * guardó, pero con mala señal el aviso no llegó al celular y el docente reintentó. filas = filas de Respuestas.
+ */
+function esReintento_(filas, datos, ahora) {
+  const posicion = columna => ENCABEZADOS_RESPUESTAS_.indexOf(columna);
+  const posCedula = posicion('cedula');
+  const posContexto = posicion('ctx_1');
+  const posRespuestas = posicion('d1_i1');
+  const iguales = (fila, desde, valores) => valores.every((v, i) => Number(fila[desde + i]) === v);
+  return filas.some(fila => {
+    const fecha = fila[0];
+    if (!fecha || typeof fecha.getTime !== 'function' || isNaN(fecha.getTime())) return false;
+    if (ahora - fecha.getTime() >= MINUTOS_DE_REINTENTO_ * 60000) return false;
+    return String(quitarProteccion_(fila[posCedula])).padStart(8, '0') === datos.cedula &&
+      iguales(fila, posContexto, datos.ctx) && iguales(fila, posRespuestas, datos.r);
+  });
+}
+
 /** Un envío ya validado como fila de Respuestas, en el orden de ENCABEZADOS_RESPUESTAS_. Protege los textos libres. */
 function filaDeRespuesta_(datos, fecha, mailEnviado) {
   const valores = {
@@ -869,6 +889,6 @@ if (typeof module !== 'undefined') {
     validarEnvio_,
     machearCentro_,
     TOPES_POR_DEFECTO_, TOPES_MAXIMOS_, quitarProteccion_, centrosDeFilas_, centrosParaNavegador_, textosParaNavegador_, clavesDeFilas_, topeDeConfig_,
-    envioDescartado_, diaEnUruguay_, revisarLimites_, filaDeRespuesta_,
+    envioDescartado_, diaEnUruguay_, revisarLimites_, esReintento_, filaDeRespuesta_,
   };
 }

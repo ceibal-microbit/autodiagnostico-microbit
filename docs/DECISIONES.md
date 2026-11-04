@@ -81,6 +81,8 @@
 
 ## Mails y topes
 
+- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó.
+- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular.
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
 - Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.
