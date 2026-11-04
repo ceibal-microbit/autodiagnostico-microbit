@@ -178,12 +178,17 @@ function claveSimple_(texto) {
 const ABREVIATURAS_ = { esc: 'escuela', lic: 'liceo', jn: 'jardin', utu: 'escuela tecnica' };
 const PALABRAS_NUMERO_ = new Set(['n', 'no', 'nro', 'nr', 'num', 'numero']);
 
+const REGEX_SIGLA_CON_PUNTOS_ = /(^|[^\p{L}\d])((?:\p{L}\.){2,}\p{L}?)/gu;
+
 /**
  * Normaliza un nombre de centro para buscar y comparar: minúsculas, sin tildes,
- * "Nº", "nro", "#" fuera, y abreviaturas expandidas ("esc" → "escuela", "UTU" → "escuela tecnica").
+ * "Nº", "nro", "#" fuera, siglas con puntos juntas ("C.e.a" → "cea") y abreviaturas expandidas
+ * ("esc" → "escuela", "UTU" → "escuela tecnica").
  */
 function normalizarTexto_(texto) {
-  const base = claveSimple_(String(texto === null || texto === undefined ? '' : texto).replace(/[º°ª]/g, ' '));
+  const sinPuntosEnSiglas = String(texto === null || texto === undefined ? '' : texto)
+    .replace(REGEX_SIGLA_CON_PUNTOS_, (_, antes, sigla) => antes + sigla.replace(/\./g, ''));
+  const base = claveSimple_(sinPuntosEnSiglas.replace(/[º°ª]/g, ' '));
   if (!base) return '';
   const salida = [];
   for (const palabra of base.split(' ')) {

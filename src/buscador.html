@@ -24,8 +24,12 @@ function claveSimple(texto) {
 var ABREVIATURAS = { esc: 'escuela', lic: 'liceo', jn: 'jardin', utu: 'escuela tecnica' };
 var PALABRAS_NUMERO = new Set(['n', 'no', 'nro', 'nr', 'num', 'numero']);
 
+var REGEX_SIGLA_CON_PUNTOS = /(^|[^\p{L}\d])((?:\p{L}\.){2,}\p{L}?)/gu;
+
 function normalizarTexto(texto) {
-  var base = claveSimple(String(texto === null || texto === undefined ? '' : texto).replace(/[º°ª]/g, ' '));
+  var sinPuntosEnSiglas = String(texto === null || texto === undefined ? '' : texto)
+    .replace(REGEX_SIGLA_CON_PUNTOS, function (_, antes, sigla) { return antes + sigla.replace(/\./g, ''); });
+  var base = claveSimple(sinPuntosEnSiglas.replace(/[º°ª]/g, ' '));
   if (!base) return '';
   var salida = [];
   base.split(' ').forEach(function (palabra) {
@@ -244,9 +248,11 @@ function buscarCentros(candidatos, consulta) {
       puntos += similitud * 40;
     }
     if (tipo) {
-      var grupo = tipo === 'esc' || tipo === 'jar' ? ['esc', 'jar'] : [tipo];
-      if (grupo.indexOf(c.tipo) !== -1) puntos += 15;
+      // Lo pedido va primero. Con un número o un nombre, la escuela y el jardín se ofrecen entre sí, por si se confundió de palabra.
+      var esVecino = (tipo === 'esc' && c.tipo === 'jar') || (tipo === 'jar' && c.tipo === 'esc');
+      if (c.tipo === tipo) puntos += 15;
       else if (numero === null && !resto) return;
+      else if (esVecino) puntos += 5;
       else puntos -= 10;
     } else if (c.tipo === 'anexo') {
       puntos -= 8;

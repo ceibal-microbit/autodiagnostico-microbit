@@ -24,7 +24,7 @@ const aPlano = v => JSON.parse(JSON.stringify(v));
 // --- Mismas respuestas que nucleo.js ---
 
 test('normalizar da lo mismo en la página y en el servidor', () => {
-  const casos = ['ESCUELA Nº 35', 'esc. 35', 'Esc 35', 'Jardín N° 12', 'JN 12', 'UTU de Pando', 'lic 7', 'Liceo nro. 7', 'Escuela #4', '', null, undefined, 42,
+  const casos = ['C.e.a', 'C.E.A. del Norte', 'c.e.a 5', 'Centro C.e.a.', 'U.T.U. Pando', 'J.N. 12', 'Esc.N.1', 'A.B', 'Dr. J. Pérez', 'Nro.35', 'Sr.A.B.', 'É.Á.', 'ESCUELA Nº 35', 'esc. 35', 'Esc 35', 'Jardín N° 12', 'JN 12', 'UTU de Pando', 'lic 7', 'Liceo nro. 7', 'Escuela #4', '', null, undefined, 42,
     'República de Islandia', '  muchos   espacios  ', 'Ñandú', 'número 5', 'no', 'CERP del Este', 'IFD ñ'];
   for (const c of casos) {
     assert.strictEqual(b.normalizarTexto(c), n.normalizarTexto_(c), `normalizarTexto: ${c}`);
@@ -150,6 +150,44 @@ test('un número seguido de un mes es parte del nombre, no el número del centro
 test('el número pegado a la palabra también se encuentra', () => {
   const mvd = b.candidatosDe(CATALOGO, 'DGEIP', 'Montevideo', '');
   for (const consulta of ['esc35', 'n35', 'Nº35', 'escuela35']) assert.strictEqual(b.buscarCentros(mvd, consulta)[0].numero, 35, consulta);
+});
+
+const centroDePrueba = (codigo, visible, tipo, numero) => ({ codigo, visible, tipo, numero, normalizado: b.normalizarTexto(visible), localidadClave: '' });
+
+test('al terminar de escribir "jardin" sigue mostrando jardines, no escuelas', () => {
+  const centros = [
+    centroDePrueba(1, 'Escuela Nº 1', 'esc', 1), centroDePrueba(2, 'Escuela Nº 2', 'esc', 2),
+    centroDePrueba(3, 'Jardín Nº 50', 'jar', 50), centroDePrueba(4, 'Jardín Nº 60', 'jar', 60),
+  ];
+  for (const consulta of ['jardi', 'jardin', 'Jardín', 'jardines', 'JN']) {
+    const r = aPlano(b.buscarCentros(centros, consulta)).map(c => c.tipo);
+    assert.deepStrictEqual(r, ['jar', 'jar'], consulta);
+  }
+  for (const consulta of ['escuela', 'esc', 'ESC.']) assert.deepStrictEqual(aPlano(b.buscarCentros(centros, consulta)).map(c => c.tipo), ['esc', 'esc'], consulta);
+});
+
+test('con número, primero el tipo pedido, pero la escuela y el jardín se ofrecen entre sí', () => {
+  const centros = [centroDePrueba(1, 'Escuela Nº 50', 'esc', 50), centroDePrueba(2, 'Jardín Nº 50', 'jar', 50), centroDePrueba(3, 'Liceo Nº 50', 'lic', 50)];
+  assert.deepStrictEqual(aPlano(b.buscarCentros(centros, 'jardin 50')).map(c => c.codigo), [2, 1, 3]);
+  assert.deepStrictEqual(aPlano(b.buscarCentros(centros, 'escuela 50')).map(c => c.codigo), [1, 2, 3]);
+});
+
+test('una sigla con puntos se encuentra escrita de cualquier forma', () => {
+  const lista = ['C.e.a Pando', 'C.E.A. Pando', 'c.e.a. Pando', 'CEA Pando'];
+  for (const nombre of lista) {
+    const centros = [centroDePrueba(1, nombre, 'otro', null), centroDePrueba(2, 'Escuela Técnica de Salto', 'utu', null)];
+    for (const consulta of ['cea', 'CEA', 'Cea', 'c.e.a', 'C.e.a', 'C.E.A.', 'cea pando']) {
+      assert.strictEqual(b.buscarCentros(centros, consulta)[0].codigo, 1, `${nombre} / ${consulta}`);
+    }
+  }
+});
+
+test('juntar siglas no toca palabras con punto ni números', () => {
+  assert.strictEqual(n.normalizarTexto_('C.e.a'), 'cea');
+  assert.strictEqual(n.normalizarTexto_('U.T.U. Pando'), 'escuela tecnica pando');
+  assert.strictEqual(n.normalizarTexto_('Esc. 35'), 'escuela 35');
+  assert.strictEqual(n.normalizarTexto_('Nro.35'), '35');
+  assert.strictEqual(n.normalizarTexto_('Dr. J. Pérez'), 'dr j perez');
 });
 
 test('sin texto muestra primero los centros de aula y un máximo de 12', () => {
