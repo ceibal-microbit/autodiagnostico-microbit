@@ -60,18 +60,21 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 ## Fase 5 — PDF y mail (v0.5.0)
 
-- [ ] Perfil en PDF con la identidad visual.
+- [ ] Perfil en PDF con la identidad visual, generado en el servidor. Botón "Descargar en PDF" en el perfil.
+- [ ] Botón "Enviar por mail" en el perfil, que no excluye al de PDF. El mail sale solo si el docente lo pide.
+- [ ] Cambiar la ayuda del correo: "Si querés, al terminar te mandamos tu perfil a este correo."
 - [ ] Envío por mail detrás de la llave `modo_mail`, que viene en `apagado`, con el límite por dirección (contando el correo sin la parte `+...`), los topes globales de mails por hora y por día, y registro en `mail_enviado`. En las pruebas solo se usa `solo_lista` con correos propios.
 - [ ] Aviso por mail al equipo al superar el tope por hora, también detrás de `modo_mail`. **Obligatorio antes de publicar:** sin esto, un script podría agotar el tope y trabar el formulario sin que nadie se entere.
-- [ ] Un envío descartado tiene que verse igual a uno guardado también en `mailEnviado`, para que un robot no note la diferencia.
-- [ ] El perfil se pierde si el docente recarga la página después de enviar: el PDF por mail es el respaldo.
+- [ ] Un envío descartado tiene que recibir el mismo aviso al pedir el mail, para que un robot no note la diferencia.
+- [ ] El perfil se pierde si el docente recarga la página después de enviar: avisarlo junto a los botones de PDF y mail.
 - [ ] Manejo de la cuota diaria agotada.
 
 ## Fase 6 — Auditoría (v0.9.0)
 
 - [ ] `auditor-seguridad` recorre `docs/SEGURIDAD.md` completo.
 - [ ] Definir qué dispara el plan B del captcha y cómo se activa.
-- [ ] Medir en el celular cuánto tarda en cargar el catálogo real; si hace falta, usar `CacheService` y renovarlo al actualizar el catálogo.
+- [x] Medir en el celular cuánto tarda en cargar el catálogo real: unos 8 segundos, con la franja de Google arriba.
+- [ ] Bajar ese tiempo con `CacheService` si no agrega permisos, y renovar la caché al actualizar el catálogo.
 - [ ] Pruebas de la sección 9 hechas a mano en el proyecto de prueba.
 - [ ] Pruebas de la fase 3 que no se hicieron a mano: repetir "Actualizar catálogo" (mismo resultado), fila del Universo con nombre `=1+1` (cómo se ve el apóstrofo en Centros), aviso de "catálogo se achica mucho" con una lista incompleta, y formato de texto de Respuestas pasadas las 1000 filas.
 - [ ] Logo y tipografía oficiales, si ya están.

@@ -11,8 +11,9 @@ Este archivo es el "pase de posta": resume dónde está el proyecto y qué se de
 | 1 — Preparación (v0.1.0) | Cerrada. Verificada en Google. |
 | 2 — Núcleo con tests (v0.2.0) | Cerrada. Mergeada. |
 | 3 — Sheet y catálogo (v0.3.0) | Cerrada. Probada a mano con el Universo real en la Sheet de prueba. |
-| 4 — Web app (v0.4.0) | **En curso.** Página y servidor programados y probados con Chrome y tests. Falta la prueba real en la Sheet de prueba y en celulares. |
-| 5 — PDF y mail · 6 — Auditoría · 7 — Piloto | Pendientes. |
+| 4 — Web app (v0.4.0) | **En curso.** Página y servidor programados. Pruebas en celular hechas (unos 8 segundos de carga, con la franja de Google). Faltan las pruebas en la Sheet de prueba. |
+| 5 — PDF y mail | Diseño acordado: botones de PDF y mail en el perfil, a pedido del docente (ver `DECISIONES.md`). Sin programar. |
+| 6 — Auditoría · 7 — Piloto | Pendientes. |
 
 **Qué existe hoy**
 - `src/nucleo.js`: puntajes y niveles, cédula, correo, protección contra fórmulas, normalización, limpieza del Universo, validación de envíos, macheo de texto libre. Tests en verde y CI de GitHub en verde.

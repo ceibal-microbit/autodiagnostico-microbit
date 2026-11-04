@@ -4,7 +4,7 @@ Guía para Claude Code en este repositorio. Leerla completa antes de cada tarea.
 
 ## Qué es
 
-Web app de Google Apps Script para el programa micro:bit de Ceibal (Uruguay). El docente completa un autodiagnóstico (datos, 3 preguntas de contexto, 15 afirmaciones en 5 dimensiones con escala 1–5), ve su perfil por dimensiones al terminar y recibe el perfil en PDF por correo. Cada envío se guarda como una fila en una Google Sheet.
+Web app de Google Apps Script para el programa micro:bit de Ceibal (Uruguay). El docente completa un autodiagnóstico (datos, 3 preguntas de contexto, 15 afirmaciones en 5 dimensiones con escala 1–5), ve su perfil por dimensiones al terminar y, si quiere, lo descarga en PDF o se lo manda por correo. Cada envío se guarda como una fila en una Google Sheet.
 
 Documentos de referencia, en este orden:
 1. `docs/DECISIONES.md` — qué se decidió. No contradecirlo sin consultarlo.
@@ -25,7 +25,7 @@ El responsable del proyecto (Santi) coordina el programa micro:bit, tiene formac
 1. **Nunca ejecutar clasp.** Ni `clasp push`, ni `clasp deploy`, ni `clasp login`, ni ningún otro comando de clasp, ni los scripts de npm que lo llaman. Subir código a Google lo hace solo una persona (ver `docs/DESPLIEGUE.md`). Está bloqueado en `.claude/settings.json`; no intentes rodearlo.
 2. **Nunca leer ni tocar credenciales**: `.clasprc.json`, tokens, contraseñas.
 3. **Nada de datos reales de Ceibal en el repo.** Ni el catálogo real de centros ni respuestas de docentes (nombres, cédulas, correos). Para tests: `test/fixtures/universo-sintetico.json` y `test/fixtures/casos-macheo.json`. Si te pasan un archivo con datos reales, no lo copies al repo.
-4. **Solo dos funciones públicas del servidor** además de `doGet`: `obtenerDatosIniciales` y `guardarRespuesta`. Toda otra función de `src/*.js` termina en guion bajo (`limpiarCatalogo_`), para que no se pueda llamar desde el navegador. Única excepción: `onOpen`, porque Google exige ese nombre para el menú de la Sheet; solo arma el menú. Las funciones del menú terminan en guion bajo. `test/reglas.test.js` lo controla automáticamente.
+4. **Solo cuatro funciones públicas del servidor** además de `doGet`: `obtenerDatosIniciales`, `guardarRespuesta`, `descargarPerfil` y `enviarPerfilPorMail`. Toda otra función de `src/*.js` termina en guion bajo (`limpiarCatalogo_`), para que no se pueda llamar desde el navegador. Única excepción: `onOpen`, porque Google exige ese nombre para el menú de la Sheet; solo arma el menú. Las funciones del menú terminan en guion bajo. `test/reglas.test.js` lo controla automáticamente.
 5. **Permisos mínimos.** No agregar scopes a `src/appsscript.json` sin consultarlo. Los permitidos están en `docs/ARQUITECTURA.md`.
 6. **El servidor no confía en el navegador.** Valida todo lo que recibe y recalcula puntajes y niveles; nunca guarda lo que calculó la página.
 

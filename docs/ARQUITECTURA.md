@@ -15,10 +15,11 @@ El script está **vinculado** a la Sheet. Hay dos copias completas (Sheet + scri
 1. El docente abre el link de la web app → `doGet()` devuelve la página.
 2. La página llama a `obtenerDatosIniciales()` → recibe centros, textos y versión. La búsqueda de centros ocurre en el navegador, sin más llamadas.
 3. El docente completa y envía → la página llama a `guardarRespuesta(envio)`.
-4. El servidor valida, recalcula, aplica límites, escribe la fila (con bloqueo), genera el PDF y manda el mail. Si es un reintento reciente o la cédula ya llegó a su límite del día, devuelve el perfil sin escribir.
-5. Devuelve el perfil → la página lo muestra.
+4. El servidor valida, recalcula, aplica límites y escribe la fila (con bloqueo). Si es un reintento reciente o la cédula ya llegó a su límite del día, devuelve el perfil sin escribir.
+5. Devuelve el perfil → la página lo muestra, con dos botones: descargar en PDF y enviar por mail.
+6. Si el docente toca un botón, la página llama a `descargarPerfil(envio)` o a `enviarPerfilPorMail(envio)`.
 
-La página llama al servidor con `google.script.run`. Solo hay dos funciones públicas; todo lo demás termina en guion bajo.
+La página llama al servidor con `google.script.run`. Solo hay cuatro funciones públicas; todo lo demás termina en guion bajo.
 
 Mientras el docente completa el formulario, el avance se guarda en `sessionStorage`: queda solo en esa pestaña del navegador y se borra al enviar, al cerrarla o si tiene más de 6 horas. Sirve para no perder las respuestas si el celular recarga la página.
 
@@ -71,6 +72,14 @@ Devuelve `{ ok: true, perfil }` o `{ ok: false, mensaje }`, con un mensaje gené
 
 Las reglas de validación están en `docs/SEGURIDAD.md`, sección 3.
 
+### `descargarPerfil(envio)`
+
+Recibe el mismo `envio`, lo valida de nuevo y recalcula el perfil. Devuelve `{ ok: true, pdf, nombreArchivo }`, con el PDF en base64, o `{ ok: false, mensaje }`. No lee Respuestas ni escribe nada.
+
+### `enviarPerfilPorMail(envio)`
+
+Recibe el mismo `envio` y lo valida de nuevo. Devuelve siempre `{ ok: true, mensaje }` con el mismo texto, salvo un envío inválido, que devuelve `{ ok: false, mensaje }`. Con el bloqueo tomado, busca la fila de hoy con esa cédula y ese correo; si existe y lo permiten `modo_mail` y los topes, manda el mail y actualiza `mail_enviado` en esa fila.
+
 ## Pestañas de la Sheet
 
 | Pestaña | Quién la escribe | Contenido |
@@ -99,7 +108,7 @@ Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla
 
 ### Respuestas
 
-`fecha_hora` · `version_app` · `version_instrumento` · `nombre` · `cedula` · `email` · `subsistema` · `departamento` · `localidad` · `centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` (`sí`, `no`, `límite`).
+`fecha_hora` · `version_app` · `version_instrumento` · `nombre` · `cedula` · `email` · `subsistema` · `departamento` · `localidad` · `centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` (`no` al guardar; `sí` o `límite` según lo que pase si el docente pide el mail).
 
 Las columnas de texto libre (`nombre`, `cedula`, `email`, `localidad`, `centro_texto`) y las de versión (`version_app`, `version_instrumento`) tienen formato "Texto sin formato" (la cédula también, para no perder el cero inicial; se guarda siempre con 8 dígitos). El correo se guarda en minúsculas.
 

@@ -24,14 +24,15 @@
 - Web app con Google Apps Script + Google Sheets.
 - Dueña del proyecto y de la Sheet: la cuenta de Google dedicada al programa, en la unidad compartida del programa. Se publica desde esa cuenta.
 - La web app es un script **vinculado** a la Sheet (creado desde la Sheet con *Extensiones → Apps Script*).
-- Devolución inmediata en pantalla, más el perfil en PDF por correo.
+- Devolución inmediata en pantalla. Al final del perfil, dos botones que no se excluyen: descargar en PDF y enviar por mail. El mail no es automático: sale solo si el docente lo pide.
+- El PDF se genera en el servidor, con el mismo diseño para la descarga y para el mail.
 - El servidor calcula puntajes y niveles. Los textos de devolución se leen de una pestaña de la Sheet, para editarlos sin tocar código.
 - Cada respuesta guarda la versión del instrumento y la versión de la app.
 
 ## Datos que se piden (nominal)
 
 - Nombre y apellido, cédula (validada con dígito verificador), correo electrónico (validado, con sugerencia ante errores de dominio como "gmial.com"), subsistema, departamento, localidad (salvo Montevideo) y centro educativo.
-- El correo se usa para mandar el perfil en PDF.
+- El correo sigue siendo obligatorio. Se usa para mandar el perfil en PDF si el docente lo pide.
 - No se muestran resultados anteriores por cédula, porque no hay inicio de sesión.
 - Cada envío es una fila nueva; un docente puede repetir el autodiagnóstico.
 
@@ -84,5 +85,6 @@
 - **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó.
 - **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular.
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
+- Un mail solo sale si hay una fila guardada hoy con esa cédula y ese correo, y como máximo uno por día a cada dirección. El aviso al docente es siempre el mismo, para que nadie pueda averiguar si una dirección ya recibió algo o si el envío fue descartado.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
 - Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.
