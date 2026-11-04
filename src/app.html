@@ -1,0 +1,555 @@
+<script>
+/*
+ * app.html — Las pantallas del formulario.
+ *
+ * Seguridad: todo se arma con elementos y textContent; nada de lo que viene del docente o de la Sheet se
+ * interpreta como HTML (docs/SEGURIDAD.md, sección 6). test/reglas.test.js lo controla.
+ * La lógica sin pantalla está en buscador.html. Nada de lo que está acá sirve como validación: la hace el servidor.
+ */
+(function () {
+  /* ---------- Instrumento (docs/INSTRUMENTO.md; test/buscador.test.js controla que coincida) ---------- */
+  var CONTEXTO = [
+    { pregunta: '¿Hace cuánto tiempo utilizás micro:bit?', opciones: ['Todavía no la utilicé.', 'La utilicé alguna vez.', 'Hace menos de un año.', 'Entre uno y dos años.', 'Hace más de dos años.'] },
+    { pregunta: '¿Participaste en alguna instancia de formación sobre micro:bit durante los últimos dos años?', opciones: ['No.', 'Sí, en un curso introductorio.', 'Sí, en más de una instancia de formación (por ejemplo: cursos y talleres).', 'Sí, y además continúo explorando recursos o propuestas de forma autónoma.'] },
+    { pregunta: '¿Con qué frecuencia utilizás actualmente micro:bit con tus estudiantes?', opciones: ['Todavía no la utilizo.', 'La utilicé de forma puntual.', 'Algunas veces durante el año.', 'Con bastante frecuencia (mensualmente).', 'Forma parte habitual de mis propuestas.'] },
+  ];
+  var AFIRMACIONES = [
+    ['Puedo crear o modificar programas en MakeCode para utilizarlos con micro:bit sin necesitar apoyo permanente de otra persona.',
+      'Cuando surge una dificultad técnica durante una actividad con micro:bit puedo identificar posibles causas y buscar una solución.',
+      'Me siento capaz de explorar nuevas funciones, componentes o posibilidades de micro:bit por mi cuenta.'],
+    ['Integro micro:bit en actividades vinculadas con objetivos de aprendizaje de mi área o nivel.',
+      'Puedo adaptar o diseñar actividades con micro:bit de acuerdo con las necesidades de mis estudiantes.',
+      'Utilizo micro:bit como parte de secuencias, proyectos o experiencias de aprendizaje y no únicamente como una actividad puntual.'],
+    ['Encuentro oportunidades dentro de mi planificación para incorporar actividades con micro:bit.',
+      'Me siento seguro/a al implementar actividades con micro:bit frente a mis estudiantes, incluso cuando pueden surgir situaciones imprevistas.',
+      'Puedo seleccionar o adaptar propuestas con micro:bit sin depender exclusivamente de actividades ya diseñadas por otras personas.'],
+    ['En mi centro educativo conozco cómo acceder a las placas micro:bit y otros recursos disponibles para utilizarlas.',
+      'En mi centro existen condiciones que facilitan la incorporación de micro:bit en las propuestas de aula.',
+      'El uso de micro:bit es conocido, compartido o promovido entre distintos docentes de mi centro educativo.'],
+    ['Existe un intercambio de ideas, experiencias o recursos sobre micro:bit con otros docentes.',
+      'He trabajado o me siento en condiciones de trabajar con otros docentes en propuestas que integren micro:bit.',
+      'Identifico posibilidades de conectar el uso de micro:bit con diferentes áreas, asignaturas o campos de conocimiento.'],
+  ];
+  var ESCALA = ['Nada', 'Poco', 'En parte', 'Bastante', 'Mucho'];
+  var SUBSISTEMAS = [
+    ['DGEIP', 'Educación Inicial y Primaria'], ['DGES', 'Educación Secundaria'],
+    ['DGETP', 'Educación Técnico Profesional (UTU)'], ['CFE', 'Consejo de Formación en Educación'],
+  ];
+  var NIVELES = { f: { texto: 'A fortalecer', cuadros: 1, rango: '1,0 a 2,4' }, d: { texto: 'En desarrollo', cuadros: 2, rango: '2,5 a 3,7' }, c: { texto: 'Consolidada', cuadros: 3, rango: '3,8 a 5,0' } };
+  var ICONOS = [
+    '..#.. .###. #.#.# ..#.. ..#..', // flecha: autonomía técnica
+    '..... ....# ...#. #.#.. .#...', // tilde: uso pedagógico
+    '.#.#. ##### ##### .###. ..#..', // corazón: apropiación
+    '..#.. .###. ##### .#.#. .###.', // casa: centro educativo
+    '###.. #.#.. ##### ..#.# ..###', // cuadros enlazados: colaboración
+  ];
+
+  var OBLIGATORIA = 'Esta pregunta es obligatoria.';
+  var ERROR_DE_CONEXION = 'No pudimos enviar tus respuestas. Revisá tu conexión e intentá de nuevo. Lo que respondiste sigue acá.';
+  var CLAVE_AVANCE = 'autodiagnostico_avance';
+
+  /* ---------- Estado ---------- */
+  var catalogo = [];
+  var textos = {};
+  var versionInstrumento = '';
+  var horaServidorAlCargar = 0;
+  var horaLocalAlCargar = 0;
+  var S = null;           // lo que va completando el docente
+  var tocadas = {};       // preguntas donde ya se pueden mostrar errores
+  var enviando = false;   // evita que dos toques en "Enviar" dupliquen la fila
+  var perfil = null;      // el perfil que devolvió el servidor
+  var valorTrampa = '';   // lo que haya en el campo trampa, que solo existe en la primera página
+
+  /* ---------- Utilidades ---------- */
+  var app = document.getElementById('app');
+  var buscarEl = function (id) { return document.getElementById(id); };
+  var texto = function (clave) { return Object.prototype.hasOwnProperty.call(textos, clave) ? String(textos[clave]) : ''; };
+
+  /** Crea un elemento. El contenido siempre se agrega como texto, nunca como HTML. */
+  function el(etiqueta, props) {
+    var nodo = document.createElement(etiqueta);
+    Object.keys(props || {}).forEach(function (clave) {
+      var valor = props[clave];
+      if (valor === undefined || valor === null || valor === false) return;
+      if (clave === 'clase') nodo.className = valor;
+      else if (clave.indexOf('on') === 0) nodo[clave] = valor;
+      else if (clave === 'value' || clave === 'checked' || clave === 'selected' || clave === 'disabled' || clave === 'hidden') nodo[clave] = valor;
+      else nodo.setAttribute(clave, valor);
+    });
+    agregar(nodo, Array.prototype.slice.call(arguments, 2));
+    return nodo;
+  }
+  function agregar(nodo, hijos) {
+    hijos.forEach(function (h) {
+      if (h === null || h === undefined || h === false) return;
+      if (Array.isArray(h)) agregar(nodo, h);
+      else nodo.appendChild(h.nodeType ? h : document.createTextNode(String(h)));
+    });
+  }
+  function vaciar(nodo) { while (nodo.firstChild) nodo.removeChild(nodo.firstChild); }
+  function mostrar() { vaciar(app); agregar(app, Array.prototype.slice.call(arguments)); }
+
+  /* ---------- Avance guardado en la pestaña (se borra al enviar o al cerrarla) ---------- */
+  function guardarAvance() {
+    if (!S) return;
+    try {
+      window.sessionStorage.setItem(CLAVE_AVANCE, JSON.stringify(Object.assign({ versionInstrumento: versionInstrumento }, S)));
+    } catch (e) { /* si el navegador no lo permite, el formulario funciona igual */ }
+  }
+  function borrarAvance() {
+    try { window.sessionStorage.removeItem(CLAVE_AVANCE); } catch (e) { /* sin avance guardado no hay nada que borrar */ }
+  }
+  function leerAvance() {
+    try { return window.sessionStorage.getItem(CLAVE_AVANCE); } catch (e) { return null; }
+  }
+
+  /* ---------- Navegación: el botón "atrás" del celular se mueve entre páginas ---------- */
+  function historia() {
+    return window.google && google.script && google.script.history ? google.script.history : null;
+  }
+  function irA(paso, desdeHistoria) {
+    S.paso = paso;
+    if (!desdeHistoria && historia()) historia().push({ paso: paso }, {}, '');
+    guardarAvance();
+    pintarPagina();
+    window.scrollTo(0, 0);
+    var titulo = app.querySelector('h1');
+    if (titulo) { titulo.setAttribute('tabindex', '-1'); titulo.focus({ preventScroll: true }); }
+  }
+  function pintarPagina() {
+    if (S.paso === 0) return paginaDatos();
+    if (S.paso === 1) return paginaExperiencia();
+    return paginaAfirmaciones();
+  }
+
+  /* ---------- Piezas comunes ---------- */
+  function tarjetaTitulo(parrafos, conNota) {
+    return el('div', { clase: 'card titulo' },
+      el('h1', {}, 'Autodiagnóstico docente micro:bit'),
+      parrafos.map(function (p) { return el('p', {}, p); }),
+      conNota ? el('p', { clase: 'note' }, el('span', { clase: 'req' }, '*'), ' Indica que la pregunta es obligatoria') : null);
+  }
+  function seccion(nombre, descripcion, contenido, color) {
+    var tarjeta = el('div', { clase: 'card seccion grupo' }, el('h2', {}, nombre), descripcion ? el('p', {}, descripcion) : null, contenido);
+    if (color) tarjeta.style.borderTopColor = color;
+    return tarjeta;
+  }
+  function pregunta(id, rotulo, control, ayuda, paraId) {
+    var marca = el('span', { clase: 'req', 'aria-hidden': 'true' }, '*');
+    return el('div', { clase: 'card', id: 'q-' + id },
+      paraId ? el('label', { clase: 'q-t', 'for': paraId }, rotulo, ' ', marca) : el('div', { clase: 'q-t', id: 't-' + id }, rotulo, ' ', marca),
+      ayuda ? el('div', { clase: 'help' }, ayuda) : null,
+      control,
+      el('div', { clase: 'err', id: 'e-' + id, role: 'alert' }));
+  }
+  function pie(conAtras, textoSeguir, alSeguir) {
+    return el('div', { clase: 'pie' },
+      conAtras ? el('button', { type: 'button', clase: 'fbtn sec', id: 'atras', onclick: function () { irA(S.paso - 1); } }, 'Atrás') : null,
+      el('button', { type: 'button', clase: 'fbtn', id: 'seguir', onclick: alSeguir }, textoSeguir),
+      el('span', { clase: 'pag' }, 'Página ' + (S.paso + 1) + ' de ' + PAGINAS),
+      el('div', { clase: 'aviso', id: 'aviso', role: 'status' }));
+  }
+  function pintarErrores(errores, claves) {
+    claves.forEach(function (k) {
+      var mensaje = tocadas[k] ? (errores[k] || '') : '';
+      var error = buscarEl('e-' + k);
+      var tarjeta = buscarEl('q-' + k);
+      if (error) error.textContent = mensaje;
+      if (tarjeta) tarjeta.classList.toggle('bad', !!mensaje);
+    });
+    var aviso = buscarEl('aviso');
+    if (aviso && aviso.dataset.errores === '1' && Object.keys(errores).length === 0) { aviso.textContent = ''; aviso.dataset.errores = ''; }
+  }
+  /** Marca todo como tocado y, si falta algo, lleva a la primera pregunta con error. */
+  function intentarSeguir(errores, claves, seguir) {
+    claves.forEach(function (k) { tocadas[k] = true; });
+    pintarErrores(errores, claves);
+    var primera = claves.find(function (k) { return errores[k] && buscarEl('q-' + k); });
+    if (!primera) return seguir();
+    var aviso = buscarEl('aviso');
+    aviso.textContent = 'Revisá las preguntas marcadas en rojo.';
+    aviso.dataset.errores = '1';
+    buscarEl('q-' + primera).scrollIntoView({ block: 'center' });
+  }
+  function opcionesDeSelect(lista, elegido, alInicio) {
+    return [el('option', { value: '' }, alInicio)].concat(lista.map(function (v) {
+      var valor = Array.isArray(v) ? v[0] : v;
+      return el('option', { value: valor, selected: elegido === valor }, Array.isArray(v) ? v[1] : v);
+    }));
+  }
+
+  /* ---------- Página 1: datos ---------- */
+  var CLAVES_DATOS = ['nombre', 'cedula', 'email', 'subsistema', 'departamento', 'localidad', 'centro'];
+
+  function erroresDatos() {
+    var e = {};
+    if (!S.nombre.trim()) e.nombre = OBLIGATORIA;
+    else if (!nombreValido(S.nombre)) e.nombre = 'Escribí tu nombre y apellido.';
+    if (!soloDigitos(S.cedula)) e.cedula = OBLIGATORIA;
+    else if (soloDigitos(S.cedula).length > 8) e.cedula = 'Revisá la cédula: tiene dígitos de más.';
+    else if (!cedulaValida(textoProlijo(S.cedula))) e.cedula = soloDigitos(S.cedula).length < 7 ? 'Escribí tu cédula completa, con el dígito verificador.' : 'El dígito verificador no coincide. Revisá los números.';
+    if (!S.email.trim()) e.email = OBLIGATORIA;
+    else if (!correoValido(textoProlijo(S.email))) e.email = 'Revisá el correo: falta algo o tiene un carácter de más.';
+    if (!S.subsistema) e.subsistema = OBLIGATORIA;
+    if (!S.departamento) e.departamento = OBLIGATORIA;
+    if (S.departamento && S.departamento !== MONTEVIDEO && !S.localidad) e.localidad = OBLIGATORIA;
+    if (!S.centroCodigo && !(S.centroLibre && textoProlijo(S.centroTexto).length >= LARGO_MINIMO_CENTRO)) e.centro = 'Buscá y elegí tu centro educativo.';
+    return e;
+  }
+
+  function paginaDatos() {
+    var refrescar = function () {
+      pintarErrores(erroresDatos(), CLAVES_DATOS);
+      var sugerido = sugerirCorreo(textoProlijo(S.email));
+      var caja = buscarEl('sug-email');
+      if (caja.dataset.sugerido !== (sugerido || '')) {
+        caja.dataset.sugerido = sugerido || '';
+        vaciar(caja);
+        if (sugerido) {
+          agregar(caja, [el('button', {
+            type: 'button', clase: 'lnk',
+            onmousedown: function (e) { e.preventDefault(); },
+            onclick: function () { S.email = sugerido; buscarEl('email').value = sugerido; guardarAvance(); refrescar(); },
+          }, '¿Quisiste decir ' + sugerido + '?')]);
+        }
+      }
+    };
+    var limpiarCentro = function () { S.centroCodigo = null; S.centroTexto = ''; S.centroLibre = false; };
+
+    function pintarDepartamento() {
+      var caja = buscarEl('f-departamento');
+      vaciar(caja);
+      var lista = S.subsistema ? departamentosDe(catalogo, S.subsistema) : [];
+      if (S.departamento && lista.indexOf(S.departamento) === -1) { S.departamento = ''; S.localidad = ''; limpiarCentro(); }
+      agregar(caja, [pregunta('departamento', 'Departamento', S.subsistema
+        ? el('select', {
+          id: 'departamento',
+          onchange: function (e) { S.departamento = e.target.value; tocadas.departamento = true; S.localidad = ''; limpiarCentro(); pintarLocalidad(); pintarCentro(); guardarAvance(); refrescar(); },
+        }, opcionesDeSelect(lista, S.departamento, 'Elegir'))
+        : el('select', { id: 'departamento', disabled: true }, el('option', {}, 'Primero elegí el subsistema')), null, 'departamento')]);
+    }
+    function pintarLocalidad() {
+      var caja = buscarEl('f-localidad');
+      vaciar(caja);
+      if (!S.departamento || S.departamento === MONTEVIDEO) return;
+      agregar(caja, [pregunta('localidad', 'Localidad', el('select', {
+        id: 'localidad',
+        onchange: function (e) { S.localidad = e.target.value; tocadas.localidad = true; limpiarCentro(); pintarCentro(); guardarAvance(); refrescar(); },
+      }, opcionesDeSelect(localidadesDe(catalogo, S.subsistema, S.departamento), S.localidad, 'Elegir')), null, 'localidad')]);
+    }
+    function pintarCentro(textoInicial) {
+      var caja = buscarEl('f-centro');
+      vaciar(caja);
+      var listo = S.subsistema && S.departamento && (S.departamento === MONTEVIDEO || S.localidad);
+      if (!listo) {
+        agregar(caja, [pregunta('centro', 'Centro educativo', el('input', {
+          type: 'text', id: 'cq', disabled: true,
+          placeholder: 'Primero elegí subsistema, departamento' + (S.departamento === MONTEVIDEO ? '' : ' y localidad'),
+        }), null, 'cq')]);
+        return;
+      }
+      if (S.centroCodigo || S.centroLibre) {
+        var centro = S.centroLibre ? null : catalogo.find(function (c) { return c.codigo === S.centroCodigo; });
+        agregar(caja, [pregunta('centro', 'Centro educativo', [
+          el('div', { clase: 'elegido' },
+            el('div', { clase: 'nm' }, centro ? centro.visible : S.centroTexto),
+            el('div', { clase: 'meta' }, centro ? [centro.localidad, centro.departamento].filter(Boolean).join(' · ') : 'No está en la lista. Lo registramos tal como lo escribiste y el equipo lo va a asociar con la lista oficial.')),
+          el('button', {
+            type: 'button', clase: 'lnk', id: 'cambiar',
+            onclick: function () { var previo = S.centroLibre ? S.centroTexto : ''; limpiarCentro(); guardarAvance(); pintarCentro(previo); refrescar(); buscarEl('cq').focus(); },
+          }, 'Cambiar'),
+        ])]);
+        return;
+      }
+      var entrada = el('input', {
+        type: 'text', id: 'cq', role: 'combobox', 'aria-expanded': 'false', 'aria-controls': 'sug', 'aria-autocomplete': 'list',
+        autocomplete: 'off', maxlength: '150', placeholder: 'Tu respuesta', value: textoInicial || '',
+      });
+      var lista = el('ul', { clase: 'sug', id: 'sug', role: 'listbox', hidden: true });
+      agregar(caja, [pregunta('centro', 'Centro educativo', [entrada, lista], 'Escribí el número o el nombre, por ejemplo: escuela 45. Si no aparece, vas a poder registrarlo igual.', 'cq')]);
+      var candidatos = candidatosDe(catalogo, S.subsistema, S.departamento, S.localidad);
+      var activo = -1;
+      var resultados = [];
+      var verLista = function (ver) { lista.hidden = !ver; entrada.setAttribute('aria-expanded', String(ver)); };
+      var hayOpcionLibre = function () { return textoProlijo(entrada.value).length >= LARGO_MINIMO_CENTRO; };
+      var elegir = function (i) {
+        if (i === resultados.length) {
+          S.centroCodigo = null; S.centroLibre = true; S.centroTexto = textoProlijo(entrada.value);
+        } else {
+          S.centroCodigo = resultados[i].codigo; S.centroLibre = false; S.centroTexto = (textoProlijo(entrada.value) || resultados[i].visible).slice(0, 150);
+        }
+        tocadas.centro = true;
+        guardarAvance();
+        pintarCentro();
+        refrescar();
+      };
+      var dibujar = function () {
+        var consulta = entrada.value;
+        resultados = buscarCentros(candidatos, consulta);
+        vaciar(lista);
+        resultados.forEach(function (c, i) {
+          lista.appendChild(el('li', { role: 'option', id: 'o' + i, 'aria-selected': String(i === activo), onclick: function () { elegir(i); } },
+            el('span', {}, c.visible), c.localidad ? el('span', { clase: 'meta' }, c.localidad) : null));
+        });
+        if (!resultados.length && consulta.trim()) {
+          lista.appendChild(el('li', { clase: 'empty', 'aria-disabled': 'true' }, 'No encontramos coincidencias en ' + (S.departamento === MONTEVIDEO ? MONTEVIDEO : S.localidad) + '. Probá con el número o con otra palabra del nombre.'));
+        }
+        if (hayOpcionLibre()) {
+          lista.appendChild(el('li', { role: 'option', clase: 'none', id: 'o' + resultados.length, 'aria-selected': String(activo === resultados.length), onclick: function () { elegir(resultados.length); } },
+            'No encuentro mi centro: registrar «' + consulta.trim() + '»'));
+        }
+        verLista(lista.childNodes.length > 0 && document.activeElement === entrada);
+        if (activo >= 0) entrada.setAttribute('aria-activedescendant', 'o' + activo); else entrada.removeAttribute('aria-activedescendant');
+      };
+      entrada.onfocus = function () {
+        dibujar();
+        // En el celular, sube la pregunta para que el teclado no tape las sugerencias.
+        if (window.innerWidth < 600) setTimeout(function () { var t = entrada.closest('.card'); if (t) t.scrollIntoView({ block: 'start' }); }, 300);
+      };
+      entrada.onblur = function () { verLista(false); };
+      entrada.oninput = function () { activo = -1; dibujar(); };
+      entrada.onkeydown = function (e) {
+        var maximo = resultados.length + (hayOpcionLibre() ? 1 : 0) - 1;
+        if (e.key === 'ArrowDown') { activo = Math.min(maximo, activo + 1); dibujar(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { activo = Math.max(0, activo - 1); dibujar(); e.preventDefault(); }
+        else if (e.key === 'Enter' && activo >= 0) { elegir(activo); e.preventDefault(); }
+        else if (e.key === 'Escape') verLista(false);
+      };
+      lista.onmousedown = function (e) { e.preventDefault(); };
+    }
+
+    mostrar(
+      tarjetaTitulo([texto('intro_1'), texto('intro_2')], true),
+      seccion('Tus datos', 'Usamos estos datos para asociar tus respuestas a tu centro educativo.', [
+        pregunta('nombre', 'Nombre y apellido', el('input', {
+          type: 'text', id: 'nombre', autocomplete: 'name', autocapitalize: 'words', maxlength: '120', placeholder: 'Tu respuesta', value: S.nombre,
+          oninput: function (e) { S.nombre = e.target.value; guardarAvance(); refrescar(); },
+          onblur: function () { tocadas.nombre = true; refrescar(); },
+        }), null, 'nombre'),
+        pregunta('cedula', 'Cédula de identidad', el('input', {
+          type: 'text', id: 'cedula', inputmode: 'numeric', autocomplete: 'off', maxlength: '20', placeholder: 'Tu respuesta', value: S.cedula,
+          oninput: function (e) { S.cedula = e.target.value; guardarAvance(); refrescar(); },
+          onblur: function (e) {
+            tocadas.cedula = true;
+            if (soloDigitos(S.cedula).length >= 7) { S.cedula = formatearCedula(S.cedula); e.target.value = S.cedula; guardarAvance(); }
+            refrescar();
+          },
+        }), 'Con el dígito verificador, el número después del guion.', 'cedula'),
+        pregunta('email', 'Correo electrónico', [
+          el('input', {
+            type: 'email', id: 'email', inputmode: 'email', autocomplete: 'email', autocapitalize: 'off', spellcheck: 'false', maxlength: '254', placeholder: 'Tu respuesta', value: S.email,
+            oninput: function (e) { S.email = e.target.value; guardarAvance(); refrescar(); },
+            onblur: function (e) { tocadas.email = true; S.email = S.email.trim(); e.target.value = S.email; refrescar(); },
+          }),
+          el('div', { id: 'sug-email' }),
+        ], 'Te vamos a enviar tu perfil a este correo.', 'email'),
+        pregunta('subsistema', 'Subsistema', el('select', {
+          id: 'subsistema',
+          onchange: function (e) { S.subsistema = e.target.value; tocadas.subsistema = true; S.localidad = ''; limpiarCentro(); pintarDepartamento(); pintarLocalidad(); pintarCentro(); guardarAvance(); refrescar(); },
+        }, opcionesDeSelect(SUBSISTEMAS.map(function (s) { return [s[0], s[0] + ' · ' + s[1]]; }), S.subsistema, 'Elegir')), null, 'subsistema'),
+        el('div', { id: 'f-departamento', clase: 'stack' }),
+        el('div', { id: 'f-localidad', clase: 'stack' }),
+        el('div', { id: 'f-centro', clase: 'stack' }),
+        // Campo trampa: una persona no lo ve ni llega con el teclado. Si viene completo, el servidor descarta el envío.
+        el('div', { clase: 'trampa', 'aria-hidden': 'true' }, el('input', { type: 'text', id: 'campo_extra', tabindex: '-1', autocomplete: 'off', value: valorTrampa })),
+      ]),
+      pie(false, 'Siguiente', function () {
+        valorTrampa = buscarEl('campo_extra').value;
+        // El autocompletado de algunos celulares llena los campos sin avisar: se leen de nuevo antes de seguir.
+        S.nombre = buscarEl('nombre').value;
+        S.cedula = buscarEl('cedula').value;
+        S.email = buscarEl('email').value.trim();
+        intentarSeguir(erroresDatos(), CLAVES_DATOS, function () { irA(1); });
+      }));
+    pintarDepartamento();
+    pintarLocalidad();
+    pintarCentro(S.centroCodigo || S.centroLibre ? '' : S.centroTexto);
+    refrescar();
+  }
+
+  /* ---------- Página 2: experiencia ---------- */
+  function paginaExperiencia() {
+    var claves = CONTEXTO.map(function (_, i) { return 'ctx' + i; });
+    var errores = function () {
+      var e = {};
+      claves.forEach(function (k, i) { if (S.ctx[i] === null) e[k] = OBLIGATORIA; });
+      return e;
+    };
+    mostrar(
+      tarjetaTitulo([], false),
+      seccion('Tu experiencia', texto('ctx_intro'), CONTEXTO.map(function (c, i) {
+        return pregunta('ctx' + i, (i + 1) + '. ' + c.pregunta, el('div', { clase: 'ops', role: 'radiogroup', 'aria-labelledby': 't-ctx' + i }, c.opciones.map(function (opcion, o) {
+          return el('label', { clase: 'op' }, el('input', {
+            type: 'radio', name: 'ctx' + i, value: String(o), checked: S.ctx[i] === o,
+            onchange: function () { S.ctx[i] = o; guardarAvance(); pintarErrores(errores(), claves); },
+          }), el('span', {}, opcion));
+        })));
+      })),
+      pie(true, 'Siguiente', function () { intentarSeguir(errores(), claves, function () { irA(2); }); }));
+    pintarErrores(errores(), claves);
+  }
+
+  /* ---------- Página 3: afirmaciones ---------- */
+  function paginaAfirmaciones() {
+    var claves = S.r.map(function (_, k) { return 'r' + k; });
+    var errores = function () {
+      var e = {};
+      claves.forEach(function (c, k) { if (S.r[k] === null) e[c] = OBLIGATORIA; });
+      return e;
+    };
+    mostrar(
+      tarjetaTitulo([texto('afirmaciones_intro')], false),
+      AFIRMACIONES.map(function (items, d) {
+        return seccion((d + 1) + '. ' + texto('d' + (d + 1) + '_nombre'), '', items.map(function (afirmacion, j) {
+          var k = d * 3 + j;
+          return pregunta('r' + k, (k + 1) + '. ' + afirmacion, el('div', { clase: 'escala', role: 'radiogroup', 'aria-labelledby': 't-r' + k }, ESCALA.map(function (nombre, v) {
+            return el('label', { clase: 'esc-op' }, el('b', {}, String(v + 1)), el('span', {}, nombre), el('input', {
+              type: 'radio', name: 'r' + k, value: String(v + 1), checked: S.r[k] === v + 1,
+              onchange: function () { S.r[k] = v + 1; guardarAvance(); pintarErrores(errores(), claves); },
+            }));
+          })));
+        }), 'var(--c' + (d + 1) + ')');
+      }),
+      pie(true, 'Enviar', function () { intentarSeguir(errores(), claves, enviar); }));
+    pintarErrores(errores(), claves);
+  }
+
+  /* ---------- Envío ---------- */
+  /** La primera página con algo sin responder, o null. Al moverse con los botones del navegador se puede llegar acá con huecos. */
+  function paginaIncompleta() {
+    if (Object.keys(erroresDatos()).length > 0) return 0;
+    if (S.ctx.indexOf(null) !== -1) return 1;
+    if (S.r.indexOf(null) !== -1) return 2;
+    return null;
+  }
+  function enviar() {
+    if (enviando) return;
+    var incompleta = paginaIncompleta();
+    if (incompleta !== null) {
+      CLAVES_DATOS.forEach(function (k) { tocadas[k] = true; });
+      [0, 1, 2].forEach(function (i) { tocadas['ctx' + i] = true; });
+      S.r.forEach(function (_, k) { tocadas['r' + k] = true; });
+      irA(incompleta);
+      buscarEl('aviso').textContent = 'Revisá las preguntas marcadas en rojo.';
+      buscarEl('aviso').dataset.errores = '1';
+      return;
+    }
+    enviando = true;
+    var envio = armarEnvio(S, valorTrampa);
+    mostrar(el('div', { clase: 'guardando', role: 'status' }, 'Guardando tus respuestas…'));
+    setTimeout(function () {
+      var guardando = app.querySelector('.guardando');
+      if (guardando) guardando.textContent = 'Está tardando más de lo normal. No cierres esta página.';
+    }, 30000);
+    google.script.run
+      .withSuccessHandler(function (respuesta) {
+        enviando = false;
+        if (respuesta && respuesta.ok) {
+          perfil = respuesta.perfil;
+          borrarAvance();
+          paginaPerfil();
+          window.scrollTo(0, 0);
+        } else {
+          volverConAviso(respuesta && respuesta.mensaje ? respuesta.mensaje : ERROR_DE_CONEXION);
+        }
+      })
+      .withFailureHandler(function () {
+        enviando = false;
+        volverConAviso(ERROR_DE_CONEXION);
+      })
+      .guardarRespuesta(envio);
+  }
+  function volverConAviso(mensaje) {
+    pintarPagina();
+    var aviso = buscarEl('aviso');
+    aviso.textContent = mensaje;
+    aviso.scrollIntoView({ block: 'center' });
+  }
+
+  /* ---------- Perfil ---------- */
+  function chip(nivel) {
+    var cuadros = [1, 2, 3].map(function (n) { return el('i', { clase: n <= NIVELES[nivel].cuadros ? 'on' : '' }); });
+    return el('span', { clase: 'chip ' + nivel }, el('span', { clase: 'lv', 'aria-hidden': 'true' }, cuadros), NIVELES[nivel].texto);
+  }
+  function icono(i) {
+    var celdas = ICONOS[i].replace(/ /g, '').split('').map(function (c) { return el('i', { clase: c === '#' ? 'on' : '' }); });
+    var nodo = el('span', { clase: 'led5', 'aria-hidden': 'true' }, celdas);
+    nodo.style.setProperty('--px', '6px');
+    nodo.style.color = 'var(--c' + (i + 1) + '-ink)';
+    return nodo;
+  }
+  function conMayuscula(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+
+  function paginaPerfil() {
+    var primerNombre = textoProlijo(S.nombre).split(' ')[0];
+    var nombres = perfil.proximoPaso.map(function (id) { return texto(id + '_nombre'); });
+    var proximo = perfil.proximoPaso.length === 0
+      ? el('p', {}, texto('proximo_paso_todas_consolidadas'))
+      : [el('h3', {}, nombres.join(' y ')),
+        el('p', {}, (nombres.length > 1 ? 'Son las dimensiones' : 'Es la dimensión') + ' con menor puntaje en tu perfil. Te sugerimos empezar por ' + (nombres.length > 1 ? 'alguna de ellas' : 'ahí') + ' al usar la Guía.')];
+    var referencia = ['f', 'd', 'c'].map(function (n) { return [chip(n), el('span', { clase: 'note' }, NIVELES[n].rango)]; });
+
+    mostrar(
+      el('div', { clase: 'stack' },
+        el('div', { clase: 'eyebrow' }, 'Tu perfil'),
+        el('h2', {}, primerNombre + ', este es tu momento actual con micro:bit'),
+        el('p', { clase: 'lede' }, 'Para cada dimensión calculamos el promedio de tus respuestas, de 1 a 5.'),
+        el('div', { clase: 'levels-key' }, referencia)),
+      el('div', { clase: 'next' }, el('div', { clase: 'eyebrow' }, 'Tu próximo paso'), proximo),
+      perfil.dimensiones.map(function (d, i) {
+        var punto = el('b', {});
+        punto.style.left = ((d.suma / 3 - 1) / 4 * 100).toFixed(1) + '%';
+        var cabecera = el('div', { clase: 'dim-top' }, el('span', { clase: 'ico' }, icono(i)), el('h3', {}, (i + 1) + '. ' + texto(d.id + '_nombre')));
+        cabecera.style.background = 'var(--c' + (i + 1) + ')';
+        return el('article', { clase: 'dim' }, cabecera, el('div', { clase: 'dim-body' },
+          el('div', { clase: 'dim-row' }, chip(d.nivel), el('div', { clase: 'meter' },
+            el('div', { clase: 'meter-bar' }, el('span', {}), el('span', {}), el('span', {}), punto),
+            el('div', { clase: 'meter-lbl' }, el('span', {}, '1'), el('span', {}, 'Promedio ', el('strong', {}, formatearPromedio(d.suma))), el('span', {}, '5')))),
+          el('p', { clase: 'observa' }, el('b', {}, 'Qué observa:'), ' ' + texto(d.id + '_observa')),
+          el('p', {}, texto(d.id + '_' + d.nivel + '_texto')),
+          el('p', { clase: 'rec' }, el('b', {}, texto('rec_rotulo_' + d.nivel)), conMayuscula(texto(d.id + '_' + d.nivel + '_rec')))));
+      }),
+      el('div', { clase: 'cierre' }, el('h3', {}, texto('cierre_titulo')), el('p', {}, texto('cierre_1')), el('p', {}, texto('cierre_2'))),
+      el('div', { clase: 'btns' }, el('button', {
+        type: 'button', clase: 'btn ghost',
+        onclick: function () { perfil = null; tocadas = {}; valorTrampa = ''; S = estadoVacio(horaDelServidor()); irA(0); },
+      }, 'Empezar de nuevo')));
+  }
+
+  /* ---------- Arranque ---------- */
+  /** Hora del servidor estimada: la que mandó al cargar más lo que pasó desde entonces. */
+  function horaDelServidor() { return horaServidorAlCargar + (Date.now() - horaLocalAlCargar); }
+
+  function errorDeCarga() {
+    mostrar(el('div', { clase: 'card titulo' },
+      el('h1', {}, 'Autodiagnóstico docente micro:bit'),
+      el('p', { role: 'alert' }, 'No pudimos cargar el formulario. Revisá tu conexión e intentá de nuevo.'),
+      el('div', { clase: 'pie' }, el('button', { type: 'button', clase: 'fbtn', onclick: cargar }, 'Reintentar'))));
+  }
+  function arrancar(datos) {
+    if (!datos || datos.error || !Array.isArray(datos.centros)) return errorDeCarga();
+    catalogo = centrosDesdeServidor(datos.centros);
+    textos = datos.textos || {};
+    versionInstrumento = datos.versionInstrumento;
+    horaServidorAlCargar = datos.ahora;
+    horaLocalAlCargar = Date.now();
+    var guardado = leerAvance();
+    S = (guardado && restaurarAvance(guardado, catalogo, versionInstrumento, datos.ahora)) || estadoVacio(datos.ahora);
+    if (historia()) {
+      historia().setChangeHandler(function (e) {
+        // Con el perfil a la vista o un envío en curso, "atrás" no cambia nada: así no se puede reenviar sin querer.
+        if (perfil || enviando) return;
+        var paso = e && e.state && Number.isInteger(e.state.paso) ? e.state.paso : 0;
+        irA(paso >= 0 && paso < PAGINAS ? paso : 0, true);
+      });
+      historia().replace({ paso: S.paso }, {}, '');
+    }
+    pintarPagina();
+  }
+  function cargar() {
+    mostrar(el('div', { clase: 'card titulo' }, el('h1', {}, 'Autodiagnóstico docente micro:bit'), el('p', { role: 'status' }, 'Cargando el formulario…')));
+    google.script.run.withSuccessHandler(arrancar).withFailureHandler(errorDeCarga).obtenerDatosIniciales();
+  }
+  cargar();
+})();
+</script>

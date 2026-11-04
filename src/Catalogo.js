@@ -164,7 +164,8 @@ function actualizarCatalogo_() {
     return;
   }
 
-  // Mientras se escribe, ningún envío puede leer un catálogo a medias (el mismo bloqueo lo usa guardarRespuesta).
+  // El mismo bloqueo lo usa guardarRespuesta al escribir. La lectura de Centros no espera el bloqueo: por eso se escribe
+  // primero y se limpia después, y un dato que no cierre termina en un envío rechazado.
   const bloqueo = LockService.getScriptLock();
   if (!bloqueo.tryLock(30000)) {
     avisar_('No se actualizó el catálogo', 'Hay otra operación en curso. Esperá un minuto y volvé a intentar. Centros quedó como estaba.');

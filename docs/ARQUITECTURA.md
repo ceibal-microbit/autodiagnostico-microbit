@@ -20,6 +20,8 @@ El script está **vinculado** a la Sheet. Hay dos copias completas (Sheet + scri
 
 La página llama al servidor con `google.script.run`. Solo hay dos funciones públicas; todo lo demás termina en guion bajo.
 
+Mientras el docente completa el formulario, el avance se guarda en `sessionStorage`: queda solo en esa pestaña del navegador y se borra al enviar, al cerrarla o si tiene más de 6 horas. Sirve para no perder las respuestas si el celular recarga la página.
+
 ## Contratos de las funciones públicas
 
 ### `obtenerDatosIniciales()`
@@ -30,6 +32,7 @@ Sin parámetros. Devuelve:
 {
   version: "0.1.0",            // versión de la app
   versionInstrumento: "2026.1",
+  ahora: 1793810493481,        // hora del servidor; la página la devuelve como abiertoEn
   centros: [                   // de la pestaña Centros, solo estas columnas
     [codigo, nombreVisible, subsistema, departamento, localidad, tipo, numero, nombreNormalizado]
   ],
@@ -37,7 +40,7 @@ Sin parámetros. Devuelve:
 }
 ```
 
-No devuelve nada de la pestaña Respuestas ni columnas del Universo que el buscador no usa (teléfonos, mails, matrícula…). Puede guardarse en `CacheService` en partes de menos de 100 KB para acelerar la carga.
+Si algo falla devuelve `{ error: true }`, sin detalles. No devuelve nada de la pestaña Respuestas ni columnas del Universo que el buscador no usa (teléfonos, mails, matrícula…), ni los centros de departamentos fuera de Uruguay. Puede guardarse en `CacheService` en partes de menos de 100 KB para acelerar la carga.
 
 ### `guardarRespuesta(envio)`
 
@@ -51,7 +54,7 @@ Recibe:
   centroTexto,                              // lo que escribió el docente
   ctx: [n, n, n],                           // opción elegida en cada pregunta de contexto (1..k)
   r: [n × 15],                              // respuestas 1..5, en el orden de docs/INSTRUMENTO.md
-  abiertoEn,                                // milisegundos en que se abrió la página
+  abiertoEn,                                // hora del servidor al abrir la página (el `ahora` de arriba), no la del celular
   trampa                                    // campo oculto; debe venir vacío
 }
 ```
@@ -98,7 +101,7 @@ Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla
 
 `fecha_hora` · `version_app` · `version_instrumento` · `nombre` · `cedula` · `email` · `subsistema` · `departamento` · `localidad` · `centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` (`sí`, `no`, `límite`).
 
-Las columnas de texto libre (`nombre`, `cedula`, `email`, `localidad`, `centro_texto`) tienen formato "Texto sin formato" (la cédula también, para no perder el cero inicial; se guarda siempre con 8 dígitos). El correo se guarda en minúsculas.
+Las columnas de texto libre (`nombre`, `cedula`, `email`, `localidad`, `centro_texto`) y las de versión (`version_app`, `version_instrumento`) tienen formato "Texto sin formato" (la cédula también, para no perder el cero inicial; se guarda siempre con 8 dígitos). El correo se guarda en minúsculas.
 
 ## Permisos (`src/appsscript.json`)
 
@@ -114,8 +117,9 @@ Configuración de la web app: ejecutar como quien implementa (`USER_DEPLOYING`) 
 
 ## La página
 
-- Se arma con `HtmlService.createTemplateFromFile('index').evaluate()`, que incluye los parciales (`estilos.html`, `app.html`) con una función `incluir_()`.
-- Agrega la etiqueta `viewport`, el título y el ícono desde `doGet`.
+- Se arma con `HtmlService.createTemplateFromFile('index').evaluate()`, que incluye los parciales (`estilos.html`, `buscador.html`, `app.html`) con una función `incluir_()`.
+- `app.html` arma las pantallas creando elementos y agregando el contenido como texto; ningún archivo interpreta como HTML lo que viene del docente o de la Sheet.
+- Agrega la etiqueta `viewport` y el título desde `doGet`. El ícono queda para cuando esté el logo oficial.
 - Toma como base `docs/prototipo/prototipo.html`, quitándole el catálogo incrustado y lo que es solo del prototipo: los centros llegan de `obtenerDatosIniciales`.
 - Se diseña primero para celular: toda zona tocable mide al menos 44 px y los campos usan 16 px o más, para que el iPhone no haga zoom.
 - **Lógica compartida con el navegador** (normalizar texto y buscar centros): Apps Script no puede servir un `.js` al navegador, así que va en `src/buscador.html` dentro de un `<script>`. Los tests de Node leen ese archivo, extraen el `<script>` y lo ejecutan con `vm`. Las reglas para normalizar quedan en dos lugares (`nucleo.js` y `buscador.html`), así que un test les pasa los mismos textos a las dos versiones y falla si dan resultados distintos.

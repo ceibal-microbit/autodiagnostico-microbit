@@ -55,7 +55,7 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 - [ ] Máximo 1 mail por día a la misma dirección; los siguientes envíos se guardan sin mail.
 - [ ] Tope general de envíos por hora; al superarlo, mensaje de "intentá más tarde" y aviso al equipo.
 - [ ] Campo trampa invisible: si viene completo, se descarta sin aviso.
-- [ ] Se descartan envíos hechos en menos de 60 segundos desde que se abrió la página.
+- [ ] Se descartan envíos hechos en menos de 60 segundos desde que se abrió la página. La hora de apertura sale del servidor, para no perjudicar a un celular con el reloj mal; un atacante puede falsificarla, así que este filtro solo frena a robots simples.
 - [ ] Tope global de mails por hora y por día, además del límite por dirección.
 - [ ] Llave `modo_mail` en Config: con `apagado`, vacío o cualquier valor no reconocido no sale ningún mail; con `solo_lista` salen solo a `correos_de_prueba`; `activo` se usa recién en el piloto.
 - [ ] Un solo lugar del código manda mails, y un test lo controla.
@@ -69,6 +69,7 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 - [ ] El mail no incluye la cédula.
 - [ ] Asunto y remitente fijos.
 - [ ] La respuesta de `guardarRespuesta` contiene solo el perfil de ese envío.
+- [ ] El avance guardado en el navegador queda solo en esa pestaña, se borra al enviar y se descarta si tiene más de 6 horas.
 - [ ] Los textos de la pestaña Textos los edita el equipo, pero se tratan como no confiables: en la página se muestran solo con `textContent` o `createTextNode` (nunca `innerHTML` ni `<?!=`); en el PDF y el mail se escapan `& < > " '`. Test con `<img src=x onerror=alert(1)>` en un texto.
 - [ ] La página pública no muestra el nombre de la planilla ("Planilla vinculada…" de la fase 1): sacarlo antes de publicar.
 
@@ -106,5 +107,9 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 | Robot rápido | Envío a los 10 segundos | Descartado |
 | Campo trampa | Completar el campo oculto | Descartado |
 | Acceso a la Sheet | Abrir su link con una cuenta ajena al equipo | Acceso denegado |
+| Envíos simultáneos | Varios envíos a la vez con la misma cédula | No se pasa del tope de 3 |
+| Fórmula con signo de ancho completo | Nombre que empieza con `＝1+1` | Se ve como texto en la Sheet y al exportar |
+| Fórmula al exportar | Exportar a CSV una fila con `=1+1` en el nombre y abrirla en Excel | No se ejecuta como fórmula |
+| HTML en un texto de la Sheet | Poner `<img src=x onerror=alert(1)>` en un texto de la pestaña Textos | Se ve como texto |
 
 - [ ] Todas las pruebas dieron el resultado esperado.

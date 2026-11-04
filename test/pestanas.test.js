@@ -27,7 +27,8 @@ test('Respuestas: las columnas de texto libre existen, incluida la cédula (para
 test('Config inicial: los parámetros de docs/ARQUITECTURA.md', () => {
   const porClave = Object.fromEntries(n.CONFIG_INICIAL_.map(f => [f[0], f[1]]));
   assert.deepStrictEqual(porClave, {
-    max_envios_cedula_dia: 3, max_mails_destino_dia: 1, max_envios_hora: '', segundos_minimos: 60, correo_equipo_alertas: '',
+    max_envios_cedula_dia: 3, max_mails_destino_dia: 1, max_envios_hora: 20, max_mails_hora: 10, max_mails_dia: 20,
+    segundos_minimos: 60, correo_equipo_alertas: '', modo_mail: 'apagado', correos_de_prueba: '',
   });
   for (const fila of n.CONFIG_INICIAL_) assert.strictEqual(fila.length, n.ENCABEZADOS_CONFIG_.length);
 });
