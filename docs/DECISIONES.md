@@ -5,7 +5,7 @@
 ## Alcance de la versión 1 (lo más simple)
 
 - Sin pantalla de consentimiento. Se agrega en la versión definitiva (Ley 18.331, texto a validar con el área legal).
-- Sin radar en el perfil. El perfil muestra: referencia de niveles, "Tu próximo paso" (dimensión con menor puntaje), una tarjeta por dimensión (nivel, barra de promedio, qué observa, devolución, recomendación) y el cierre.
+- El perfil muestra: tabla de referencia de niveles, radar con los promedios y la lista de valores, una tarjeta por dimensión (nivel, promedio, devolución, recomendación) y el cierre. No muestra "Tu próximo paso". El radar también va en el PDF.
 - Sin tablero externo. El equipo analiza las respuestas directamente en la Sheet.
 
 ## Formato de la página
@@ -16,7 +16,8 @@
 - Cada sección es una tarjeta que contiene las tarjetas de sus preguntas. Subsistema, departamento y localidad son desplegables comunes.
 - Sin pantalla de revisión antes de enviar: se corrige con "Atrás".
 - La carga tarda unos 8 segundos en celular, y la página avisa mientras tanto. No se usa memoria temporal (`CacheService`): dura hasta 6 horas y es compartida, así que con entradas tan espaciadas casi nadie se beneficiaría.
-- El perfil queda como en el prototipo, por ahora. "Tu próximo paso" nombra la dimensión con su nombre completo de `docs/INSTRUMENTO.md`.
+- "Qué observa" va en el formulario, abajo del título de cada dimensión, no en el perfil.
+- Ningún nivel se destaca con relleno: los tres se muestran iguales, con sus cuadraditos y su nombre.
 - El avance se guarda solo en la pestaña del navegador (incluida la cédula) y se borra al enviar, al cerrarla o si tiene más de 6 horas, para no perder las respuestas si el celular recarga la página.
 - El código de la página queda visible para quien abra las herramientas del navegador, y no se ofusca: no protege de verdad y complica arreglar errores. Por eso la página no lleva nada secreto. Se acepta que el catálogo de centros (con los Códigos Ceibal) quede visible.
 

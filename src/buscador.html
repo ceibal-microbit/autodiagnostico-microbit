@@ -260,6 +260,28 @@ function buscarCentros(candidatos, consulta) {
     .map(function (e) { return e.centro; });
 }
 
+/* ---------- Radar del perfil ---------- */
+
+var RADAR = { centroX: 160, centroY: 152, radio: 112, separacionNumeros: 17 };
+
+/** Un punto del radar: la dimensión i (0 a 4), a una distancia dada del centro. */
+function puntoDelRadar(i, distancia) {
+  var angulo = (-90 + i * 72) * Math.PI / 180;
+  return [RADAR.centroX + distancia * Math.cos(angulo), RADAR.centroY + distancia * Math.sin(angulo)];
+}
+
+/** Distancia al centro de un promedio: 1 queda en el centro y 5 en el borde. */
+function distanciaDePromedio(promedio) {
+  return (promedio - 1) / 4 * RADAR.radio;
+}
+
+/** Los cinco puntos de una forma, como los pide el atributo points de un polígono. */
+function puntosDelRadar(promedios) {
+  return promedios.map(function (p, i) {
+    return puntoDelRadar(i, distanciaDePromedio(p)).map(function (n) { return n.toFixed(1); }).join(',');
+  }).join(' ');
+}
+
 /* ---------- Envío y avance ---------- */
 
 var LARGO_MINIMO_CENTRO = 3;

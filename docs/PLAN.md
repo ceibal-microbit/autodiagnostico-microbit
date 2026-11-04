@@ -43,10 +43,12 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [x] Página: adaptar el prototipo a parciales de HtmlService, sin catálogo incrustado y sin lo que es solo del prototipo (franja violeta, perfil de ejemplo, tabla "para el equipo", botón de PDF), con textos de la Sheet.
 - [x] Celular: la página aparece enseguida y avisa mientras cargan los centros; "Enviar" se bloquea al tocarlo para no duplicar la fila; si falla la conexión, no se pierde lo respondido; el botón "atrás" del celular no hace perder las respuestas; el avance se guarda en la pestaña.
 - [x] Probar a mano con el link de la web app en un Android real, con datos móviles. Carga en unos 8 segundos, con la franja de Google arriba.
+- [ ] Ver en el celular el perfil nuevo con el radar.
 - [x] Mostrar solo los departamentos con centros del subsistema elegido; ocultar y rechazar los de fuera de Uruguay.
 - [x] Ningún servicio de correo en el código de esta fase; un test lo controla.
 - [x] Compartir la lógica del buscador con `src/buscador.html` y un test que compare sus resultados con `nucleo.js` (ver `docs/ARQUITECTURA.md`).
 - [x] Versión visible en el pie.
+- [x] Perfil con tabla de niveles y radar, sin "Tu próximo paso" ni barra de promedio. "Qué observa" pasa al formulario.
 - [x] Sumar a Config `max_mails_hora`, `max_mails_dia`, `modo_mail` y `correos_de_prueba`, con los valores mínimos de prueba. Si un tope está vacío, `guardarRespuesta` usa el mínimo en vez de no limitar. El aviso por superar el tope por hora queda en *Ejecuciones*; el mail al equipo llega en la fase 5.
 - [x] Los textos de la pestaña Textos se muestran sin interpretar HTML (ver `docs/SEGURIDAD.md`, sección 6) y se saca de la página el nombre de la planilla.
 - [x] Al leer Centros en `obtenerDatosIniciales`, quitar el apóstrofo que `protegerFormula_` puso delante de algún nombre.
@@ -61,7 +63,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 ## Fase 5 — PDF y mail (v0.5.0)
 
-- [ ] Perfil en PDF con la identidad visual, generado en el servidor. Botón "Descargar en PDF" en el perfil.
+- [ ] Perfil en PDF con la identidad visual y el radar, generado en el servidor. Botón "Descargar en PDF" en el perfil.
 - [ ] Botón "Enviar por mail" en el perfil, que no excluye al de PDF. El mail sale solo si el docente lo pide.
 - [ ] Cambiar la ayuda del correo: "Si querés, al terminar te mandamos tu perfil a este correo."
 - [ ] Envío por mail detrás de la llave `modo_mail`, que viene en `apagado`, con el límite por dirección (contando el correo sin la parte `+...`), los topes globales de mails por hora y por día, y registro en `mail_enviado`. En las pruebas solo se usa `solo_lista` con correos propios.
@@ -94,4 +96,4 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 - Pantalla de consentimiento (con legal).
 - Conectar la Sheet maestra de centros.
-- Radar en el perfil y tablero de análisis, si hacen falta.
+- Tablero de análisis, si hace falta.

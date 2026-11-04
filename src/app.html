@@ -403,7 +403,8 @@
     mostrar(
       tarjetaTitulo([texto('afirmaciones_intro')], false),
       AFIRMACIONES.map(function (items, d) {
-        return seccion((d + 1) + '. ' + texto('d' + (d + 1) + '_nombre'), '', items.map(function (afirmacion, j) {
+        var queObserva = el('p', { clase: 'observa' }, el('b', {}, 'Qué observa:'), ' ' + texto('d' + (d + 1) + '_observa'));
+        return seccion((d + 1) + '. ' + texto('d' + (d + 1) + '_nombre'), '', [queObserva].concat(items.map(function (afirmacion, j) {
           var k = d * 3 + j;
           return pregunta('r' + k, (k + 1) + '. ' + afirmacion, el('div', { clase: 'escala', role: 'radiogroup', 'aria-labelledby': 't-r' + k }, ESCALA.map(function (nombre, v) {
             return el('label', { clase: 'esc-op' }, el('b', {}, String(v + 1)), el('span', {}, nombre), el('input', {
@@ -411,7 +412,7 @@
               onchange: function () { S.r[k] = v + 1; guardarAvance(); pintarErrores(errores(), claves); },
             }));
           })));
-        }), 'var(--c' + (d + 1) + ')');
+        })), 'var(--c' + (d + 1) + ')');
       }),
       pie(true, 'Enviar', function () { intentarSeguir(errores(), claves, enviar); }));
     pintarErrores(errores(), claves);
@@ -483,32 +484,63 @@
   }
   function conMayuscula(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 
+  /** Crea un elemento SVG. Igual que el(): el contenido siempre se agrega como texto. */
+  function svg(etiqueta, atributos) {
+    var nodo = document.createElementNS('http://www.w3.org/2000/svg', etiqueta);
+    Object.keys(atributos || {}).forEach(function (a) { nodo.setAttribute(a, atributos[a]); });
+    agregar(nodo, Array.prototype.slice.call(arguments, 2));
+    return nodo;
+  }
+
+  /** Radar: una sola forma, del centro (1) al borde (5). El número identifica cada dimensión y la lista de abajo da los valores. */
+  function radar(dimensiones) {
+    var promedios = dimensiones.map(function (d) { return d.suma / 3; });
+    var anillos = [2, 3, 4, 5].map(function (v) { return svg('polygon', { 'class': 'r-anillo', points: puntosDelRadar([v, v, v, v, v]) }); });
+    var ejes = dimensiones.map(function (_, i) {
+      var borde = puntoDelRadar(i, RADAR.radio);
+      return svg('line', { 'class': 'r-eje', x1: RADAR.centroX, y1: RADAR.centroY, x2: borde[0].toFixed(1), y2: borde[1].toFixed(1) });
+    });
+    var marcas = dimensiones.map(function (d, i) {
+      var punto = puntoDelRadar(i, distanciaDePromedio(promedios[i]));
+      var numero = puntoDelRadar(i, RADAR.radio + RADAR.separacionNumeros);
+      var x = punto[0].toFixed(1);
+      var y = punto[1].toFixed(1);
+      return [
+        svg('g', {},
+          svg('title', {}, (i + 1) + '. ' + texto(d.id + '_nombre') + ': promedio ' + formatearPromedio(d.suma) + ', ' + NIVELES[d.nivel].texto),
+          svg('circle', { 'class': 'r-toque', cx: x, cy: y, r: 18 }),
+          svg('circle', { 'class': 'r-marca', cx: x, cy: y, r: 6, style: 'fill:var(--c' + (i + 1) + ')' })),
+        svg('text', { 'class': 'r-num', x: numero[0].toFixed(1), y: numero[1].toFixed(1) }, String(i + 1)),
+      ];
+    });
+    var color = function (i) { var c = el('span', { clase: 'r-color' }); c.style.background = 'var(--c' + (i + 1) + ')'; return c; };
+    return el('figure', { clase: 'radar' },
+      svg('svg', { viewBox: '0 0 320 300', role: 'img', 'aria-label': 'Gráfico de radar con tu promedio en las cinco dimensiones. Los valores están en la lista de abajo.' },
+        anillos, ejes, svg('polygon', { 'class': 'r-forma', points: puntosDelRadar(promedios) }), marcas),
+      el('figcaption', { clase: 'note' }, 'Del centro (1) al borde (5): cuanto más lejos del centro, más alto el promedio.'),
+      el('ul', { clase: 'radar-lista' }, dimensiones.map(function (d, i) {
+        return el('li', {}, color(i), el('span', { clase: 'r-nombre' }, (i + 1) + '. ' + texto(d.id + '_nombre')), el('span', { clase: 'r-valor' }, formatearPromedio(d.suma)));
+      })));
+  }
+
   function paginaPerfil() {
     var primerNombre = textoProlijo(S.nombre).split(' ')[0];
-    var nombres = perfil.proximoPaso.map(function (id) { return texto(id + '_nombre'); });
-    var proximo = perfil.proximoPaso.length === 0
-      ? el('p', {}, texto('proximo_paso_todas_consolidadas'))
-      : [el('h3', {}, nombres.join(' y ')),
-        el('p', {}, (nombres.length > 1 ? 'Son las dimensiones' : 'Es la dimensión') + ' con menor puntaje en tu perfil. Te sugerimos empezar por ' + (nombres.length > 1 ? 'alguna de ellas' : 'ahí') + ' al usar la Guía.')];
-    var referencia = ['f', 'd', 'c'].map(function (n) { return [chip(n), el('span', { clase: 'note' }, NIVELES[n].rango)]; });
+    var niveles = el('table', { clase: 'niveles' },
+      el('thead', {}, el('tr', {}, el('th', {}, 'Nivel'), el('th', {}, 'Promedio'))),
+      el('tbody', {}, ['f', 'd', 'c'].map(function (n) { return el('tr', {}, el('td', {}, chip(n)), el('td', {}, NIVELES[n].rango)); })));
 
     mostrar(
       el('div', { clase: 'stack' },
         el('div', { clase: 'eyebrow' }, 'Tu perfil'),
-        el('h2', {}, primerNombre + ', este es tu momento actual con micro:bit'),
+        el('h2', {}, primerNombre + ', este es el resultado de tu autodiagnóstico'),
         el('p', { clase: 'lede' }, 'Para cada dimensión calculamos el promedio de tus respuestas, de 1 a 5.'),
-        el('div', { clase: 'levels-key' }, referencia)),
-      el('div', { clase: 'next' }, el('div', { clase: 'eyebrow' }, 'Tu próximo paso'), proximo),
+        niveles),
+      radar(perfil.dimensiones),
       perfil.dimensiones.map(function (d, i) {
-        var punto = el('b', {});
-        punto.style.left = ((d.suma / 3 - 1) / 4 * 100).toFixed(1) + '%';
         var cabecera = el('div', { clase: 'dim-top' }, el('span', { clase: 'ico' }, icono(i)), el('h3', {}, (i + 1) + '. ' + texto(d.id + '_nombre')));
         cabecera.style.background = 'var(--c' + (i + 1) + ')';
         return el('article', { clase: 'dim' }, cabecera, el('div', { clase: 'dim-body' },
-          el('div', { clase: 'dim-row' }, chip(d.nivel), el('div', { clase: 'meter' },
-            el('div', { clase: 'meter-bar' }, el('span', {}), el('span', {}), el('span', {}), punto),
-            el('div', { clase: 'meter-lbl' }, el('span', {}, '1'), el('span', {}, 'Promedio ', el('strong', {}, formatearPromedio(d.suma))), el('span', {}, '5')))),
-          el('p', { clase: 'observa' }, el('b', {}, 'Qué observa:'), ' ' + texto(d.id + '_observa')),
+          el('div', { clase: 'dim-row' }, chip(d.nivel), el('span', { clase: 'note' }, 'Promedio ', el('strong', {}, formatearPromedio(d.suma)))),
           el('p', {}, texto(d.id + '_' + d.nivel + '_texto')),
           el('p', { clase: 'rec' }, el('b', {}, texto('rec_rotulo_' + d.nivel)), conMayuscula(texto(d.id + '_' + d.nivel + '_rec')))));
       }),

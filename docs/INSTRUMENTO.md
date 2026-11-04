@@ -87,7 +87,7 @@ Para cada dimensión se suman sus 3 respuestas (S, de 3 a 15). El documento orig
 
 Implementar con la suma (enteros), no con el promedio, para evitar errores de redondeo. El promedio se muestra con un decimal y coma: `3,7`.
 
-**Tu próximo paso:** la dimensión con menor suma. Si empatan dos, se nombran las dos; si empatan más, la primera en orden. Si todas son consolidadas, se muestra: "Todas tus dimensiones aparecen consolidadas. Un buen próximo paso puede ser compartir tu experiencia y acompañar a otros docentes que están comenzando."
+**Tu próximo paso** (el servidor lo calcula, pero el perfil no lo muestra por decisión del 04/11/2026, ver `docs/DECISIONES.md`): la dimensión con menor suma. Si empatan dos, se nombran las dos; si empatan más, la primera en orden. Si todas son consolidadas, se muestra: "Todas tus dimensiones aparecen consolidadas. Un buen próximo paso puede ser compartir tu experiencia y acompañar a otros docentes que están comenzando."
 
 ## Devoluciones
 

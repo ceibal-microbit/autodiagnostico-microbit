@@ -13,7 +13,7 @@ const scriptDe = html => /<script>([\s\S]*)<\/script>/.exec(html)[1];
 
 const NOMBRES = ['claveSimple', 'normalizarTexto', 'limpiarCedula', 'cedulaValida', 'correoValido', 'sugerirCorreo', 'distanciaEdicion', 'formatearPromedio',
   'textoProlijo', 'nombreValido', 'soloDigitos', 'formatearCedula', 'centrosDesdeServidor', 'departamentosDe', 'localidadesDe', 'candidatosDe', 'buscarCentros',
-  'estadoVacio', 'armarEnvio', 'restaurarAvance'];
+  'estadoVacio', 'armarEnvio', 'restaurarAvance', 'puntoDelRadar', 'distanciaDePromedio', 'puntosDelRadar', 'RADAR'];
 const b = vm.runInContext(`${scriptDe(leer('buscador.html'))}\n;({ ${NOMBRES.join(', ')} })`, vm.createContext({}));
 
 const LIMPIOS = n.limpiarUniverso_(universo.filas).centros;
@@ -161,6 +161,33 @@ test('sin texto muestra primero los centros de aula y un máximo de 12', () => {
   assert.strictEqual(r.length, 12);
   assert.strictEqual(r[0].codigo, 101);
   assert.strictEqual(r[1].codigo, 100);
+});
+
+// --- Radar ---
+
+test('radar: un promedio de 1 queda en el centro y uno de 5 en el borde', () => {
+  assert.strictEqual(b.distanciaDePromedio(1), 0);
+  assert.strictEqual(b.distanciaDePromedio(5), b.RADAR.radio);
+  assert.strictEqual(b.distanciaDePromedio(3), b.RADAR.radio / 2);
+  const centro = b.puntoDelRadar(2, 0);
+  assert.deepStrictEqual(aPlano(centro), [b.RADAR.centroX, b.RADAR.centroY]);
+});
+
+test('radar: la dimensión 1 va arriba y las demás siguen en orden, como las agujas del reloj', () => {
+  const [x, y] = b.puntoDelRadar(0, b.RADAR.radio);
+  assert.ok(Math.abs(x - b.RADAR.centroX) < 1e-9);
+  assert.ok(Math.abs(y - (b.RADAR.centroY - b.RADAR.radio)) < 1e-9);
+  assert.ok(b.puntoDelRadar(1, b.RADAR.radio)[0] > b.RADAR.centroX, 'la 2 a la derecha');
+  assert.ok(b.puntoDelRadar(4, b.RADAR.radio)[0] < b.RADAR.centroX, 'la 5 a la izquierda');
+});
+
+test('radar: el dibujo entra en el espacio reservado, también los números de cada punta', () => {
+  const distancia = b.RADAR.radio + b.RADAR.separacionNumeros;
+  for (let i = 0; i < 5; i++) {
+    const [x, y] = b.puntoDelRadar(i, distancia);
+    assert.ok(x > 8 && x < 312 && y > 8 && y < 292, `punta ${i + 1}: ${x}, ${y}`);
+  }
+  assert.strictEqual(b.puntosDelRadar([3, 3, 3, 3, 3]).split(' ').length, 5);
 });
 
 // --- Envío: lo que arma la página lo acepta el servidor ---
@@ -319,7 +346,7 @@ test('la página ofrece los subsistemas, la escala y las opciones de contexto qu
 
 test('los textos de la Sheet que usa la página existen en la carga inicial', () => {
   const { TEXTOS_INICIALES_ } = require('../src/textos.js');
-  for (const clave of ['intro_1', 'intro_2', 'ctx_intro', 'afirmaciones_intro', 'proximo_paso_todas_consolidadas', 'cierre_titulo', 'cierre_1', 'cierre_2', 'rec_rotulo_f', 'rec_rotulo_d', 'rec_rotulo_c']) {
+  for (const clave of ['intro_1', 'intro_2', 'ctx_intro', 'afirmaciones_intro', 'cierre_titulo', 'cierre_1', 'cierre_2', 'rec_rotulo_f', 'rec_rotulo_d', 'rec_rotulo_c']) {
     assert.ok(leer('app.html').includes(`'${clave}'`) || (/^rec_rotulo_/.test(clave) && leer('app.html').includes("'rec_rotulo_' + d.nivel")), `app.html no usa ${clave}`);
     assert.ok(TEXTOS_INICIALES_[clave], clave);
   }
