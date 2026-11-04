@@ -35,7 +35,7 @@
     ['DGEIP', 'Educación Inicial y Primaria'], ['DGES', 'Educación Secundaria'],
     ['DGETP', 'Educación Técnico Profesional (UTU)'], ['CFE', 'Consejo de Formación en Educación'],
   ];
-  var NIVELES = { f: { texto: 'A fortalecer', cuadros: 1, rango: '1,0 a 2,4' }, d: { texto: 'En desarrollo', cuadros: 2, rango: '2,5 a 3,7' }, c: { texto: 'Consolidada', cuadros: 3, rango: '3,8 a 5,0' } };
+  var NIVELES = { f: { texto: 'A fortalecer', cuadros: 1 }, d: { texto: 'En desarrollo', cuadros: 2 }, c: { texto: 'Consolidada', cuadros: 3 } };
   var ICONOS = [
     '..#.. .###. #.#.# ..#.. ..#..', // flecha: autonomía técnica
     '..... ....# ...#. #.#.. .#...', // tilde: uso pedagógico
@@ -495,7 +495,7 @@
   /** Radar: una sola forma, del centro (1) al borde (5). El número identifica cada dimensión y la lista de abajo da los valores. */
   function radar(dimensiones) {
     var promedios = dimensiones.map(function (d) { return d.suma / 3; });
-    var anillos = [2, 3, 4, 5].map(function (v) { return svg('polygon', { 'class': 'r-anillo', points: puntosDelRadar([v, v, v, v, v]) }); });
+    var zonas = ZONAS_RADAR.map(function (z) { return svg('polygon', { 'class': 'r-zona-' + z[1], points: puntosDelRadar([z[0], z[0], z[0], z[0], z[0]]) }); });
     var ejes = dimensiones.map(function (_, i) {
       var borde = puntoDelRadar(i, RADAR.radio);
       return svg('line', { 'class': 'r-eje', x1: RADAR.centroX, y1: RADAR.centroY, x2: borde[0].toFixed(1), y2: borde[1].toFixed(1) });
@@ -516,8 +516,8 @@
     var color = function (i) { var c = el('span', { clase: 'r-color' }); c.style.background = 'var(--c' + (i + 1) + ')'; return c; };
     return el('figure', { clase: 'radar' },
       svg('svg', { viewBox: '0 0 320 300', role: 'img', 'aria-label': 'Gráfico de radar con tu promedio en las cinco dimensiones. Los valores están en la lista de abajo.' },
-        anillos, ejes, svg('polygon', { 'class': 'r-forma', points: puntosDelRadar(promedios) }), marcas),
-      el('figcaption', { clase: 'note' }, 'Del centro (1) al borde (5): cuanto más lejos del centro, más alto el promedio.'),
+        zonas, ejes, svg('polygon', { 'class': 'r-forma', points: puntosDelRadar(promedios) }), marcas),
+      el('figcaption', { clase: 'r-leyenda' }, ['f', 'd', 'c'].map(function (n) { return el('span', {}, el('i', { clase: 'r-zona-' + n }), NIVELES[n].texto); })),
       el('ul', { clase: 'radar-lista' }, dimensiones.map(function (d, i) {
         return el('li', {}, color(i), el('span', { clase: 'r-nombre' }, (i + 1) + '. ' + texto(d.id + '_nombre')), el('span', { clase: 'r-valor' }, formatearPromedio(d.suma)));
       })));
@@ -525,22 +525,19 @@
 
   function paginaPerfil() {
     var primerNombre = textoProlijo(S.nombre).split(' ')[0];
-    var niveles = el('table', { clase: 'niveles' },
-      el('thead', {}, el('tr', {}, el('th', {}, 'Nivel'), el('th', {}, 'Promedio'))),
-      el('tbody', {}, ['f', 'd', 'c'].map(function (n) { return el('tr', {}, el('td', {}, chip(n)), el('td', {}, NIVELES[n].rango)); })));
 
     mostrar(
       el('div', { clase: 'stack' },
         el('div', { clase: 'eyebrow' }, 'Tu perfil'),
         el('h2', {}, primerNombre + ', este es el resultado de tu autodiagnóstico'),
-        el('p', { clase: 'lede' }, 'Para cada dimensión calculamos el promedio de tus respuestas, de 1 a 5.'),
-        niveles),
+        el('p', { clase: 'lede' }, 'Cada punta del radar es tu promedio en una dimensión: del centro (1) al borde (5).')),
       radar(perfil.dimensiones),
       perfil.dimensiones.map(function (d, i) {
-        var cabecera = el('div', { clase: 'dim-top' }, el('span', { clase: 'ico' }, icono(i)), el('h3', {}, (i + 1) + '. ' + texto(d.id + '_nombre')));
+        var cabecera = el('div', { clase: 'dim-top' }, el('span', { clase: 'ico' }, icono(i)), el('div', { clase: 'dim-tit' },
+          el('h3', {}, (i + 1) + '. ' + texto(d.id + '_nombre')),
+          el('div', { clase: 'dim-nivel' }, chip(d.nivel), el('span', {}, 'Promedio ', el('strong', {}, formatearPromedio(d.suma))))));
         cabecera.style.background = 'var(--c' + (i + 1) + ')';
         return el('article', { clase: 'dim' }, cabecera, el('div', { clase: 'dim-body' },
-          el('div', { clase: 'dim-row' }, chip(d.nivel), el('span', { clase: 'note' }, 'Promedio ', el('strong', {}, formatearPromedio(d.suma)))),
           el('p', {}, texto(d.id + '_' + d.nivel + '_texto')),
           el('p', { clase: 'rec' }, el('b', {}, texto('rec_rotulo_' + d.nivel)), conMayuscula(texto(d.id + '_' + d.nivel + '_rec')))));
       }),

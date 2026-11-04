@@ -263,6 +263,8 @@ function buscarCentros(candidatos, consulta) {
 /* ---------- Radar del perfil ---------- */
 
 var RADAR = { centroX: 160, centroY: 152, radio: 112, separacionNumeros: 17 };
+// Las zonas del radar son los niveles de docs/INSTRUMENTO.md: hasta qué promedio llega cada una, de afuera hacia adentro.
+var ZONAS_RADAR = [[5, 'c'], [3.8, 'd'], [2.5, 'f']];
 
 /** Un punto del radar: la dimensión i (0 a 4), a una distancia dada del centro. */
 function puntoDelRadar(i, distancia) {

@@ -13,7 +13,7 @@ const scriptDe = html => /<script>([\s\S]*)<\/script>/.exec(html)[1];
 
 const NOMBRES = ['claveSimple', 'normalizarTexto', 'limpiarCedula', 'cedulaValida', 'correoValido', 'sugerirCorreo', 'distanciaEdicion', 'formatearPromedio',
   'textoProlijo', 'nombreValido', 'soloDigitos', 'formatearCedula', 'centrosDesdeServidor', 'departamentosDe', 'localidadesDe', 'candidatosDe', 'buscarCentros',
-  'estadoVacio', 'armarEnvio', 'restaurarAvance', 'puntoDelRadar', 'distanciaDePromedio', 'puntosDelRadar', 'RADAR'];
+  'estadoVacio', 'armarEnvio', 'restaurarAvance', 'puntoDelRadar', 'distanciaDePromedio', 'puntosDelRadar', 'RADAR', 'ZONAS_RADAR'];
 const b = vm.runInContext(`${scriptDe(leer('buscador.html'))}\n;({ ${NOMBRES.join(', ')} })`, vm.createContext({}));
 
 const LIMPIOS = n.limpiarUniverso_(universo.filas).centros;
@@ -179,6 +179,14 @@ test('radar: la dimensión 1 va arriba y las demás siguen en orden, como las ag
   assert.ok(Math.abs(y - (b.RADAR.centroY - b.RADAR.radio)) < 1e-9);
   assert.ok(b.puntoDelRadar(1, b.RADAR.radio)[0] > b.RADAR.centroX, 'la 2 a la derecha');
   assert.ok(b.puntoDelRadar(4, b.RADAR.radio)[0] < b.RADAR.centroX, 'la 5 a la izquierda');
+});
+
+test('radar: cada puntaje posible cae en la zona de su nivel, así el dibujo no contradice a la tarjeta', () => {
+  const limites = aPlano(b.ZONAS_RADAR).reverse(); // de adentro hacia afuera
+  for (let suma = 3; suma <= 15; suma++) {
+    const zona = limites.find(z => suma / 3 <= z[0])[1];
+    assert.strictEqual(zona, n.nivelPorSuma_(suma), `suma ${suma}`);
+  }
 });
 
 test('radar: el dibujo entra en el espacio reservado, también los números de cada punta', () => {

@@ -5,7 +5,7 @@
 ## Alcance de la versión 1 (lo más simple)
 
 - Sin pantalla de consentimiento. Se agrega en la versión definitiva (Ley 18.331, texto a validar con el área legal).
-- El perfil muestra: tabla de referencia de niveles, radar con los promedios y la lista de valores, una tarjeta por dimensión (nivel, promedio, devolución, recomendación) y el cierre. No muestra "Tu próximo paso". El radar también va en el PDF.
+- El perfil muestra: radar con los promedios (sus tres zonas son los niveles, con una leyenda de una línea) y la lista de valores, una tarjeta por dimensión (nivel y promedio en el encabezado, devolución, recomendación) y el cierre. No muestra "Tu próximo paso". El radar también va en el PDF.
 - Sin tablero externo. El equipo analiza las respuestas directamente en la Sheet.
 
 ## Formato de la página

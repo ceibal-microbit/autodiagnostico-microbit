@@ -66,7 +66,7 @@ test('ninguna página interpreta como HTML lo que viene del docente o de la Shee
 test('el perfil no muestra "Tu próximo paso" ni la barra de promedio, y ningún nivel va relleno', () => {
   for (const f of ['app.html', 'estilos.html']) {
     const codigo = fs.readFileSync(path.join(SRC, f), 'utf8');
-    for (const prohibido of ['Tu próximo paso', 'meter-bar', '.chip.c', 'momento actual con micro:bit']) assert.ok(!codigo.includes(prohibido), `${f}: ${prohibido}`);
+    for (const prohibido of ['Tu próximo paso', 'meter-bar', '.chip.c', 'momento actual con micro:bit', 'niveles']) assert.ok(!codigo.includes(prohibido), `${f}: ${prohibido}`);
   }
 });
 

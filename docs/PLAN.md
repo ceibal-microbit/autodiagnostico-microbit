@@ -48,7 +48,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [x] Ningún servicio de correo en el código de esta fase; un test lo controla.
 - [x] Compartir la lógica del buscador con `src/buscador.html` y un test que compare sus resultados con `nucleo.js` (ver `docs/ARQUITECTURA.md`).
 - [x] Versión visible en el pie.
-- [x] Perfil con tabla de niveles y radar, sin "Tu próximo paso" ni barra de promedio. "Qué observa" pasa al formulario.
+- [x] Perfil con radar y zonas de niveles, sin "Tu próximo paso" ni barra de promedio. "Qué observa" pasa al formulario.
 - [x] Sumar a Config `max_mails_hora`, `max_mails_dia`, `modo_mail` y `correos_de_prueba`, con los valores mínimos de prueba. Si un tope está vacío, `guardarRespuesta` usa el mínimo en vez de no limitar. El aviso por superar el tope por hora queda en *Ejecuciones*; el mail al equipo llega en la fase 5.
 - [x] Los textos de la pestaña Textos se muestran sin interpretar HTML (ver `docs/SEGURIDAD.md`, sección 6) y se saca de la página el nombre de la planilla.
 - [x] Al leer Centros en `obtenerDatosIniciales`, quitar el apóstrofo que `protegerFormula_` puso delante de algún nombre.

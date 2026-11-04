@@ -114,9 +114,20 @@ select { min-height: 44px; }
 .radar { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
 .radar svg { display: block; width: 100%; max-width: 360px; margin: 0 auto; }
 .radar figcaption { text-align: center; }
-.r-anillo { fill: none; stroke: var(--line); stroke-width: 1; }
-.r-eje { stroke: var(--line); stroke-width: 1; }
-.r-forma { fill: var(--teal); fill-opacity: 0.18; stroke: var(--teal-dark); stroke-width: 2; stroke-linejoin: round; }
+.r-zona-f { fill: #F6FBFA; }
+.r-zona-d { fill: #CDE9E5; }
+.r-zona-c { fill: #93D2C9; }
+polygon.r-zona-f, polygon.r-zona-d, polygon.r-zona-c { stroke: #FFFFFF; stroke-width: 1.5; }
+.r-eje { stroke: #FFFFFF; stroke-width: 1; }
+.dim-tit { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.dim-nivel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 0.9rem; }
+.r-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 0.86rem; }
+.r-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.r-leyenda i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #6FB8AE; display: block; background: currentColor; }
+.r-leyenda i.r-zona-f { background: #F6FBFA; }
+.r-leyenda i.r-zona-d { background: #CDE9E5; }
+.r-leyenda i.r-zona-c { background: #93D2C9; }
+.r-forma { fill: var(--teal-dark); fill-opacity: 0.22; stroke: var(--teal-dark); stroke-width: 2; stroke-linejoin: round; }
 .r-toque { fill: transparent; }
 .r-marca { stroke: var(--teal-dark); stroke-width: 1.5; }
 .r-num { font-size: 15px; font-weight: 700; fill: var(--ink); text-anchor: middle; dominant-baseline: middle; }
@@ -126,10 +137,6 @@ select { min-height: 44px; }
 .r-nombre { flex: 1; min-width: 0; }
 .r-valor { font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* Referencia de niveles */
-.niveles { border-collapse: collapse; width: 100%; max-width: 360px; background: var(--surface); font-size: 0.92rem; }
-.niveles th, .niveles td { text-align: left; padding: 7px 12px; border: 1px solid var(--line); }
-.niveles th { font-weight: 600; color: var(--muted); }
 
 /* Perfil */
 .btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -150,7 +157,6 @@ select { min-height: 44px; }
 .dim-top h3 { min-width: 0; flex: 1; }
 .dim-top .ico { flex: none; width: 46px; height: 46px; border-radius: 10px; background: rgba(255,255,255,0.55); display: grid; place-items: center; }
 .dim-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
-.dim-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .observa { font-size: 0.92rem; color: var(--muted); }
 .rec { background: var(--bg); border-radius: 8px; padding: 12px 14px; }
 .rec b { display: block; color: var(--teal-dark); }
