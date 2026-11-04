@@ -56,7 +56,9 @@ La lista completa está en `docs/PLAN.md`. Lo que requiere decidir antes de prog
 Pendiente de fases posteriores que no hay que perder: las cuatro pruebas manuales de la fase 3 que no se hicieron (están en la fase 6 del plan), sacar de la página pública el nombre de la planilla, campo trampa y tiempo mínimo en `guardarRespuesta`.
 
 ## Pendientes fuera del código
-Legal (consentimiento, plazo de conservación, registro ante la URCDP) · logo oficial y tipografía Ceibal Mozaic · links definitivos de la Guía y del Cuaderno de Actividades · cuota diaria de mails de la cuenta dedicada.
+Legal (consentimiento, plazo de conservación, registro ante la URCDP) · logo oficial y tipografía Ceibal Mozaic · links definitivos de la Guía y del Cuaderno de Actividades.
+
+Cuota de mails: la cuenta dedicada es **Workspace**. Según la documentación de Google son 1.500 destinatarios por día, y la cuota se renueva 24 horas después del primer envío, no a una hora fija. Las cuentas de prueba (*trial*) tienen límites menores. Falta confirmar el valor real en la cuenta durante la fase 5.
 
 ## Cómo trabajamos
 1. Una rama por tarea o fase.

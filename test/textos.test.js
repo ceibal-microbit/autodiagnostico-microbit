@@ -40,7 +40,8 @@ test('textos puntuales de INSTRUMENTO.md llegaron completos', () => {
 });
 
 test('el generador entiende archivos con saltos de línea de Windows', () => {
-  assert.deepStrictEqual(parsearInstrumento(md.replace(/\n/g, '\r\n')), esperados);
+  // Normaliza primero: en una copia de Windows, md ya puede venir con \r\n (sin esto quedaría \r\r\n).
+  assert.deepStrictEqual(parsearInstrumento(md.replace(/\r?\n/g, '\r\n')), esperados);
 });
 
 test('los textos no tienen textos de las afirmaciones ni de las preguntas (esos quedan en el código)', () => {
