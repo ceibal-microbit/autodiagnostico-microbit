@@ -15,9 +15,8 @@ const MENSAJE_RECHAZO_ = 'No pudimos guardar tu respuesta. Intentá más tarde.'
 const FILAS_A_REVISAR_ = 8000;
 // Columnas de Respuestas que hacen falta para los topes: de fecha_hora (1) a cedula (5).
 const COLUMNAS_A_REVISAR_ = 5;
-// Filas y columnas que se miran para detectar un reintento: las más recientes, hasta la última respuesta (d5_i3).
+// Filas que se miran para detectar un reintento: las más recientes.
 const FILAS_PARA_REINTENTO_ = 200;
-const COLUMNAS_PARA_REINTENTO_ = ENCABEZADOS_RESPUESTAS_.indexOf('d5_i3') + 1;
 
 function doGet() {
   const plantilla = HtmlService.createTemplateFromFile('index');
@@ -157,7 +156,9 @@ function filasRecientes_(hoja) {
   const ultima = hoja.getLastRow();
   if (ultima < 2) return [];
   const desde = Math.max(2, ultima - FILAS_PARA_REINTENTO_ + 1);
-  return hoja.getRange(desde, 1, ultima - desde + 1, COLUMNAS_PARA_REINTENTO_).getValues();
+  // Se calcula acá y no al cargar el archivo: Apps Script carga Codigo.js antes que nucleo.js.
+  const columnas = ENCABEZADOS_RESPUESTAS_.indexOf('d5_i3') + 1;
+  return hoja.getRange(desde, 1, ultima - desde + 1, columnas).getValues();
 }
 
 /** Incluye un parcial HTML dentro de una plantilla: <?!= incluir_('estilos') ?> */

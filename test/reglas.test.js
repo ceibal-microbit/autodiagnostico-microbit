@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const SRC = path.join(__dirname, '..', 'src');
 const archivosJs = fs.readdirSync(SRC).filter(f => f.endsWith('.js'));
@@ -33,6 +34,18 @@ test('src/ no usa require, import ni export (no existen en Apps Script)', () => 
       .replace(/if \(typeof module !== 'undefined'\) \{[\s\S]*?\}\s*$/, ''); // bloque de exportación para tests
     assert.ok(!/\brequire\s*\(/.test(codigo), `${f} usa require`);
     assert.ok(!/^\s*(import|export)\s/m.test(codigo), `${f} usa import/export`);
+  }
+});
+
+test('los archivos de src/ se pueden cargar en cualquier orden, como en Apps Script', () => {
+  // Apps Script no carga nucleo.js primero: al cargarse, un archivo no puede usar nada definido en otro.
+  // Cada archivo se ejecuta por separado en un mismo espacio global, sin servicios de Google.
+  const ordenes = lista => (lista.length < 2 ? [lista] : lista.flatMap((a, i) => ordenes(lista.filter((_, j) => j !== i)).map(resto => [a, ...resto])));
+  for (const orden of ordenes(archivosJs)) {
+    const contexto = vm.createContext({});
+    for (const f of orden) {
+      assert.doesNotThrow(() => vm.runInContext(fs.readFileSync(path.join(SRC, f), 'utf8'), contexto, { filename: f }), `Falla al cargar ${f} en el orden ${orden.join(', ')}`);
+    }
   }
 });
 
