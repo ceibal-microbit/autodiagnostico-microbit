@@ -90,9 +90,9 @@ Claves sugeridas: `d1_observa`, `d1_f_texto`, `d1_f_rec`, `d1_d_texto`, …, `d5
 
 ### Config
 
-`max_envios_cedula_dia` (3) · `max_mails_destino_dia` (1) · `max_envios_hora` (a definir) · `segundos_minimos` (60) · `correo_equipo_alertas`.
+`max_envios_cedula_dia` (3) · `max_mails_destino_dia` (1) · `max_envios_hora` (20 mientras se prueba) · `max_mails_hora` (10) · `max_mails_dia` (20) · `segundos_minimos` (60) · `correo_equipo_alertas` · `modo_mail` (`apagado`) · `correos_de_prueba`.
 
-Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla" las carga con esos valores iniciales; `max_envios_hora` y `correo_equipo_alertas` salen vacíos hasta que el equipo los complete.
+Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla" las carga con esos valores iniciales; `correo_equipo_alertas` y `correos_de_prueba` salen vacíos hasta que el equipo los complete. Si `max_envios_hora` o los topes de mails están vacíos, el servidor usa los valores mínimos de prueba, nunca "sin límite". `modo_mail`, `correos_de_prueba` y `correo_equipo_alertas` se usan desde la fase 5.
 
 ### Respuestas
 
@@ -116,12 +116,13 @@ Configuración de la web app: ejecutar como quien implementa (`USER_DEPLOYING`) 
 
 - Se arma con `HtmlService.createTemplateFromFile('index').evaluate()`, que incluye los parciales (`estilos.html`, `app.html`) con una función `incluir_()`.
 - Agrega la etiqueta `viewport`, el título y el ícono desde `doGet`.
-- Toma como base `docs/prototipo/prototipo.html`, quitándole el catálogo incrustado: los centros llegan de `obtenerDatosIniciales`.
-- **Lógica compartida con el navegador** (normalizar texto y buscar centros): Apps Script no puede servir un `.js` al navegador, así que va en `src/buscador.html` dentro de un `<script>`. Los tests de Node leen ese archivo, extraen el `<script>` y lo ejecutan con `vm`. A decidir en la fase 4.
+- Toma como base `docs/prototipo/prototipo.html`, quitándole el catálogo incrustado y lo que es solo del prototipo: los centros llegan de `obtenerDatosIniciales`.
+- Se diseña primero para celular: toda zona tocable mide al menos 44 px y los campos usan 16 px o más, para que el iPhone no haga zoom.
+- **Lógica compartida con el navegador** (normalizar texto y buscar centros): Apps Script no puede servir un `.js` al navegador, así que va en `src/buscador.html` dentro de un `<script>`. Los tests de Node leen ese archivo, extraen el `<script>` y lo ejecutan con `vm`. Las reglas para normalizar quedan en dos lugares (`nucleo.js` y `buscador.html`), así que un test les pasa los mismos textos a las dos versiones y falla si dan resultados distintos.
 
 ## Límites conocidos de Apps Script
 
-Hay que confirmarlos en la documentación de Google:
+Según la documentación de Google (consultada el 04/11/2026):
 - Unos 6 minutos por ejecución.
-- Unas 30 ejecuciones simultáneas.
-- Una cuota diaria de destinatarios de mail según el tipo de cuenta: del orden de 100 en Gmail común y de 1.500 en Workspace.
+- 30 ejecuciones simultáneas por usuario.
+- Una cuota diaria de destinatarios de mail: 100 en Gmail común y 1.500 en Workspace (la cuenta dedicada es Workspace paga). Se renueva 24 horas después del primer envío, no a una hora fija.

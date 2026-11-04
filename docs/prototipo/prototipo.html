@@ -1,11 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Autodiagnóstico docente micro:bit</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap">
 <style>
-/* Layout: asistente de una columna con la identidad del sitio micro:bit de Ceibal — franja verde Ceibal arriba, tarjetas planas
-   de color por dimensión (la paleta de "Formación y recursos"), botones píldora, íconos de LEDs 5×5. Tema claro único, como el sitio. */
+/* Formulario simple, al estilo Google Forms, con la paleta de Ceibal. Una columna de tarjetas blancas, controles nativos. */
 :root {
   color-scheme: light;
   --bg: #F9FAFB;
@@ -13,10 +16,10 @@
   --ink: #111111;
   --muted: #4B5563;
   --line: #E5E7EB;
-  --teal-dark: #00635D;      /* verde Ceibal: barra superior, botones */
-  --teal: #00A096;           /* acentos y enlaces */
+  --teal-dark: #00635D;      /* verde Ceibal: franja superior y botones */
+  --teal: #00A096;           /* acentos */
   --teal-soft: #E3F3F1;
-  --mb-green: #026902;       /* verde micro:bit: bordes de botón secundario */
+  --mb-green: #026902;       /* verde micro:bit */
   --c1: #7BCDC1; --c1-ink: #0E5F55;   /* aqua */
   --c2: #D17EB2; --c2-ink: #6E2357;   /* rosa */
   --c3: #F2E616; --c3-ink: #6B5F00;   /* amarillo */
@@ -26,141 +29,107 @@
   --danger: #B42318;
   --font-display: "Ceibal Mozaic", "Figtree", Verdana, sans-serif;
   --font-body: "Ceibal Mozaic", "Figtree", Verdana, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
   --r: 10px;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--teal-dark); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; }
 h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; text-wrap: balance; margin: 0; font-weight: 600; }
-h1 { font-size: clamp(2rem, 6.5vw, 2.9rem); }
-h2 { font-size: clamp(1.55rem, 5vw, 2.1rem); }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.45rem; }
 h3 { font-size: 1.15rem; }
 p { margin: 0; }
 a { color: var(--teal-dark); }
 button, input, select { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
 
-.proto { background: var(--purple); color: #FFFFFF; font-size: 0.82rem; font-weight: 600; text-align: center; padding-block: 7px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.topband { background: var(--teal-dark); color: #FFFFFF; padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); font-weight: 600; font-size: 0.95rem; }
-.topband-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
-.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.topbar-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
-.brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; color: var(--mb-green); display: flex; align-items: center; gap: 8px; }
-.brand .logo-slot { font-size: 0.68rem; font-weight: 600; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 6px; padding: 3px 7px; }
-.prog { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-.prog-leds { display: flex; gap: 4px; }
-.prog-leds i { width: 10px; height: 10px; border-radius: 3px; background: var(--line); display: block; }
-.prog-leds i.on { background: var(--teal); }
-.prog-leds i.now { background: var(--teal-dark); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--teal-dark); }
-@media (max-width: 440px) { .brand .logo-slot { display: none; } .prog > span:first-child { display: none; } }
-
-main { padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.proto { background: var(--purple); color: #FFFFFF; font-size: 0.82rem; font-weight: 600; text-align: center; padding: 7px 16px; }
+.proto button { background: none; border: 0; padding: 0; color: #FFFFFF; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.topband { background: var(--teal-dark); color: #FFFFFF; padding: 10px 16px; font-weight: 600; font-size: 0.92rem; }
+.topband-in { max-width: 720px; margin: 0 auto; }
+main { padding: 16px 12px 48px; }
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.note { font-size: 0.9rem; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-size: 0.86em; }
 .eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--teal-dark); font-weight: 700; }
 .lede { font-size: 1.08rem; color: var(--muted); max-width: 60ch; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
-.note { font-size: 0.9rem; color: var(--muted); }
-.mono { font-family: var(--font-mono); font-size: 0.86em; }
 
+/* Tarjetas del formulario */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; font-size: 16px; }
+.card.titulo { border-top: 10px solid var(--teal-dark); }
+.card.titulo h1 { color: var(--teal-dark); }
+.card.seccion { border-top: 6px solid var(--teal); }
+.req { color: var(--danger); }
+.q-t { font-weight: 600; display: block; }
+.card.bad { border-color: var(--danger); }
+.grupo .card { padding: 16px 18px; }
+@media (max-width: 480px) { .grupo { padding: 16px 10px; } .grupo > h2, .grupo > p { padding: 0 6px; } .grupo .card { padding: 14px 10px; } }
+.help { font-size: 0.86rem; color: var(--muted); }
+.err { font-size: 0.86rem; color: var(--danger); }
+.err:empty, .help:empty, #sug-email:empty, #f-loc:empty, #f-centro:empty { display: none; }
+
+/* Controles nativos */
+input[type=text], input[type=email] { width: 100%; max-width: 480px; padding: 6px 0; border: 0; border-bottom: 1px solid #9CA3AF; border-radius: 0; background: transparent; }
+input[type=text]:focus, input[type=email]:focus { outline: none; border-bottom: 2px solid var(--teal-dark); padding-bottom: 5px; }
+input:disabled { color: var(--muted); }
+select { width: 100%; max-width: 480px; padding: 9px 10px; border: 1px solid #9CA3AF; border-radius: 4px; background: var(--surface); }
+select:disabled { color: var(--muted); background: var(--bg); }
+.op { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; cursor: pointer; }
+.op input { width: 18px; height: 18px; margin: 3px 0 0; flex: none; accent-color: var(--teal-dark); }
+.ops { display: flex; flex-direction: column; }
+
+/* Escala de 1 a 5 */
+.escala { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.esc-op { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0; cursor: pointer; text-align: center; font-size: 0.84rem; line-height: 1.2; }
+.esc-op b { font-weight: 600; font-size: 0.95rem; }
+.esc-op input { width: 18px; height: 18px; margin: 0; accent-color: var(--teal-dark); }
+
+/* Buscador de centros */
+.sug { list-style: none; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); max-height: min(280px, 35vh); overflow-y: auto; }
+.sug[hidden] { display: none; }
+.sug li { padding: 8px 10px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: column; }
+.sug li[aria-selected="true"], .sug li:hover { background: var(--teal-soft); }
+.sug .meta { font-size: 0.82rem; color: var(--muted); }
+.sug .none { border-top: 1px solid var(--line); border-radius: 0; color: var(--teal-dark); font-weight: 600; }
+.sug .empty { cursor: default; color: var(--muted); font-size: 0.9rem; }
+.sug .empty:hover { background: none; }
+.elegido .nm { font-weight: 600; }
+.elegido .meta { font-size: 0.86rem; color: var(--muted); }
+.lnk { background: none; border: 0; padding: 0; color: var(--teal-dark); text-decoration: underline; cursor: pointer; font-size: 0.92rem; text-align: left; }
+
+/* Botones del formulario */
+.pie { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
+.pie .pag { margin-left: auto; font-size: 0.86rem; color: var(--muted); }
+.fbtn { border: 1px solid var(--teal-dark); border-radius: 4px; padding: 8px 22px; font-weight: 600; font-size: 15px; cursor: pointer; background: var(--teal-dark); color: #FFFFFF; }
+.fbtn.sec { background: var(--surface); color: var(--teal-dark); }
+.aviso { font-size: 0.9rem; color: var(--danger); width: 100%; }
+.aviso:empty { display: none; }
+.guardando { color: var(--muted); padding: 40px 0; text-align: center; }
+
+/* Celular primero: toda zona tocable mide al menos 44 px; los campos usan 16 px para que el iPhone no haga zoom. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, label, select, input, .sug li { touch-action: manipulation; }
+input[type=text], input[type=email] { min-height: 44px; }
+select { min-height: 44px; }
+.op { padding: 10px 0; }
+.esc-op { min-height: 64px; justify-content: center; }
+.sug li { min-height: 44px; justify-content: center; }
+.lnk { min-height: 44px; display: inline-flex; align-items: center; }
+.fbtn { min-height: 46px; }
+@media (max-width: 480px) { h1 { font-size: 1.5rem; } .card { padding: 16px; } .fbtn { flex: 1 1 auto; } .pie .pag { width: 100%; margin: 0; text-align: center; order: 3; } .aviso { order: 4; text-align: center; } }
+@media (max-width: 360px) { main { padding-left: 8px; padding-right: 8px; } .grupo { padding: 14px 6px; } .grupo .card { padding: 14px 8px; } .escala { gap: 2px; } .esc-op { font-size: 0.78rem; } }
+
+/* Perfil: los mismos estilos de antes */
 .btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .btn { border: 2px solid var(--teal-dark); border-radius: 25px; padding: 11px 24px; font-weight: 700; cursor: pointer; background: var(--teal-dark); color: #FFFFFF; }
 .btn[disabled] { opacity: 0.35; cursor: not-allowed; }
 .btn.ghost { background: var(--surface); color: var(--ink); border-color: var(--mb-green); }
-.btn.white { background: #FFFFFF; color: var(--ink); border-color: #FFFFFF; }
-.btn.link { background: none; border: 0; padding: 6px 2px; color: var(--teal-dark); text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
-.nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
-.nav .hint { font-size: 0.88rem; color: var(--muted); align-self: center; }
-
 /* LEDs 5×5 */
 .led5 { display: grid; grid-template-columns: repeat(5, var(--px, 8px)); gap: calc(var(--px, 8px) * 0.35); }
 .led5 i { width: var(--px, 8px); height: var(--px, 8px); border-radius: 22%; background: currentColor; opacity: 0.18; display: block; }
 .led5 i.on { opacity: 1; }
-
-/* Formulario */
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field > label, .legend { font-weight: 700; }
-.field .help { font-size: 0.86rem; color: var(--muted); }
-.field .err { font-size: 0.88rem; color: var(--danger); font-weight: 700; }
-input[type=text], input[type=email], select { width: 100%; padding: 12px 16px; border: 1.5px solid #B9C2CC; border-radius: 25px; background: var(--surface); }
-select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--teal-dark) 50%), linear-gradient(135deg, var(--teal-dark) 50%, transparent 50%); background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
-input[type=text]:focus, input[type=email]:focus, select:focus { border-color: var(--teal-dark); outline: none; box-shadow: 0 0 0 3px var(--teal-soft); }
-input.bad { border-color: var(--danger); }
-select:disabled, input:disabled { opacity: 0.5; }
-.check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
-.check input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--teal-dark); flex: none; }
-
-.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-.opt { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--surface); cursor: pointer; width: 100%; }
-.opt:hover { border-color: var(--teal); }
-.opt[aria-checked="true"] { border-color: var(--teal-dark); background: var(--teal-soft); }
-.opt .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; margin-top: 3px; display: grid; place-items: center; }
-.opt[aria-checked="true"] .dot { border-color: var(--teal-dark); }
-.opt[aria-checked="true"] .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teal-dark); }
-.opt small { display: block; color: var(--muted); font-size: 0.82rem; }
-
-/* Buscador de centros */
-.ta { position: relative; }
-.sug { list-style: none; margin: 6px 0 0; padding: 4px; border: 1.5px solid var(--line); border-radius: var(--r); background: var(--surface); max-height: 360px; overflow-y: auto; }
-.sug li { padding: 9px 12px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
-.sug li[aria-selected="true"], .sug li:hover { background: var(--teal-soft); }
-.sug .nm { font-weight: 700; }
-.sug .meta { font-size: 0.82rem; color: var(--muted); }
-.sug .none { border-top: 1px solid var(--line); margin-top: 4px; border-radius: 0 0 6px 6px; color: var(--teal-dark); font-weight: 700; }
-.sug .empty { cursor: default; color: var(--muted); font-size: 0.9rem; }
-.chosen { display: flex; gap: 12px; align-items: center; justify-content: space-between; border: 1.5px solid var(--teal-dark); background: var(--teal-soft); border-radius: var(--r); padding: 12px 16px; flex-wrap: wrap; }
-.chosen .nm { font-weight: 700; color: var(--teal-dark); }
-.chosen .meta { font-size: 0.85rem; color: var(--muted); }
-.chosen.pending { border-color: var(--c5); background: #FDECEA; }
-.chosen.pending .nm { color: var(--c5-ink); }
-
-/* Hero */
-.hero { background: var(--teal-dark); color: #FFFFFF; border-radius: var(--r); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
-.hero .eyebrow { color: #BFEDE7; }
-.hero .lede { color: #E4F4F2; }
-.hero-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 360px; }
-.hero-tiles span { aspect-ratio: 1; border-radius: 8px; display: grid; place-items: center; max-width: 100%; }
-.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.95rem; color: var(--muted); }
-.facts b { color: var(--ink); }
-
-/* Dimensión */
-.dimband { border-radius: var(--r); padding: 22px 22px 20px; display: flex; gap: 18px; align-items: center; }
-.dimband > div:last-child { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.dimband .eyebrow { color: inherit; opacity: 0.85; }
-.dimband h2 { color: var(--ink); }
-.dimband .ico { flex: none; width: 74px; height: 74px; border-radius: 14px; background: rgba(255,255,255,0.55); display: grid; place-items: center; }
-@media (max-width: 440px) { .dimband .ico { width: 58px; height: 58px; } .dimband .led5 { --px: 7px !important; } }
-
-/* Escala Likert */
-.item { display: flex; flex-direction: column; gap: 12px; padding-block: 18px; border-top: 1px solid var(--line); }
-.item:first-of-type { border-top: 0; padding-top: 4px; }
-.item .q { display: flex; gap: 12px; }
-.item .n { font-weight: 700; color: var(--teal-dark); min-width: 2ch; }
-.likert { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-.lk { border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 10px 4px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
-.lk:hover { border-color: var(--teal); }
-.lk .leds { display: flex; gap: 3px; color: var(--teal-dark); }
-.lk .leds i { width: 6px; height: 6px; border-radius: 1.5px; background: currentColor; opacity: 0.18; display: block; }
-.lk .leds i.on { opacity: 1; }
-.lk .v { font-weight: 700; font-size: 1.1rem; line-height: 1; }
-.lk .t { font-size: 0.78rem; color: var(--muted); line-height: 1.1; text-align: center; }
-.lk[aria-checked="true"] { border-color: var(--teal-dark); background: var(--teal-dark); color: #FFFFFF; }
-.lk[aria-checked="true"] .t { color: #FFFFFF; font-weight: 700; }
-.lk[aria-checked="true"] .leds { color: #FFFFFF; }
-.scale-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.86rem; color: var(--muted); }
-.scale-key b { color: var(--ink); }
-
-/* Revisión */
-.rev { display: flex; flex-direction: column; gap: 0; }
-.rev-sec { display: flex; flex-direction: column; gap: 8px; padding-block: 16px; border-top: 1px solid var(--line); }
-.rev-sec:first-child { border-top: 0; padding-top: 0; }
-.rev-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.kv { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); gap: 4px 14px; font-size: 0.94rem; }
-.kv dt { color: var(--muted); }
-.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-@media (max-width: 480px) { .kv { grid-template-columns: 1fr; } .kv dd { margin-bottom: 6px; } }
-
 /* Perfil */
 .levels-key { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { display: inline-flex; align-items: center; gap: 7px; border-radius: 25px; padding: 4px 12px 4px 10px; font-size: 0.84rem; font-weight: 700; white-space: nowrap; border: 1.5px solid var(--teal-dark); color: var(--teal-dark); background: var(--surface); }
@@ -196,20 +165,12 @@ details.team .tbl { overflow-x: auto; margin-top: 12px; }
 details.team table { border-collapse: collapse; font-size: 0.82rem; width: 100%; }
 details.team td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 details.team td:first-child { font-family: var(--font-mono); color: var(--muted); white-space: nowrap; }
-.saving { display: flex; align-items: center; gap: 14px; color: var(--muted); padding-block: 40px; justify-content: center; }
-.saving .prog-leds i { animation: blink 0.9s infinite; }
-.saving .prog-leds i:nth-child(2) { animation-delay: 0.15s; } .saving .prog-leds i:nth-child(3) { animation-delay: 0.3s; } .saving .prog-leds i:nth-child(4) { animation-delay: 0.45s; } .saving .prog-leds i:nth-child(5) { animation-delay: 0.6s; }
-@keyframes blink { 0%, 100% { background: var(--line); } 50% { background: var(--teal-dark); } }
-@media (prefers-reduced-motion: reduce) { .saving .prog-leds i { animation: none; background: var(--teal-dark); } }
-footer { background: var(--surface); border-top: 1px solid var(--line); text-align: center; font-size: 0.82rem; color: var(--muted); padding-block: 18px 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+footer { text-align: center; font-size: 0.82rem; color: var(--muted); padding: 0 16px 28px; }
 </style>
-
-<div class="proto">Prototipo navegable · catálogo de centros SINTÉTICO · las respuestas no se guardan</div>
+</head>
+<body>
+<div class="proto">Prototipo · catálogo de centros SINTÉTICO · las respuestas no se guardan · <button type="button" id="demo">Ver un perfil de ejemplo</button></div>
 <div class="topband"><div class="topband-in">Programa micro:bit · Ceibal</div></div>
-<header class="topbar"><div class="topbar-in">
-  <div class="brand"><span class="logo-slot">LOGO</span>Autodiagnóstico docente</div>
-  <div class="prog" id="prog" aria-live="polite"></div>
-</div></header>
 <main><div class="wrap" id="app"></div></main>
 <footer>Programa micro:bit · Ceibal · Prototipo para revisión interna. La tipografía Ceibal Mozaic se reemplaza aquí por Figtree.</footer>
 
@@ -286,11 +247,6 @@ const ico = (i, px) => `<span class="led5" style="--px:${px}px;color:var(--c${i 
 const chip = l => `<span class="chip ${l}"><span class="lv" aria-hidden="true">${[1, 2, 3].map(k => `<i class="${k <= LVN[l] ? "on" : ""}"></i>`).join("")}</span>${LVL[l]}</span>`;
 const nivel = s => s <= 7 ? "f" : s <= 11 ? "d" : "c";
 
-/* ---------- Estado ---------- */
-const STEPS = ["inicio", "datos", "experiencia", "d0", "d1", "d2", "d3", "d4", "revision", "perfil"];
-const blank = () => ({ step: 0, nombre: "", email: "", cedula: "", sub: "", dep: "", loc: "", centro: null, centroTexto: "", origen: "", ctx: [null, null, null], r: Array(15).fill(null), touched: {} });
-let S = blank();
-
 /* ---------- Utilidades ---------- */
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -330,7 +286,9 @@ function cedulaFmt(v) {
 
 /* ---------- Catálogo ---------- */
 const CENTROS = CAT.c.map(([cod, nm, rub, di, loc, tipo, num]) => ({ cod, nm, rub, dep: CAT.deps[di], loc, tipo, num, nn: norm(nm).replace(/\b\d{6,}\b/g, "").trim(), ln: norm(loc) }));
-const DEPTOS = [...new Set(CENTROS.map(c => c.dep))].sort((a, b) => a.localeCompare(b, "es"));
+// Los departamentos fuera de Uruguay quedan en Centros, marcados para revisión, pero no se le ofrecen al docente.
+const FUERA_DE_URUGUAY = new Set(["Asunción", "Rio Grande do Sul"]);
+const DEPTOS = [...new Set(CENTROS.map(c => c.dep))].filter(d => !FUERA_DE_URUGUAY.has(d)).sort((a, b) => a.localeCompare(b, "es"));
 function localidades(sub, dep) {
   return [...new Set(CENTROS.filter(c => c.rub === sub && c.dep === dep).map(c => c.loc))].sort((a, b) => a.localeCompare(b, "es"));
 }
@@ -404,233 +362,194 @@ function resultados() {
   });
 }
 
-/* ---------- Progreso ---------- */
-function renderProg() {
-  const p = $("#prog");
-  if (S.step === 0 || S.step === STEPS.length - 1) { p.innerHTML = S.step ? '<span>Perfil listo</span>' : ""; return; }
-  const total = STEPS.length - 2, cur = S.step;
-  let leds = ""; for (let i = 1; i <= total; i++) leds += `<i class="${i < cur ? "on" : i === cur ? "now" : ""}"></i>`;
-  p.innerHTML = `<span>Paso ${cur} de ${total}</span><span class="prog-leds" aria-hidden="true">${leds}</span>`;
-}
-function go(n) { S.step = n; render(); window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" }); const h = $("#app h2, #app h1"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); } }
+/* ---------- Estado ---------- */
+const PAGINAS = 3, PERFIL = 3;
+const blank = () => ({ step: 0, nombre: "", email: "", cedula: "", sub: "", dep: "", loc: "", centro: null, centroTexto: "", origen: "", ctx: [null, null, null], r: Array(15).fill(null), touched: {} });
+let S = blank();
 
 /* ---------- Pantallas ---------- */
+const OBLIGATORIA = "Esta pregunta es obligatoria.";
+function go(n) { S.step = n; render(); window.scrollTo(0, 0); const h = $("#app h1, #app h2"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); } }
 function render() {
-  renderProg();
-  const k = STEPS[S.step], app = $("#app");
-  if (k === "inicio") return vInicio(app);
-  if (k === "datos") return vDatos(app);
-  if (k === "experiencia") return vExperiencia(app);
-  if (k.startsWith("d")) return vDim(app, +k.slice(1));
-  if (k === "revision") return vRevision(app);
-  if (k === "perfil") return vPerfil(app);
+  const app = $("#app");
+  if (S.step === 0) return vDatos(app);
+  if (S.step === 1) return vExperiencia(app);
+  if (S.step === 2) return vAfirmaciones(app);
+  return vPerfil(app);
 }
 
-function vInicio(app) {
-  app.innerHTML = `
-  <div class="hero">
-    <div class="eyebrow">Programa micro:bit</div>
-    <h1>Autodiagnóstico docente</h1>
-    <p class="lede">Este breve autodiagnóstico busca ayudarte a identificar tus fortalezas y oportunidades de desarrollo en el uso pedagógico de micro:bit. No hay respuestas correctas o incorrectas.</p>
-    <div class="hero-tiles" aria-hidden="true">${DIMS.map((d, i) => `<span style="background:var(--c${i + 1})">${ico(i, 6)}</span>`).join("")}</div>
-  </div>
+const titulo = (conIntro, texto = "") => `<div class="card titulo"><h1>Autodiagnóstico docente micro:bit</h1>${texto ? `<p>${esc(texto)}</p>` : ""}${conIntro ? `
+  <p>Este breve autodiagnóstico busca ayudarte a identificar tus fortalezas y oportunidades de desarrollo en el uso pedagógico de micro:bit. No hay respuestas correctas o incorrectas.</p>
   <p>Te invitamos a responder pensando en tu experiencia actual. Al finalizar, recibirás una devolución orientativa con algunas recomendaciones para seguir avanzando.</p>
-  <div class="facts"><span><b>15</b> afirmaciones en 5 dimensiones</span><span><b>3</b> preguntas sobre tu experiencia</span><span>Unos <b>6 minutos</b></span></div>
-  <div class="btns">
-    <button class="btn" id="start">Comenzar</button>
-    <button class="btn link" id="demo">Ver con respuestas de ejemplo</button>
-  </div>`;
-  $("#start").onclick = () => go(1);
-  $("#demo").onclick = cargarEjemplo;
+  <p class="note"><span class="req">*</span> Indica que la pregunta es obligatoria</p>` : ""}</div>`;
+const seccion = (nombre, texto, contenido, color) => `<div class="card seccion grupo"${color ? ` style="border-top-color:${color}"` : ""}><h2>${esc(nombre)}</h2>${texto ? `<p>${esc(texto)}</p>` : ""}${contenido}</div>`;
+const pregunta = (id, rotulo, control, ayuda = "", paraId = "") => `<div class="card" id="q-${id}">
+  ${paraId ? `<label class="q-t" for="${paraId}">` : `<div class="q-t" id="t-${id}">`}${esc(rotulo)} <span class="req" aria-hidden="true">*</span>${paraId ? "</label>" : "</div>"}
+  <div class="help">${ayuda}</div>${control}<div class="err" id="e-${id}" role="alert"></div></div>`;
+const pie = (conAtras, textoSeguir) => `<div class="pie">
+  ${conAtras ? '<button type="button" class="fbtn sec" id="back">Atrás</button>' : ""}
+  <button type="button" class="fbtn" id="next">${textoSeguir}</button>
+  <span class="pag">Página ${S.step + 1} de ${PAGINAS}</span>
+  <div class="aviso" id="aviso" role="status"></div></div>`;
+
+/** Muestra u oculta los errores de las preguntas ya tocadas. */
+function pintarErrores(errores, claves) {
+  for (const k of claves) {
+    const msg = S.touched[k] ? (errores[k] || "") : "";
+    const el = $("#e-" + k), card = $("#q-" + k);
+    if (el) el.textContent = msg;
+    if (card) card.classList.toggle("bad", !!msg);
+  }
+}
+/** Al tocar Siguiente: marca todo como tocado y, si falta algo, lleva a la primera pregunta con error. */
+function intentarSeguir(errores, claves, seguir) {
+  for (const k of claves) S.touched[k] = true;
+  pintarErrores(errores, claves);
+  const primera = claves.find(k => errores[k] && $("#q-" + k));
+  if (!primera) return seguir();
+  $("#aviso").textContent = "Revisá las preguntas marcadas en rojo.";
+  $("#q-" + primera).scrollIntoView({ block: "center" });
 }
 
-function datosValidos() {
+const CLAVES_DATOS = ["nombre", "cedula", "email", "sub", "dep", "loc", "centro"];
+function erroresDatos() {
   const e = {};
-  if (norm(S.nombre).split(" ").filter(Boolean).length < 2) e.nombre = "Escribí tu nombre y apellido.";
-  if (!emailValido(S.email)) e.email = S.email.trim() ? "Revisá el correo: falta algo o tiene un carácter de más." : "Escribí tu correo electrónico.";
-  if (!cedulaValida(S.cedula)) e.cedula = cedulaDigits(S.cedula).length < 7 ? "Escribí tu cédula completa, con el dígito verificador." : "El dígito verificador no coincide. Revisá los números.";
-  if (!S.sub) e.sub = "Elegí tu subsistema.";
-  if (!S.dep) e.dep = "Elegí tu departamento.";
-  if (S.dep && S.dep !== MVD && !S.loc) e.loc = "Elegí tu localidad.";
+  if (!S.nombre.trim()) e.nombre = OBLIGATORIA;
+  else if (norm(S.nombre).split(" ").filter(Boolean).length < 2) e.nombre = "Escribí tu nombre y apellido.";
+  if (!cedulaDigits(S.cedula)) e.cedula = OBLIGATORIA;
+  else if (!cedulaValida(S.cedula)) e.cedula = cedulaDigits(S.cedula).length < 7 ? "Escribí tu cédula completa, con el dígito verificador." : "El dígito verificador no coincide. Revisá los números.";
+  if (!S.email.trim()) e.email = OBLIGATORIA;
+  else if (!emailValido(S.email)) e.email = "Revisá el correo: falta algo o tiene un carácter de más.";
+  if (!S.sub) e.sub = OBLIGATORIA;
+  if (!S.dep) e.dep = OBLIGATORIA;
+  if (S.dep && S.dep !== MVD && !S.loc) e.loc = OBLIGATORIA;
   if (!S.centro && !(S.origen === "pendiente de revisión" && norm(S.centroTexto).length >= 3)) e.centro = "Buscá y elegí tu centro educativo.";
   return e;
 }
 
 function vDatos(app) {
-  app.innerHTML = `
-  <div class="stack"><div class="eyebrow">Tus datos</div><h2>¿Quién completa el autodiagnóstico?</h2>
-  <p class="lede">Usamos estos datos para asociar tus respuestas a tu centro educativo.</p></div>
-  <div class="panel">
-    <div class="field"><label for="nombre">Nombre y apellido</label>
-      <input type="text" id="nombre" autocomplete="name" value="${esc(S.nombre)}"><div class="err" id="e-nombre"></div></div>
-    <div class="field"><label for="cedula">Cédula de identidad</label>
-      <input type="text" id="cedula" inputmode="numeric" autocomplete="off" placeholder="1.234.567-8" value="${esc(S.cedula)}">
-      <div class="help">Con el dígito verificador, el número después del guion.</div><div class="err" id="e-cedula"></div></div>
-    <div class="field"><label for="email">Correo electrónico</label>
-      <input type="email" id="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.email)}">
-      <div class="help">Te vamos a enviar tu perfil a este correo.</div><div class="err" id="e-email"></div><div id="sug-email"></div></div>
-  </div>
-  <div class="panel">
-    <div class="field"><div class="legend" id="l-sub">Subsistema</div>
-      <div class="seg" role="radiogroup" aria-labelledby="l-sub">${SUBS.map(s => `<button type="button" class="opt" role="radio" data-sub="${s.id}" aria-checked="${S.sub === s.id}"><span class="dot"></span><span><b>${s.nm}</b><small>${s.ds}</small></span></button>`).join("")}</div>
-      <div class="err" id="e-sub"></div></div>
-    <div class="field"><label for="dep">Departamento</label>
-      <select id="dep"><option value="">Elegí un departamento</option>${DEPTOS.map(d => `<option ${S.dep === d ? "selected" : ""}>${esc(d)}</option>`).join("")}</select><div class="err" id="e-dep"></div></div>
-    <div class="field" id="f-loc"></div>
-    <div class="field" id="f-centro"></div>
-  </div>
-  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">Siguiente</button></div>`;
+  app.innerHTML = titulo(true) + seccion("Tus datos", "Usamos estos datos para asociar tus respuestas a tu centro educativo.",
+    pregunta("nombre", "Nombre y apellido", `<input type="text" id="nombre" autocomplete="name" autocapitalize="words" placeholder="Tu respuesta" value="${esc(S.nombre)}">`, "", "nombre") +
+    pregunta("cedula", "Cédula de identidad", `<input type="text" id="cedula" inputmode="numeric" autocomplete="off" placeholder="Tu respuesta" value="${esc(S.cedula)}">`, "Con el dígito verificador, el número después del guion.", "cedula") +
+    pregunta("email", "Correo electrónico", `<input type="email" id="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Tu respuesta" value="${esc(S.email)}"><div id="sug-email"></div>`, "Te vamos a enviar tu perfil a este correo.", "email") +
+    pregunta("sub", "Subsistema", `<select id="sub"><option value="">Elegir</option>${SUBS.map(s => `<option value="${s.id}" ${S.sub === s.id ? "selected" : ""}>${s.nm} · ${esc(s.ds)}</option>`).join("")}</select>`, "", "sub") +
+    pregunta("dep", "Departamento", `<select id="dep"><option value="">Elegir</option>${DEPTOS.map(d => `<option ${S.dep === d ? "selected" : ""}>${esc(d)}</option>`).join("")}</select>`, "", "dep") +
+    `<div id="f-loc" class="stack"></div><div id="f-centro" class="stack"></div>`) +
+    pie(false, "Siguiente");
 
-  const upd = () => {
-    const e = datosValidos();
-    for (const k of ["nombre", "email", "cedula", "sub", "dep", "loc", "centro"]) { const el = $("#e-" + k); if (el) el.textContent = S.touched[k] ? (e[k] || "") : ""; }
-    $("#nombre").classList.toggle("bad", !!(S.touched.nombre && e.nombre));
-    $("#cedula").classList.toggle("bad", !!(S.touched.cedula && e.cedula));
-    $("#email").classList.toggle("bad", !!(S.touched.email && e.email));
+  const pintar = () => {
+    pintarErrores(erroresDatos(), CLAVES_DATOS);
     const sg = sugerirEmail(S.email), box = $("#sug-email");
     if (box.dataset.sg !== (sg || "")) {
       box.dataset.sg = sg || "";
-      box.innerHTML = sg ? `<button type="button" class="btn link" id="fix-email">¿Quisiste decir ${esc(sg)}?</button>` : "";
-      if (sg) { const fb = $("#fix-email"); fb.onmousedown = e => e.preventDefault(); fb.onclick = () => { S.email = sg; $("#email").value = sg; upd(); }; }
+      box.innerHTML = sg ? `<button type="button" class="lnk" id="fix-email">¿Quisiste decir ${esc(sg)}?</button>` : "";
+      if (sg) { const fb = $("#fix-email"); fb.onmousedown = e => e.preventDefault(); fb.onclick = () => { S.email = sg; $("#email").value = sg; pintar(); }; }
     }
-    $("#next").disabled = Object.keys(e).length > 0;
-    $("#hint").textContent = Object.keys(e).length ? "Completá todos los campos para seguir." : "";
+    if (!Object.keys(erroresDatos()).length) $("#aviso").textContent = "";
   };
-  $("#nombre").oninput = e => { S.nombre = e.target.value; upd(); };
-  $("#nombre").onblur = () => { S.touched.nombre = true; upd(); };
-  $("#email").oninput = e => { S.email = e.target.value; upd(); };
-  $("#email").onblur = e => { S.touched.email = true; S.email = S.email.trim(); e.target.value = S.email; upd(); };
-  $("#cedula").oninput = e => { S.cedula = e.target.value; upd(); };
-  $("#cedula").onblur = e => { S.touched.cedula = true; if (cedulaDigits(S.cedula).length >= 7) { S.cedula = cedulaFmt(S.cedula); e.target.value = S.cedula; } upd(); };
-  app.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => {
-    S.sub = b.dataset.sub; S.touched.sub = true; S.loc = ""; resetCentro();
-    app.querySelectorAll("[data-sub]").forEach(x => x.setAttribute("aria-checked", x === b)); renderLoc(); renderCentro(); upd();
-  });
-  $("#dep").onchange = e => { S.dep = e.target.value; S.touched.dep = true; S.loc = ""; resetCentro(); renderLoc(); renderCentro(); upd(); };
+  $("#nombre").oninput = e => { S.nombre = e.target.value; pintar(); };
+  $("#nombre").onblur = () => { S.touched.nombre = true; pintar(); };
+  $("#email").oninput = e => { S.email = e.target.value; pintar(); };
+  $("#email").onblur = e => { S.touched.email = true; S.email = S.email.trim(); e.target.value = S.email; pintar(); };
+  $("#cedula").oninput = e => { S.cedula = e.target.value; pintar(); };
+  $("#cedula").onblur = e => { S.touched.cedula = true; if (cedulaDigits(S.cedula).length >= 7) { S.cedula = cedulaFmt(S.cedula); e.target.value = S.cedula; } pintar(); };
+  $("#sub").onchange = e => { S.sub = e.target.value; S.touched.sub = true; S.loc = ""; limpiarCentro(); pintarLocalidad(); pintarCentro(); pintar(); };
+  $("#dep").onchange = e => { S.dep = e.target.value; S.touched.dep = true; S.loc = ""; limpiarCentro(); pintarLocalidad(); pintarCentro(); pintar(); };
 
-  function resetCentro() { S.centro = null; S.centroTexto = ""; S.origen = ""; }
-  function renderLoc() {
+  function limpiarCentro() { S.centro = null; S.centroTexto = ""; S.origen = ""; }
+  function pintarLocalidad() {
     const f = $("#f-loc");
-    if (!S.dep) { f.innerHTML = ""; return; }
-    if (S.dep === MVD) { f.innerHTML = `<div class="help">En Montevideo buscás tu centro directamente, sin elegir barrio.</div>`; return; }
-    if (!S.sub) { f.innerHTML = `<label for="loc">Localidad</label><select id="loc" disabled><option>Primero elegí el subsistema</option></select>`; return; }
-    const ls = localidades(S.sub, S.dep);
-    f.innerHTML = `<label for="loc">Localidad</label><select id="loc"><option value="">Elegí una localidad (${ls.length})</option>${ls.map(l => `<option ${S.loc === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select><div class="err" id="e-loc"></div>`;
-    $("#loc").onchange = e => { S.loc = e.target.value; S.touched.loc = true; resetCentro(); renderCentro(); upd(); };
+    if (!S.dep || S.dep === MVD) { f.innerHTML = ""; return; }
+    if (!S.sub) { f.innerHTML = pregunta("loc", "Localidad", `<select id="loc" disabled><option>Primero elegí el subsistema</option></select>`, "", "loc"); return; }
+    f.innerHTML = pregunta("loc", "Localidad", `<select id="loc"><option value="">Elegir</option>${localidades(S.sub, S.dep).map(l => `<option ${S.loc === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`, "", "loc");
+    $("#loc").onchange = e => { S.loc = e.target.value; S.touched.loc = true; limpiarCentro(); pintarCentro(); pintar(); };
   }
-  function renderCentro() {
+  function pintarCentro(textoInicial = "") {
     const f = $("#f-centro");
     const listo = S.sub && S.dep && (S.dep === MVD || S.loc);
-    if (!listo) { f.innerHTML = `<label for="cq">Centro educativo</label><input type="text" id="cq" disabled placeholder="Primero elegí subsistema, departamento${S.dep === MVD ? "" : " y localidad"}">`; return; }
-    if (S.centro || S.origen === "pendiente de revisión") {
-      const c = S.centro;
-      f.innerHTML = `<div class="legend">Centro educativo</div>
-        <div class="chosen ${c ? "" : "pending"}"><div>${c
-          ? `<div class="nm">${esc(centroLabel(c))}</div><div class="meta">${esc(c.loc)} · ${esc(c.dep)} · Código Ceibal <span class="mono">${c.cod}</span></div>`
-          : `<div class="nm">${esc(S.centroTexto)}</div><div class="meta">No está en la lista. Lo registramos tal como lo escribiste y el equipo lo va a asociar con la lista oficial.</div>`}
-        </div><button class="btn link" id="cambiar">Cambiar</button></div><div class="err" id="e-centro"></div>`;
-      $("#cambiar").onclick = () => { const t = S.centro ? "" : S.centroTexto; resetCentro(); renderCentro(t); upd(); $("#cq").focus(); };
+    if (!listo) {
+      f.innerHTML = pregunta("centro", "Centro educativo", `<input type="text" id="cq" disabled placeholder="Primero elegí subsistema, departamento${S.dep === MVD ? "" : " y localidad"}">`, "", "cq");
       return;
     }
-    const n = candidatos().length;
-    f.innerHTML = `<label for="cq">Centro educativo</label>
-      <div class="ta"><input type="text" id="cq" role="combobox" aria-expanded="true" aria-controls="sug" aria-autocomplete="list" autocomplete="off" placeholder="Escribí el número o el nombre, por ejemplo: escuela 45" value="${esc(arguments[0] || "")}">
-      <ul class="sug" id="sug" role="listbox"></ul></div>
-      <div class="help">${n} centro${n === 1 ? "" : "s"} de ${esc(S.sub)} en ${esc(S.dep === MVD ? MVD : S.loc)}.</div><div class="err" id="e-centro"></div>`;
+    if (S.centro || S.origen === "pendiente de revisión") {
+      const c = S.centro;
+      f.innerHTML = pregunta("centro", "Centro educativo", `<div class="elegido">${c
+        ? `<div class="nm">${esc(centroLabel(c))}</div><div class="meta">${esc(c.loc)} · ${esc(c.dep)}</div>`
+        : `<div class="nm">${esc(S.centroTexto)}</div><div class="meta">No está en la lista. Lo registramos tal como lo escribiste y el equipo lo va a asociar con la lista oficial.</div>`}</div>
+        <button type="button" class="lnk" id="cambiar">Cambiar</button>`);
+      $("#cambiar").onclick = () => { const t = S.centro ? "" : S.centroTexto; limpiarCentro(); pintarCentro(t); pintar(); $("#cq").focus(); };
+      return;
+    }
+    f.innerHTML = pregunta("centro", "Centro educativo", `<input type="text" id="cq" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" autocomplete="off" placeholder="Tu respuesta" value="${esc(textoInicial)}">
+      <ul class="sug" id="sug" role="listbox" hidden></ul>`, "Escribí el número o el nombre, por ejemplo: escuela 45. Si no aparece, vas a poder registrarlo igual.", "cq");
     const inp = $("#cq"), ul = $("#sug"); let act = -1, res = [];
+    const verLista = v => { ul.hidden = !v; inp.setAttribute("aria-expanded", String(v)); };
     const draw = () => {
       const q = inp.value; res = buscar(q);
-      let h = res.map((r, i) => `<li role="option" id="o${i}" data-i="${i}" aria-selected="${i === act}"><span class="nm">${esc(centroLabel(r.c))}</span><span class="meta">${esc(r.c.loc)} · Código <span class="mono">${r.c.cod}</span></span></li>`).join("");
+      let h = res.map((r, i) => `<li role="option" id="o${i}" data-i="${i}" aria-selected="${i === act}"><span>${esc(centroLabel(r.c))}</span><span class="meta">${esc(r.c.loc)}</span></li>`).join("");
       if (!res.length && q.trim()) h = `<li class="empty" aria-disabled="true">No encontramos coincidencias en ${esc(S.dep === MVD ? MVD : S.loc)}. Probá con el número o con otra palabra del nombre.</li>`;
       if (norm(q).length >= 3) h += `<li role="option" class="none" id="o${res.length}" data-none="1" aria-selected="${act === res.length}">No encuentro mi centro: registrar «${esc(q.trim())}»</li>`;
-      ul.innerHTML = h; ul.hidden = !h;
+      ul.innerHTML = h;
+      verLista(!!h && document.activeElement === inp);
       inp.setAttribute("aria-activedescendant", act >= 0 ? "o" + act : "");
     };
     const pick = i => {
       if (i === res.length) { S.centro = null; S.centroTexto = inp.value.trim(); S.origen = "pendiente de revisión"; }
       else { S.centro = res[i].c; S.centroTexto = inp.value.trim() || centroLabel(res[i].c); S.origen = "elegido por docente"; }
-      S.touched.centro = true; renderCentro(); upd();
+      S.touched.centro = true; pintarCentro(); pintar();
     };
+    inp.onfocus = () => { draw(); if (window.innerWidth < 600) setTimeout(() => inp.closest(".card").scrollIntoView({ block: "start" }), 300); };
+    inp.onblur = () => verLista(false);
     inp.oninput = () => { act = -1; draw(); };
     inp.onkeydown = e => {
       const max = res.length + (norm(inp.value).length >= 3 ? 1 : 0) - 1;
       if (e.key === "ArrowDown") { act = Math.min(max, act + 1); draw(); e.preventDefault(); }
       else if (e.key === "ArrowUp") { act = Math.max(0, act - 1); draw(); e.preventDefault(); }
       else if (e.key === "Enter" && act >= 0) { pick(act); e.preventDefault(); }
+      else if (e.key === "Escape") verLista(false);
     };
     ul.onmousedown = e => e.preventDefault();
     ul.onclick = e => { const li = e.target.closest("li[role=option]"); if (li) pick(li.dataset.none ? res.length : +li.dataset.i); };
-    draw();
   }
-  renderLoc(); renderCentro(); upd();
-  $("#back").onclick = () => go(0);
-  $("#next").onclick = () => go(2);
+  pintarLocalidad(); pintarCentro(S.centroTexto); pintar();
+  $("#next").onclick = () => intentarSeguir(erroresDatos(), CLAVES_DATOS, () => go(1));
 }
 
 function vExperiencia(app) {
-  app.innerHTML = `
-  <div class="stack"><div class="eyebrow">Tu experiencia</div><h2>Empecemos por conocer un poco tu experiencia</h2>
-  <p class="lede">Estas preguntas nos ayudan a comprender tu trayectoria. No forman parte del puntaje del autodiagnóstico.</p></div>
-  ${CTX.map((c, qi) => `<div class="panel"><div class="legend" id="lq${qi}">${qi + 1}. ${esc(c.q)}</div>
-    <div class="stack" role="radiogroup" aria-labelledby="lq${qi}" style="gap:8px">${c.o.map((o, oi) => `<button type="button" class="opt" role="radio" data-q="${qi}" data-o="${oi}" aria-checked="${S.ctx[qi] === oi}"><span class="dot"></span><span>${esc(o)}</span></button>`).join("")}</div></div>`).join("")}
-  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">Siguiente</button></div>`;
-  const upd = () => { const ok = S.ctx.every(v => v !== null); $("#next").disabled = !ok; $("#hint").textContent = ok ? "" : `Respondiste ${S.ctx.filter(v => v !== null).length} de 3.`; };
-  app.querySelectorAll("[data-q]").forEach(b => b.onclick = () => {
-    const q = +b.dataset.q; S.ctx[q] = +b.dataset.o;
-    app.querySelectorAll(`[data-q="${q}"]`).forEach(x => x.setAttribute("aria-checked", x === b)); upd();
+  const claves = CTX.map((_, i) => "ctx" + i);
+  const errores = () => Object.fromEntries(claves.filter((_, i) => S.ctx[i] === null).map(k => [k, OBLIGATORIA]));
+  app.innerHTML = titulo(false) + seccion("Tu experiencia", "Estas preguntas nos ayudan a comprender tu trayectoria. No forman parte del puntaje del autodiagnóstico.",
+    CTX.map((c, qi) => pregunta("ctx" + qi, `${qi + 1}. ${c.q}`, `<div class="ops" role="radiogroup" aria-labelledby="t-ctx${qi}">${c.o.map((o, oi) => `<label class="op"><input type="radio" name="ctx${qi}" value="${oi}" ${S.ctx[qi] === oi ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`)).join("")) +
+    pie(true, "Siguiente");
+  app.querySelectorAll("input[type=radio]").forEach(r => r.onchange = () => {
+    const qi = +r.name.slice(3); S.ctx[qi] = +r.value; pintarErrores(errores(), claves);
+    if (!Object.keys(errores()).length) $("#aviso").textContent = "";
   });
-  upd();
+  pintarErrores(errores(), claves);
+  $("#back").onclick = () => go(0);
+  $("#next").onclick = () => intentarSeguir(errores(), claves, () => go(2));
+}
+
+function vAfirmaciones(app) {
+  const claves = S.r.map((_, k) => "r" + k);
+  const errores = () => Object.fromEntries(claves.filter((_, k) => S.r[k] === null).map(k => [k, OBLIGATORIA]));
+  app.innerHTML = titulo(false, "Ahora sí: ¿cómo es tu vínculo actual con la placa micro:bit? Para cada afirmación, indicá cuánto te representa actualmente.") +
+    DIMS.map((d, di) => seccion(`${di + 1}. ${d.nm}`, "", d.items.map((it, j) => {
+      const k = di * 3 + j;
+      return pregunta("r" + k, `${k + 1}. ${it}`, `<div class="escala" role="radiogroup" aria-labelledby="t-r${k}">${SCALE.map((s, v) => `<label class="esc-op"><b>${v + 1}</b><span>${s}</span><input type="radio" name="r${k}" value="${v + 1}" ${S.r[k] === v + 1 ? "checked" : ""}></label>`).join("")}</div>`);
+    }).join(""), `var(--c${di + 1})`)).join("") +
+    pie(true, "Enviar");
+  app.querySelectorAll("input[type=radio]").forEach(r => r.onchange = () => {
+    S.r[+r.name.slice(1)] = +r.value; pintarErrores(errores(), claves);
+    if (!Object.keys(errores()).length) $("#aviso").textContent = "";
+  });
+  pintarErrores(errores(), claves);
   $("#back").onclick = () => go(1);
-  $("#next").onclick = () => go(3);
-}
-
-function leds(n, on) { let h = ""; for (let i = 1; i <= n; i++) h += `<i class="${i <= on ? "on" : ""}"></i>`; return h; }
-
-function vDim(app, di) {
-  const d = DIMS[di];
-  app.innerHTML = `
-  <div class="dimband" style="background:var(--c${di + 1});color:var(--c${di + 1}-ink)"><div class="ico">${ico(di, 9)}</div>
-    <div><div class="eyebrow">Dimensión ${di + 1} de 5</div><h2>${esc(d.nm)}</h2></div></div>
-  <div class="stack"><p class="lede">${di === 0 ? "Ahora sí: ¿cómo es tu vínculo actual con la placa micro:bit? " : ""}Para cada afirmación, indicá cuánto te representa actualmente.</p>
-  <div class="scale-key">${SCALE.map((s, i) => `<span><b>${i + 1}</b> ${s}</span>`).join("")}</div></div>
-  <div class="panel">${d.items.map((it, j) => { const k = di * 3 + j; return `
-    <div class="item"><div class="q"><span class="n">${k + 1}.</span><p id="it${k}">${esc(it)}</p></div>
-      <div class="likert" role="radiogroup" aria-labelledby="it${k}">${SCALE.map((s, v) => `<button type="button" class="lk" role="radio" data-k="${k}" data-v="${v + 1}" aria-checked="${S.r[k] === v + 1}" aria-label="${v + 1}, ${s}"><span class="leds" aria-hidden="true">${leds(5, v + 1)}</span><span class="v">${v + 1}</span><span class="t">${s}</span></button>`).join("")}</div>
-    </div>`; }).join("")}</div>
-  <div class="nav"><button class="btn ghost" id="back">Volver</button><span class="hint" id="hint"></span><button class="btn" id="next">${di === 4 ? "Revisar respuestas" : "Siguiente"}</button></div>`;
-  const upd = () => { const n = S.r.slice(di * 3, di * 3 + 3).filter(v => v !== null).length; $("#next").disabled = n < 3; $("#hint").textContent = n < 3 ? `Respondiste ${n} de 3.` : ""; };
-  app.querySelectorAll(".lk").forEach(b => b.onclick = () => {
-    const k = +b.dataset.k; S.r[k] = +b.dataset.v;
-    app.querySelectorAll(`.lk[data-k="${k}"]`).forEach(x => x.setAttribute("aria-checked", x === b)); upd();
-  });
-  upd();
-  $("#back").onclick = () => go(S.step - 1);
-  $("#next").onclick = () => go(S.step + 1);
-}
-
-function vRevision(app) {
-  const c = S.centro;
-  app.innerHTML = `
-  <div class="stack"><div class="eyebrow">Revisión</div><h2>Revisá tus respuestas antes de enviar</h2>
-  <p class="lede">Podés volver a cualquier sección para cambiar algo.</p></div>
-  <div class="panel rev">
-    <div class="rev-sec"><div class="rev-head"><h3>Tus datos</h3><button class="btn link" data-go="1">Editar</button></div>
-      <dl class="kv"><dt>Nombre</dt><dd>${esc(S.nombre)}</dd><dt>Cédula</dt><dd class="mono">${esc(cedulaFmt(S.cedula))}</dd><dt>Correo</dt><dd>${esc(S.email)}</dd>
-      <dt>Subsistema</dt><dd>${esc(S.sub)}</dd><dt>Departamento</dt><dd>${esc(S.dep)}</dd>${S.dep !== MVD ? `<dt>Localidad</dt><dd>${esc(S.loc)}</dd>` : ""}
-      <dt>Centro</dt><dd>${c ? esc(centroLabel(c)) + ` <span class="mono note">(${c.cod})</span>` : esc(S.centroTexto) + ' <span class="note">(no está en la lista)</span>'}</dd></dl></div>
-    <div class="rev-sec"><div class="rev-head"><h3>Tu experiencia</h3><button class="btn link" data-go="2">Editar</button></div>
-      <dl class="kv">${CTX.map((q, i) => `<dt>${esc(q.q)}</dt><dd>${esc(q.o[S.ctx[i]])}</dd>`).join("")}</dl></div>
-    ${DIMS.map((d, di) => `<div class="rev-sec"><div class="rev-head"><h3>${di + 1}. ${esc(d.corto)}</h3><button class="btn link" data-go="${3 + di}">Editar</button></div>
-      <dl class="kv">${d.items.map((it, j) => { const k = di * 3 + j; return `<dt>${k + 1}. ${esc(it)}</dt><dd><span class="mono">${S.r[k]}</span> · ${SCALE[S.r[k] - 1]}</dd>`; }).join("")}</dl></div>`).join("")}
-  </div>
-  <div class="nav"><button class="btn ghost" id="back">Volver</button><button class="btn" id="send">Enviar y ver mi perfil</button></div>`;
-  app.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(+b.dataset.go));
-  $("#back").onclick = () => go(7);
-  $("#send").onclick = () => {
+  $("#next").onclick = () => intentarSeguir(errores(), claves, () => {
     S.fecha = new Date();
-    app.innerHTML = `<div class="saving" role="status"><span class="prog-leds">${leds(5, 0)}</span>Guardando tus respuestas…</div>`;
-    setTimeout(() => go(9), 900);
-  };
+    app.innerHTML = '<div class="guardando" role="status">Guardando tus respuestas…</div>';
+    setTimeout(() => go(PERFIL), 900);
+  });
 }
 
 function vPerfil(app) {
@@ -682,7 +601,7 @@ function filaGuardada(res) {
     <div class="tbl"><table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${esc(v)}</td></tr>`).join("")}</table></div></details>`;
 }
 
-/* ---------- Ejemplo ---------- */
+/* ---------- Ejemplo (solo en el prototipo) ---------- */
 function cargarEjemplo() {
   const c = CENTROS.find(x => x.rub === "DGEIP" && x.dep === "Canelones" && x.loc === "Pando" && x.tipo === "esc" && x.num) || CENTROS[0];
   S = Object.assign(blank(), {
@@ -690,8 +609,11 @@ function cargarEjemplo() {
     centro: c, centroTexto: "escuela " + c.num, origen: "elegido por docente",
     ctx: [3, 1, 2], r: [4, 4, 3, 2, 2, 1, 3, 3, 2, 5, 4, 4, 2, 3, 3],
   });
-  go(8);
+  go(PERFIL);
 }
+$("#demo").onclick = cargarEjemplo;
 
 render();
 </script>
+</body>
+</html>
