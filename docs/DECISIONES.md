@@ -10,11 +10,12 @@
 
 ## Formato de la página
 
-- **Celular primero.** Lo más probable es que los docentes entren desde el celular escaneando un QR. Todo se diseña y se prueba primero para celular.
+- **Celular primero.** Lo más probable es que los docentes entren desde el celular escaneando un QR de una publicación enviada a los centros, en momentos distintos. Todo se diseña y se prueba primero para celular.
 - **Formulario simple, muy parecido a Google Forms**, con la paleta de Ceibal. No se busca nada novedoso ni vistoso. Lo que Forms no tiene y se mantiene: validar la cédula, sugerir el correo, buscar el centro y mostrar el perfil.
 - Tres páginas: datos, experiencia y afirmaciones (las 15 en una sola página, agrupadas por dimensión). La intro va arriba de la primera página.
 - Cada sección es una tarjeta que contiene las tarjetas de sus preguntas. Subsistema, departamento y localidad son desplegables comunes.
 - Sin pantalla de revisión antes de enviar: se corrige con "Atrás".
+- La carga tarda unos 8 segundos en celular, y la página avisa mientras tanto. No se usa memoria temporal (`CacheService`): dura hasta 6 horas y es compartida, así que con entradas tan espaciadas casi nadie se beneficiaría.
 - El perfil queda como en el prototipo, por ahora. "Tu próximo paso" nombra la dimensión con su nombre completo de `docs/INSTRUMENTO.md`.
 - El avance se guarda solo en la pestaña del navegador (incluida la cédula) y se borra al enviar, al cerrarla o si tiene más de 6 horas, para no perder las respuestas si el celular recarga la página.
 - El código de la página queda visible para quien abra las herramientas del navegador, y no se ofusca: no protege de verdad y complica arreglar errores. Por eso la página no lleva nada secreto. Se acepta que el catálogo de centros (con los Códigos Ceibal) quede visible.

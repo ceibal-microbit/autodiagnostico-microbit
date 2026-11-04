@@ -74,7 +74,6 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 - [ ] `auditor-seguridad` recorre `docs/SEGURIDAD.md` completo.
 - [ ] Definir qué dispara el plan B del captcha y cómo se activa.
 - [x] Medir en el celular cuánto tarda en cargar el catálogo real: unos 8 segundos, con la franja de Google arriba.
-- [ ] Bajar ese tiempo con `CacheService` si no agrega permisos, y renovar la caché al actualizar el catálogo.
 - [ ] Pruebas de la sección 9 hechas a mano en el proyecto de prueba.
 - [ ] Pruebas de la fase 3 que no se hicieron a mano: repetir "Actualizar catálogo" (mismo resultado), fila del Universo con nombre `=1+1` (cómo se ve el apóstrofo en Centros), aviso de "catálogo se achica mucho" con una lista incompleta, y formato de texto de Respuestas pasadas las 1000 filas.
 - [ ] Logo y tipografía oficiales, si ya están.
@@ -83,7 +82,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 - [ ] Crear la Sheet y el proyecto de **producción**; primer despliegue.
 - [ ] Subir los topes de prueba en Config (referencia: 300 envíos por hora, 200 mails por hora, 1.200 por día) y pasar `modo_mail` a `activo`.
-- [ ] QR: generarlo recién con la URL definitiva y publicar siempre sobre la misma implementación, para que el QR impreso siga funcionando.
+- [ ] QR para la publicación que se envía a los centros: generarlo recién con la URL definitiva y publicar siempre sobre la misma implementación, para que siga funcionando después de repartida.
 - [ ] Piloto con un grupo chico de docentes; ajustar límites y textos.
 - [ ] Publicación.
 

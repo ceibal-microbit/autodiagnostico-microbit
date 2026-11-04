@@ -41,7 +41,7 @@ Sin parámetros. Devuelve:
 }
 ```
 
-Si algo falla devuelve `{ error: true }`, sin detalles. No devuelve nada de la pestaña Respuestas ni columnas del Universo que el buscador no usa (teléfonos, mails, matrícula…), ni los centros de departamentos fuera de Uruguay. Puede guardarse en `CacheService` en partes de menos de 100 KB para acelerar la carga.
+Si algo falla devuelve `{ error: true }`, sin detalles. No devuelve nada de la pestaña Respuestas ni columnas del Universo que el buscador no usa (teléfonos, mails, matrícula…), ni los centros de departamentos fuera de Uruguay.
 
 ### `guardarRespuesta(envio)`
 
