@@ -11,7 +11,7 @@ Este archivo es el "pase de posta": resume dónde está el proyecto y qué se de
 | 1 — Preparación (v0.1.0) | Cerrada. Verificada en Google. |
 | 2 — Núcleo con tests (v0.2.0) | Cerrada. Mergeada. |
 | 3 — Sheet y catálogo (v0.3.0) | Cerrada. Probada a mano con el Universo real en la Sheet de prueba. |
-| 4 — Web app (v0.4.0) | **Próxima.** Nada implementado todavía. |
+| 4 — Web app (v0.4.0) | **En curso.** El prototipo ya está rehecho (formulario simple, celular primero). Falta conectarlo con el servidor. |
 | 5 — PDF y mail · 6 — Auditoría · 7 — Piloto | Pendientes. |
 
 **Qué existe hoy**
@@ -38,19 +38,17 @@ Textos
 - Los textos de la pestaña Textos se tratan como **no confiables**: nunca se insertan como HTML.
 
 Macheo
-- En la versión 1, "No encuentro mi centro" guarda el texto libre como `pendiente de revisión`. El macheo automático es una ayuda para revisar esos casos y **no corre al enviar**. A confirmar en la fase 4.
+- En la versión 1, "No encuentro mi centro" guarda el texto libre como `pendiente de revisión`. El macheo automático es una ayuda para revisar esos casos y **no corre al enviar**. Confirmado.
 
 Config
-- `max_envios_hora` y `correo_equipo_alertas` salen **vacíos**. Si `max_envios_hora` está vacío, `guardarRespuesta` tiene que usar un tope seguro por defecto en vez de no limitar.
+- Mientras se prueba, los topes quedan al mínimo (ver `DECISIONES.md`, "Mails y topes"). Hoy Config todavía tiene `max_envios_hora` vacío; la fase 4 agrega los parámetros que faltan.
 
 Versiones
 - `VERSION` sube a la nueva versión **al cerrar la fase**, después de la prueba real, no antes. El tag `vX.Y.Z` se crea después del merge.
 
 ## Qué sigue (fase 4)
 
-La lista completa está en `docs/PLAN.md`. Lo que requiere decidir antes de programar:
-- Cómo se comparte el buscador de centros con el navegador (opción documentada: un `src/buscador.html` que los tests ejecutan con `vm`).
-- Cuándo se usa el macheo.
+La lista completa está en `docs/PLAN.md`. Lo que falta decidir:
 - Cómo conviven el formato "Texto sin formato" y el apóstrofo delante de `=`, `+`, `-`, `@` en Respuestas (se decide con la prueba de la sección 9 de `docs/SEGURIDAD.md`).
 
 Pendiente de fases posteriores que no hay que perder: las cuatro pruebas manuales de la fase 3 que no se hicieron (están en la fase 6 del plan), sacar de la página pública el nombre de la planilla, campo trampa y tiempo mínimo en `guardarRespuesta`.

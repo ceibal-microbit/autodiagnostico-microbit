@@ -56,6 +56,9 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 - [ ] Tope general de envíos por hora; al superarlo, mensaje de "intentá más tarde" y aviso al equipo.
 - [ ] Campo trampa invisible: si viene completo, se descarta sin aviso.
 - [ ] Se descartan envíos hechos en menos de 60 segundos desde que se abrió la página.
+- [ ] Tope global de mails por hora y por día, además del límite por dirección.
+- [ ] Llave `modo_mail` en Config: con `apagado`, vacío o cualquier valor no reconocido no sale ningún mail; con `solo_lista` salen solo a `correos_de_prueba`; `activo` se usa recién en el piloto.
+- [ ] Un solo lugar del código manda mails, y un test lo controla.
 - [ ] Cuota diaria de mails confirmada; si se alcanza, el docente igual ve su perfil.
 - [ ] Plan B documentado: captcha si aparece abuso.
 
@@ -97,7 +100,9 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 | Texto enorme | Nombre de 50.000 caracteres | Rechazado |
 | HTML en el nombre | `<b>Hola</b><img src=x onerror=alert(1)>` | Texto plano en pantalla, PDF y mail |
 | Envíos repetidos | 5 envíos con la misma cédula | Desde el 4.º, rechazado |
-| Mail a terceros | 3 envíos con el mismo correo | Llega 1 mail |
+| Mails cerrados | Con `modo_mail` en `apagado`, un envío con un correo propio | No llega ningún mail; `mail_enviado` queda en `no` |
+| Solo la lista | Con `modo_mail` en `solo_lista`, un envío con un correo propio que no está en `correos_de_prueba` | No llega ningún mail |
+| Mail a terceros | Con `modo_mail` en `solo_lista`, 3 envíos con el mismo correo de `correos_de_prueba` | Llega 1 mail |
 | Robot rápido | Envío a los 10 segundos | Descartado |
 | Campo trampa | Completar el campo oculto | Descartado |
 | Acceso a la Sheet | Abrir su link con una cuenta ajena al equipo | Acceso denegado |

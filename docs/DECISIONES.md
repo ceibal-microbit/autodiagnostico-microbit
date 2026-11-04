@@ -1,12 +1,22 @@
 # Decisiones de diseño
 
-Última actualización: 03/11/2026. Se cambian solo con acuerdo del responsable del proyecto.
+Última actualización: 04/11/2026. Se cambian solo con acuerdo del responsable del proyecto.
 
 ## Alcance de la versión 1 (lo más simple)
 
 - Sin pantalla de consentimiento. Se agrega en la versión definitiva (Ley 18.331, texto a validar con el área legal).
 - Sin radar en el perfil. El perfil muestra: referencia de niveles, "Tu próximo paso" (dimensión con menor puntaje), una tarjeta por dimensión (nivel, barra de promedio, qué observa, devolución, recomendación) y el cierre.
 - Sin tablero externo. El equipo analiza las respuestas directamente en la Sheet.
+
+## Formato de la página
+
+- **Celular primero.** Lo más probable es que los docentes entren desde el celular escaneando un QR. Todo se diseña y se prueba primero para celular.
+- **Formulario simple, muy parecido a Google Forms**, con la paleta de Ceibal. No se busca nada novedoso ni vistoso. Lo que Forms no tiene y se mantiene: validar la cédula, sugerir el correo, buscar el centro y mostrar el perfil.
+- Tres páginas: datos, experiencia y afirmaciones (las 15 en una sola página, agrupadas por dimensión). La intro va arriba de la primera página.
+- Cada sección es una tarjeta que contiene las tarjetas de sus preguntas. Subsistema, departamento y localidad son desplegables comunes.
+- Sin pantalla de revisión antes de enviar: se corrige con "Atrás".
+- El perfil queda como en el prototipo, por ahora.
+- El código de la página queda visible para quien abra las herramientas del navegador, y no se ofusca: no protege de verdad y complica arreglar errores. Por eso la página no lleva nada secreto. Se acepta que el catálogo de centros (con los Códigos Ceibal) quede visible.
 
 ## Solución
 
@@ -33,7 +43,8 @@
 - Resto del país: la localidad se elige de la lista del catálogo, filtrada por subsistema y departamento.
 - Centro: campo de texto con sugerencias. Escuelas y jardines públicos con nombre propio se muestran con su número ("Escuela Nº 35 · República de…"). Opción "No encuentro mi centro": guarda el texto libre, marcado para revisión.
 - Cada respuesta guarda `centro_texto`, `centro_codigo` (Código Ceibal) y `origen_macheo`.
-- Macheo de respaldo para los textos libres: normalización, número, similitud de texto, detección de conflicto número/nombre, nivel de confianza; los dudosos van a revisión manual.
+- Macheo de respaldo para los textos libres: normalización, número, similitud de texto, detección de conflicto número/nombre, nivel de confianza; los dudosos van a revisión manual. No corre al enviar: "No encuentro mi centro" se guarda como `pendiente de revisión` y el macheo es una ayuda para revisarlos.
+- El docente ve solo los departamentos que tienen centros del subsistema elegido, y nunca los de fuera de Uruguay.
 
 ## Limpieza del catálogo
 
@@ -48,8 +59,8 @@
 - Referencia: sitio micro:bit de Ceibal.
 - Tipografía Ceibal Mozaic (pedir archivos a Comunicación; en el prototipo, Figtree como reemplazo).
 - Colores: verde Ceibal `#00635D`, turquesa `#00A096`, verde micro:bit `#026902`, violeta `#5A2382`, fondo `#F9FAFB`, texto `#111111`.
-- Un color por dimensión (tarjetas "Formación y recursos"): aqua `#7BCDC1`, rosa `#D17EB2`, amarillo `#F2E616`, celeste `#27B2D9`, coral `#E6665D`.
-- Íconos de LEDs 5×5 por dimensión. Niveles con 1, 2 o 3 cuadraditos + texto, no solo color.
+- Un color por dimensión: aqua `#7BCDC1`, rosa `#D17EB2`, amarillo `#F2E616`, celeste `#27B2D9`, coral `#E6665D`. En el formulario es una franja fina arriba de la tarjeta de cada dimensión; en el perfil, el encabezado de cada tarjeta.
+- Íconos de LEDs 5×5 por dimensión, solo en el perfil. Niveles con 1, 2 o 3 cuadraditos + texto, no solo color.
 - Falta el logo oficial.
 
 ## Desarrollo
@@ -65,4 +76,10 @@
 - Legal (versión definitiva): texto de consentimiento, plazo de conservación, registro ante la URCDP.
 - Comunicación: logo oficial y archivos de la tipografía Ceibal Mozaic.
 - Links definitivos de la Guía y del Cuaderno de Actividades.
-- Cuota diaria de mails de la cuenta dedicada.
+- Confirmar en la cuenta dedicada su cuota real de mails. Es Workspace paga: según Google, 1.500 destinatarios por día.
+
+## Mails y topes
+
+- **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
+- Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
+- Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.

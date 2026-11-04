@@ -39,22 +39,28 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 
 - [ ] `obtenerDatosIniciales` y `guardarRespuesta` según `docs/ARQUITECTURA.md`.
 - [ ] Bloqueo de escritura, límites de envío, campo trampa, tiempo mínimo.
-- [ ] Página: adaptar `docs/prototipo/prototipo.html` a parciales de HtmlService, sin catálogo incrustado, con textos de la Sheet.
-- [ ] Decidir y aplicar cómo se comparte la lógica del buscador con el navegador (ver `docs/ARQUITECTURA.md`).
+- [x] Rehacer `docs/prototipo/prototipo.html` como formulario simple tipo Google Forms y pensado para celular (ver `docs/DECISIONES.md`).
+- [ ] Página: adaptar el prototipo a parciales de HtmlService, sin catálogo incrustado y sin lo que es solo del prototipo (franja violeta, perfil de ejemplo, tabla "para el equipo", botón de PDF), con textos de la Sheet.
+- [ ] Celular: la página aparece enseguida y avisa mientras cargan los centros; "Enviar" se bloquea al tocarlo para no duplicar la fila; si falla la conexión, no se pierde lo respondido; el botón "atrás" del celular no hace perder las respuestas.
+- [ ] Probar a mano con el link `/dev` en un Android y un iPhone reales, con datos móviles.
+- [ ] Mostrar solo los departamentos con centros del subsistema elegido; ocultar y rechazar los de fuera de Uruguay.
+- [ ] Ningún servicio de correo en el código de esta fase; un test lo controla.
+- [ ] Compartir la lógica del buscador con `src/buscador.html` y un test que compare sus resultados con `nucleo.js` (ver `docs/ARQUITECTURA.md`).
 - [ ] Versión visible en el pie.
-- [ ] Si `max_envios_hora` está vacío en Config (viene vacío de fábrica), `guardarRespuesta` usa un tope seguro por defecto en vez de no limitar.
+- [ ] Sumar a Config `max_mails_hora`, `max_mails_dia`, `modo_mail` y `correos_de_prueba`, con los valores mínimos de prueba. Si un tope está vacío, `guardarRespuesta` usa el mínimo en vez de no limitar. El aviso por superar el tope por hora queda en *Ejecuciones*; el mail al equipo llega en la fase 5.
 - [ ] Los textos de la pestaña Textos se muestran sin interpretar HTML (ver `docs/SEGURIDAD.md`, sección 6) y se saca de la página el nombre de la planilla.
 - [ ] Al leer Centros en `obtenerDatosIniciales`, quitar el apóstrofo que `protegerFormula_` puso delante de algún nombre.
 - [ ] Toda fila que se escriba en Respuestas pasa por `protegerFormula_` (nombre, correo, centro, etc.). Decidir con la prueba de la sección 9 si alcanza el formato "Texto sin formato" o si además va el apóstrofo, porque juntos el apóstrofo se vería literal.
 - [ ] Límites por cédula sobre la forma de 8 dígitos que devuelve `validarEnvio_`; para el límite de mails por dirección, contar el correo sin la parte `+...`. Sumar un tope global de mails por hora y por día.
 - [ ] `guardarRespuesta` descarta (sin aviso) por campo trampa y por tiempo mínimo; `validarEnvio_` no los mira.
 - [ ] `repararLocalidad_` con objetos `Date` depende de la zona horaria: confirmar que la Sheet y `appsscript.json` usan la misma. Avisar de los centros sin localidad fuera de Montevideo, porque no se podrían elegir.
-- [ ] Decidir cuándo se usa `machearCentro_` (hoy solo ayuda a revisar los "No encuentro mi centro").
+- [ ] `guardarRespuesta` no usa `machearCentro_`: los "No encuentro mi centro" se guardan como `pendiente de revisión`. El envío descartado por campo trampa o tiempo mínimo ve su perfil normal y no se guarda nada.
 
 ## Fase 5 — PDF y mail (v0.5.0)
 
 - [ ] Perfil en PDF con la identidad visual.
-- [ ] Envío por mail, con el límite por dirección y registro en `mail_enviado`.
+- [ ] Envío por mail detrás de la llave `modo_mail`, que viene en `apagado`, con el límite por dirección, los topes globales y registro en `mail_enviado`. En las pruebas solo se usa `solo_lista` con correos propios.
+- [ ] Aviso por mail al equipo al superar el tope por hora, también detrás de `modo_mail`.
 - [ ] Manejo de la cuota diaria agotada.
 
 ## Fase 6 — Auditoría (v0.9.0)
@@ -67,6 +73,8 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 ## Fase 7 — Piloto (v1.0.0)
 
 - [ ] Crear la Sheet y el proyecto de **producción**; primer despliegue.
+- [ ] Subir los topes de prueba en Config (referencia: 300 envíos por hora, 200 mails por hora, 1.200 por día) y pasar `modo_mail` a `activo`.
+- [ ] QR: generarlo recién con la URL definitiva y publicar siempre sobre la misma implementación, para que el QR impreso siga funcionando.
 - [ ] Piloto con un grupo chico de docentes; ajustar límites y textos.
 - [ ] Publicación.
 
