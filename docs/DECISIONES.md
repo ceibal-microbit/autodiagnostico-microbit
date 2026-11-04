@@ -5,17 +5,19 @@
 ## Alcance de la versión 1 (lo más simple)
 
 - Sin pantalla de consentimiento. Se agrega en la versión definitiva (Ley 18.331, texto a validar con el área legal).
-- Sin radar en el perfil. El perfil muestra: referencia de niveles, "Tu próximo paso" (dimensión con menor puntaje), una tarjeta por dimensión (nivel, barra de promedio, qué observa, devolución, recomendación) y el cierre.
+- El perfil muestra: radar con los promedios (sus tres zonas son los niveles, con una leyenda de una línea) y la lista de valores, una tarjeta por dimensión (nivel y promedio en el encabezado, devolución, recomendación) y el cierre. No muestra "Tu próximo paso". El radar también va en el PDF.
 - Sin tablero externo. El equipo analiza las respuestas directamente en la Sheet.
 
 ## Formato de la página
 
-- **Celular primero.** Lo más probable es que los docentes entren desde el celular escaneando un QR. Todo se diseña y se prueba primero para celular.
+- **Celular primero.** Lo más probable es que los docentes entren desde el celular escaneando un QR de una publicación enviada a los centros, en momentos distintos. Todo se diseña y se prueba primero para celular.
 - **Formulario simple, muy parecido a Google Forms**, con la paleta de Ceibal. No se busca nada novedoso ni vistoso. Lo que Forms no tiene y se mantiene: validar la cédula, sugerir el correo, buscar el centro y mostrar el perfil.
 - Tres páginas: datos, experiencia y afirmaciones (las 15 en una sola página, agrupadas por dimensión). La intro va arriba de la primera página.
 - Cada sección es una tarjeta que contiene las tarjetas de sus preguntas. Subsistema, departamento y localidad son desplegables comunes.
 - Sin pantalla de revisión antes de enviar: se corrige con "Atrás".
-- El perfil queda como en el prototipo, por ahora. "Tu próximo paso" nombra la dimensión con su nombre completo de `docs/INSTRUMENTO.md`.
+- La carga tarda unos 8 segundos en celular, y la página avisa mientras tanto. No se usa memoria temporal (`CacheService`): dura hasta 6 horas y es compartida, así que con entradas tan espaciadas casi nadie se beneficiaría.
+- "Qué observa" va en el formulario, abajo del título de cada dimensión, no en el perfil.
+- Ningún nivel se destaca con relleno: los tres se muestran iguales, con sus cuadraditos y su nombre.
 - El avance se guarda solo en la pestaña del navegador (incluida la cédula) y se borra al enviar, al cerrarla o si tiene más de 6 horas, para no perder las respuestas si el celular recarga la página.
 - El código de la página queda visible para quien abra las herramientas del navegador, y no se ofusca: no protege de verdad y complica arreglar errores. Por eso la página no lleva nada secreto. Se acepta que el catálogo de centros (con los Códigos Ceibal) quede visible.
 
@@ -24,16 +26,17 @@
 - Web app con Google Apps Script + Google Sheets.
 - Dueña del proyecto y de la Sheet: la cuenta de Google dedicada al programa, en la unidad compartida del programa. Se publica desde esa cuenta.
 - La web app es un script **vinculado** a la Sheet (creado desde la Sheet con *Extensiones → Apps Script*).
-- Devolución inmediata en pantalla, más el perfil en PDF por correo.
+- Devolución inmediata en pantalla. Al final del perfil, dos botones que no se excluyen: descargar en PDF y enviar por mail. El mail no es automático: sale solo si el docente lo pide.
+- El PDF se genera en el servidor, con el mismo diseño para la descarga y para el mail.
 - El servidor calcula puntajes y niveles. Los textos de devolución se leen de una pestaña de la Sheet, para editarlos sin tocar código.
 - Cada respuesta guarda la versión del instrumento y la versión de la app.
 
 ## Datos que se piden (nominal)
 
 - Nombre y apellido, cédula (validada con dígito verificador), correo electrónico (validado, con sugerencia ante errores de dominio como "gmial.com"), subsistema, departamento, localidad (salvo Montevideo) y centro educativo.
-- El correo se usa para mandar el perfil en PDF.
+- El correo sigue siendo obligatorio. Se usa para mandar el perfil en PDF si el docente lo pide.
 - No se muestran resultados anteriores por cédula, porque no hay inicio de sesión.
-- Cada envío es una fila nueva; un docente puede repetir el autodiagnóstico.
+- Cada envío es una fila nueva, salvo un reintento o una cédula que ya llegó a su límite del día (ver "Mails y topes"). Un docente puede repetir el autodiagnóstico.
 
 ## Centros educativos
 
@@ -81,8 +84,9 @@
 
 ## Mails y topes
 
-- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó.
-- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular.
+- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó. Riesgo aceptado: alguien que conozca una cédula puede cargar 3 envíos con ella y la respuesta real de ese día no se guardaría, sin aviso. Al revisar las respuestas, conviene mirar las cédulas con filas de nombres o correos distintos.
+- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular. Solo compara cédula y respuestas: si alguien corrige su centro o su nombre y repite lo mismo en esos 10 minutos, queda la primera fila.
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
+- Un mail solo sale si hay una fila guardada hoy con esa cédula y ese correo, y como máximo uno por día a cada dirección. El aviso al docente es siempre el mismo, para que nadie pueda averiguar si una dirección ya recibió algo o si el envío fue descartado.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
 - Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.

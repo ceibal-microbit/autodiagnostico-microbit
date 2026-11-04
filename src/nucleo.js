@@ -8,7 +8,7 @@
  * - El bloque final exporta las funciones para los tests de Node; en Apps Script se ignora.
  */
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const VERSION_INSTRUMENTO = '2026.1';
 
 // ---------------------------------------------------------------------------
@@ -809,7 +809,8 @@ function diaEnUruguay_(milisegundos) {
 
 /**
  * Decide si un envío entra según los topes. filas = [[fecha_hora, cedula], ...] de Respuestas.
- * Devuelve { ok: true } o { ok: false, motivo: 'cedula' | 'hora' }. El motivo es solo para el registro interno.
+ * Devuelve { ok: true } o { ok: false, motivo: 'hora' | 'cedula' }. El motivo decide qué responde el servidor y nunca se le muestra al docente.
+ * La hora se mira primero: con el tope lleno, todos reciben lo mismo y no se puede averiguar si una cédula llegó a su límite.
  */
 function revisarLimites_(filas, cedula, ahora, topes) {
   let enLaHora = 0;
@@ -824,8 +825,8 @@ function revisarLimites_(filas, cedula, ahora, topes) {
     if (ahora - momento < MILISEGUNDOS_HORA_) enLaHora++;
     if (diaEnUruguay_(momento) === hoy && String(quitarProteccion_(fila[1])).padStart(8, '0') === cedula) deLaCedula++;
   }
-  if (deLaCedula >= topes.max_envios_cedula_dia) return { ok: false, motivo: 'cedula' };
   if (enLaHora >= topes.max_envios_hora) return { ok: false, motivo: 'hora' };
+  if (deLaCedula >= topes.max_envios_cedula_dia) return { ok: false, motivo: 'cedula' };
   return { ok: true };
 }
 

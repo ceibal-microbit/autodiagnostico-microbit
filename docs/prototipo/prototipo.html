@@ -121,7 +121,35 @@ select { min-height: 44px; }
 @media (max-width: 480px) { h1 { font-size: 1.5rem; } .card { padding: 16px; } .fbtn { flex: 1 1 auto; } .pie .pag { width: 100%; margin: 0; text-align: center; order: 3; } .aviso { order: 4; text-align: center; } }
 @media (max-width: 360px) { main { padding-left: 8px; padding-right: 8px; } .grupo { padding: 14px 6px; } .grupo .card { padding: 14px 8px; } .escala { gap: 2px; } .esc-op { font-size: 0.78rem; } }
 
-/* Perfil: los mismos estilos de antes */
+/* Radar del perfil */
+.radar { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
+.radar svg { display: block; width: 100%; max-width: 360px; margin: 0 auto; }
+.radar figcaption { text-align: center; }
+.r-zona-f { fill: #F6FBFA; }
+.r-zona-d { fill: #CDE9E5; }
+.r-zona-c { fill: #93D2C9; }
+polygon.r-zona-f, polygon.r-zona-d, polygon.r-zona-c { stroke: #FFFFFF; stroke-width: 1.5; }
+.r-eje { stroke: #FFFFFF; stroke-width: 1; }
+.dim-tit { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.dim-nivel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 0.9rem; }
+.r-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 0.86rem; }
+.r-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.r-leyenda i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #6FB8AE; display: block; background: currentColor; }
+.r-leyenda i.r-zona-f { background: #F6FBFA; }
+.r-leyenda i.r-zona-d { background: #CDE9E5; }
+.r-leyenda i.r-zona-c { background: #93D2C9; }
+.r-forma { fill: var(--teal-dark); fill-opacity: 0.22; stroke: var(--teal-dark); stroke-width: 2; stroke-linejoin: round; }
+.r-toque { fill: transparent; }
+.r-marca { stroke: var(--teal-dark); stroke-width: 1.5; }
+.r-num { font-size: 15px; font-weight: 700; fill: var(--ink); text-anchor: middle; dominant-baseline: middle; }
+.radar-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.radar-lista li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.r-color { width: 12px; height: 12px; border-radius: 3px; flex: none; margin-top: 6px; }
+.r-nombre { flex: 1; min-width: 0; }
+.r-valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+
+/* Perfil */
 .btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .btn { border: 2px solid var(--teal-dark); border-radius: 25px; padding: 11px 24px; font-weight: 700; cursor: pointer; background: var(--teal-dark); color: #FFFFFF; }
 .btn[disabled] { opacity: 0.35; cursor: not-allowed; }
@@ -131,29 +159,15 @@ select { min-height: 44px; }
 .led5 i { width: var(--px, 8px); height: var(--px, 8px); border-radius: 22%; background: currentColor; opacity: 0.18; display: block; }
 .led5 i.on { opacity: 1; }
 /* Perfil */
-.levels-key { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { display: inline-flex; align-items: center; gap: 7px; border-radius: 25px; padding: 4px 12px 4px 10px; font-size: 0.84rem; font-weight: 700; white-space: nowrap; border: 1.5px solid var(--teal-dark); color: var(--teal-dark); background: var(--surface); }
 .chip .lv { display: inline-flex; gap: 3px; }
 .chip .lv i { width: 8px; height: 8px; border-radius: 2px; background: var(--teal-dark); opacity: 0.2; display: block; }
 .chip .lv i.on { opacity: 1; }
-.chip.c { background: var(--teal-dark); color: #FFFFFF; }
-.chip.c .lv i { background: #FFFFFF; }
-.next { border-radius: var(--r); padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; background: var(--teal-soft); border: 2px solid var(--teal-dark); }
 .dim { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; }
 .dim-top { display: flex; align-items: center; gap: 14px; padding: 14px 20px; }
 .dim-top h3 { min-width: 0; flex: 1; }
 .dim-top .ico { flex: none; width: 46px; height: 46px; border-radius: 10px; background: rgba(255,255,255,0.55); display: grid; place-items: center; }
 .dim-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
-.dim-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.meter { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
-.meter-bar { position: relative; height: 10px; border-radius: 5px; display: grid; grid-template-columns: 1.5fr 1.3fr 1.2fr; gap: 2px; }
-.meter-bar span { display: block; height: 100%; background: #E9EEF0; }
-.meter-bar span:nth-child(1) { border-radius: 5px 0 0 5px; }
-.meter-bar span:nth-child(2) { background: #D6EAE7; }
-.meter-bar span:nth-child(3) { background: #B5DDD7; border-radius: 0 5px 5px 0; }
-.meter-bar b { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%, -50%); border: 3px solid var(--surface); background: var(--teal-dark); box-shadow: 0 0 0 1px var(--teal-dark); }
-.meter-lbl { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.meter-lbl strong { color: var(--ink); }
 .observa { font-size: 0.92rem; color: var(--muted); }
 .rec { background: var(--bg); border-radius: 8px; padding: 12px 14px; }
 .rec b { display: block; color: var(--teal-dark); }
@@ -534,7 +548,7 @@ function vAfirmaciones(app) {
   const claves = S.r.map((_, k) => "r" + k);
   const errores = () => Object.fromEntries(claves.filter((_, k) => S.r[k] === null).map(k => [k, OBLIGATORIA]));
   app.innerHTML = titulo(false, "Ahora sí: ¿cómo es tu vínculo actual con la placa micro:bit? Para cada afirmación, indicá cuánto te representa actualmente.") +
-    DIMS.map((d, di) => seccion(`${di + 1}. ${d.nm}`, "", d.items.map((it, j) => {
+    DIMS.map((d, di) => seccion(`${di + 1}. ${d.nm}`, "", `<p class="observa"><b>Qué observa:</b> ${esc(d.observa)}</p>` + d.items.map((it, j) => {
       const k = di * 3 + j;
       return pregunta("r" + k, `${k + 1}. ${it}`, `<div class="escala" role="radiogroup" aria-labelledby="t-r${k}">${SCALE.map((s, v) => `<label class="esc-op"><b>${v + 1}</b><span>${s}</span><input type="radio" name="r${k}" value="${v + 1}" ${S.r[k] === v + 1 ? "checked" : ""}></label>`).join("")}</div>`);
     }).join(""), `var(--c${di + 1})`)).join("") +
@@ -552,26 +566,40 @@ function vAfirmaciones(app) {
   });
 }
 
+/* Radar del perfil: una sola forma, del centro (1) al borde (5). El número identifica cada dimensión y la lista de abajo da los valores. */
+function radar(res) {
+  const cx = 160, cy = 152, R = 112;
+  const punto = (i, radio) => { const a = (-90 + i * 72) * Math.PI / 180; return [cx + radio * Math.cos(a), cy + radio * Math.sin(a)]; };
+  const aRadio = v => (v - 1) / 4 * R;
+  const num = n => n.toFixed(1);
+  const forma = valores => valores.map((v, i) => punto(i, aRadio(v)).map(num).join(",")).join(" ");
+  const zonas = [[5, "c"], [3.8, "d"], [2.5, "f"]].map(([v, l]) => `<polygon class="r-zona-${l}" points="${forma([v, v, v, v, v])}"/>`).join("");
+  const ejes = res.map(r => { const [x, y] = punto(r.i, R); return `<line class="r-eje" x1="${cx}" y1="${cy}" x2="${num(x)}" y2="${num(y)}"/>`; }).join("");
+  const marcas = res.map(r => {
+    const [x, y] = punto(r.i, aRadio(r.prom));
+    const [lx, ly] = punto(r.i, R + 17);
+    const detalle = `${r.i + 1}. ${r.d.nm}: promedio ${fmt1(r.prom)}, ${LVL[r.lvl]}`;
+    return `<g><title>${esc(detalle)}</title><circle class="r-toque" cx="${num(x)}" cy="${num(y)}" r="18"/><circle class="r-marca" cx="${num(x)}" cy="${num(y)}" r="6" style="fill:var(--c${r.i + 1})"/></g>
+      <text class="r-num" x="${num(lx)}" y="${num(ly)}">${r.i + 1}</text>`;
+  }).join("");
+  const lista = res.map(r => `<li><span class="r-color" style="background:var(--c${r.i + 1})"></span><span class="r-nombre">${r.i + 1}. ${esc(r.d.nm)}</span><span class="r-valor">${fmt1(r.prom)}</span></li>`).join("");
+  return `<figure class="radar">
+    <svg viewBox="0 0 320 300" role="img" aria-label="Gráfico de radar con tu promedio en las cinco dimensiones. Los valores están en la lista de abajo.">${zonas}${ejes}<polygon class="r-forma" points="${forma(res.map(r => r.prom))}"/>${marcas}</svg>
+    <figcaption class="r-leyenda">${["f", "d", "c"].map(l => `<span><i class="r-zona-${l}"></i>${LVL[l]}</span>`).join("")}</figcaption>
+    <ul class="radar-lista">${lista}</ul>
+  </figure>`;
+}
+
 function vPerfil(app) {
   const res = resultados();
-  const min = Math.min(...res.map(r => r.suma));
-  const foco = res.filter(r => r.suma === min);
-  const todas = res.every(r => r.lvl === "c");
-  const pos = v => ((v - 1) / 4 * 100).toFixed(1) + "%";
-  const nextTxt = todas
-    ? `<p>Todas tus dimensiones aparecen consolidadas. Un buen próximo paso puede ser compartir tu experiencia y acompañar a otros docentes que están comenzando.</p>`
-    : `<h3>${foco.slice(0, 2).map(r => esc(r.d.corto)).join(" y ")}</h3><p>${foco.length > 1 ? "Son las dimensiones" : "Es la dimensión"} con menor puntaje en tu perfil. Te sugerimos empezar por ${foco.length > 1 ? "alguna de ellas" : "ahí"} al usar la Guía.</p>`;
   app.innerHTML = `
-  <div class="stack"><div class="eyebrow">Tu perfil</div><h2>${esc(S.nombre.split(" ")[0] || "")}${S.nombre ? ", este" : "Este"} es tu momento actual con micro:bit</h2>
-  <p class="lede">Para cada dimensión calculamos el promedio de tus respuestas, de 1 a 5.</p>
-  <div class="levels-key">${chip("f")}<span class="note">1,0 a 2,4</span>${chip("d")}<span class="note">2,5 a 3,7</span>${chip("c")}<span class="note">3,8 a 5,0</span></div></div>
-  <div class="next"><div class="eyebrow">Tu próximo paso</div>${nextTxt}</div>
+  <div class="stack"><div class="eyebrow">Tu perfil</div><h2>${esc(S.nombre.split(" ")[0] || "")}${S.nombre ? ", este" : "Este"} es el resultado de tu autodiagnóstico</h2>
+  <p class="lede">Cada punta del radar es tu promedio en una dimensión: del centro (1) al borde (5).</p>
+  </div>
+  ${radar(res)}
   ${res.map(r => { const t = r.d[r.lvl]; return `<article class="dim">
-    <div class="dim-top" style="background:var(--c${r.i + 1})"><span class="ico">${ico(r.i, 6)}</span><h3>${r.i + 1}. ${esc(r.d.nm)}</h3></div>
+    <div class="dim-top" style="background:var(--c${r.i + 1})"><span class="ico">${ico(r.i, 6)}</span><div class="dim-tit"><h3>${r.i + 1}. ${esc(r.d.nm)}</h3><div class="dim-nivel">${chip(r.lvl)}<span>Promedio <strong>${fmt1(r.prom)}</strong></span></div></div></div>
     <div class="dim-body">
-    <div class="dim-row">${chip(r.lvl)}<div class="meter"><div class="meter-bar"><span></span><span></span><span></span><b style="left:${pos(r.prom)}"></b></div>
-      <div class="meter-lbl"><span>1</span><span>Promedio <strong>${fmt1(r.prom)}</strong></span><span>5</span></div></div></div>
-    <p class="observa"><b>Qué observa:</b> ${esc(r.d.observa)}</p>
     <p>${esc(t[0])}</p>
     <p class="rec"><b>${r.lvl === "c" ? REC_C : REC_F}</b>${esc(t[1].charAt(0).toUpperCase() + t[1].slice(1))}</p>
   </div></article>`; }).join("")}

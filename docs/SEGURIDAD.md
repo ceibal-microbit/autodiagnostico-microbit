@@ -15,7 +15,7 @@ La web app no se publica para docentes hasta que todos los puntos estén tildado
 
 ## 2. Funciones expuestas
 
-- [ ] Solo `doGet`, `obtenerDatosIniciales`, `guardarRespuesta` y `onOpen` (que solo arma el menú) son públicas; todas las demás terminan en guion bajo. Lo controla `test/reglas.test.js`.
+- [ ] Solo `doGet`, `obtenerDatosIniciales`, `guardarRespuesta`, `descargarPerfil`, `enviarPerfilPorMail` y `onOpen` (que solo arma el menú) son públicas; todas las demás terminan en guion bajo. Lo controla `test/reglas.test.js`.
 - [ ] Las funciones de mantenimiento solo se ejecutan desde el menú de la Sheet o el editor.
 - [ ] `obtenerDatosIniciales` devuelve solo las columnas que el buscador necesita.
 - [ ] Ninguna función pública devuelve filas de Respuestas ni confirma si una cédula ya respondió.
@@ -53,7 +53,9 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 
 - [ ] Máximo 3 envíos guardados por cédula por día; desde el 4.º se ve el perfil y no se guarda, para no revelar si esa cédula ya respondió.
 - [ ] Un reintento con la misma cédula y las mismas respuestas en 10 minutos no suma otra fila.
-- [ ] Máximo 1 mail por día a la misma dirección; los siguientes envíos se guardan sin mail.
+- [ ] Un mail solo sale si el docente lo pide y hay una fila guardada hoy con esa cédula y ese correo.
+- [ ] Máximo 1 mail por día a la misma dirección, contando el correo sin la parte `+...`.
+- [ ] `enviarPerfilPorMail` responde siempre lo mismo a un envío válido: no revela si la dirección ya recibió algo ni si hay una fila guardada.
 - [ ] Tope general de envíos por hora; al superarlo, mensaje de "intentá más tarde" y aviso al equipo.
 - [ ] Campo trampa invisible: si viene completo, se descarta sin aviso.
 - [ ] Se descartan envíos hechos en menos de 60 segundos desde que se abrió la página. La hora de apertura sale del servidor, para no perjudicar a un celular con el reloj mal; un atacante puede falsificarla, así que este filtro solo frena a robots simples.
@@ -69,7 +71,7 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 - [ ] El PDF y el mail escapan nombre y centro.
 - [ ] El mail no incluye la cédula.
 - [ ] Asunto y remitente fijos.
-- [ ] La respuesta de `guardarRespuesta` contiene solo el perfil de ese envío.
+- [ ] La respuesta de `guardarRespuesta` contiene solo el perfil de ese envío, y `descargarPerfil` devuelve solo el PDF armado con ese mismo envío.
 - [ ] El avance guardado en el navegador queda solo en esa pestaña, se borra al enviar y se descarta si tiene más de 6 horas.
 - [ ] Los textos de la pestaña Textos los edita el equipo, pero se tratan como no confiables: en la página se muestran solo con `textContent` o `createTextNode` (nunca `innerHTML` ni `<?!=`); en el PDF y el mail se escapan `& < > " '`. Test con `<img src=x onerror=alert(1)>` en un texto.
 - [ ] La página pública no muestra el nombre de la planilla ("Planilla vinculada…" de la fase 1): sacarlo antes de publicar.
@@ -103,13 +105,15 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 | HTML en el nombre | `<b>Hola</b><img src=x onerror=alert(1)>` | Texto plano en pantalla, PDF y mail |
 | Envíos repetidos | 5 envíos con la misma cédula y respuestas distintas | Todos ven su perfil; en la Sheet quedan 3 filas |
 | Reintento | 2 envíos seguidos con la misma cédula y las mismas respuestas | Los 2 ven su perfil; en la Sheet queda 1 fila |
+| Tope por hora lleno | Con `max_envios_hora` alcanzado, un envío con una cédula en su límite y otro con una cédula sin usar | Los 2 reciben el mismo mensaje de "intentá más tarde" |
 | Mails cerrados | Con `modo_mail` en `apagado`, un envío con un correo propio | No llega ningún mail; `mail_enviado` queda en `no` |
 | Solo la lista | Con `modo_mail` en `solo_lista`, un envío con un correo propio que no está en `correos_de_prueba` | No llega ningún mail |
-| Mail a terceros | Con `modo_mail` en `solo_lista`, 3 envíos con el mismo correo de `correos_de_prueba` | Llega 1 mail |
+| Mail a terceros | Con `modo_mail` en `solo_lista`, tocar "Enviar por mail" en 3 envíos con respuestas distintas y el mismo correo de `correos_de_prueba` | Llega 1 mail |
+| Mail sin fila | Llamar a `enviarPerfilPorMail` desde la consola con datos válidos que no se guardaron | No llega ningún mail y el aviso es el mismo |
 | Robot rápido | Envío a los 10 segundos | Descartado |
 | Campo trampa | Completar el campo oculto | Descartado |
 | Acceso a la Sheet | Abrir su link con una cuenta ajena al equipo | Acceso denegado |
-| Envíos simultáneos | Varios envíos a la vez con la misma cédula | No se pasa del tope de 3 |
+| Envíos simultáneos | Varios envíos a la vez con la misma cédula y respuestas distintas | No se pasa del tope de 3 |
 | Fórmula con signo de ancho completo | Nombre que empieza con `＝1+1` | Se ve como texto en la Sheet y al exportar |
 | Fórmula al exportar | Exportar a CSV una fila con `=1+1` en el nombre y abrirla en Excel | No se ejecuta como fórmula |
 | HTML en un texto de la Sheet | Poner `<img src=x onerror=alert(1)>` en un texto de la pestaña Textos | Se ve como texto |
