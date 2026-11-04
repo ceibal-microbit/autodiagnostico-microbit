@@ -88,7 +88,7 @@ Recibe el mismo `envio` y lo valida de nuevo. Devuelve siempre `{ ok: true, mens
 | Centros | El menú "Actualizar catálogo" | Catálogo limpio para el buscador |
 | Textos | El equipo | Textos de pantallas y devoluciones (clave → texto) |
 | Config | El equipo | Límites y parámetros (clave → valor) |
-| Respuestas | Solo la web app | Una fila por envío |
+| Respuestas | Solo la web app | Una fila por envío guardado. No ordenar la pestaña: para ver los datos en otro orden, usar una vista de filtro, porque los topes miran las últimas filas |
 
 ### Centros
 

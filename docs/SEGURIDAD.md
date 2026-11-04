@@ -105,14 +105,15 @@ Los valores salen de la pestaña Config y se ajustan después del piloto.
 | HTML en el nombre | `<b>Hola</b><img src=x onerror=alert(1)>` | Texto plano en pantalla, PDF y mail |
 | Envíos repetidos | 5 envíos con la misma cédula y respuestas distintas | Todos ven su perfil; en la Sheet quedan 3 filas |
 | Reintento | 2 envíos seguidos con la misma cédula y las mismas respuestas | Los 2 ven su perfil; en la Sheet queda 1 fila |
+| Tope por hora lleno | Con `max_envios_hora` alcanzado, un envío con una cédula en su límite y otro con una cédula sin usar | Los 2 reciben el mismo mensaje de "intentá más tarde" |
 | Mails cerrados | Con `modo_mail` en `apagado`, un envío con un correo propio | No llega ningún mail; `mail_enviado` queda en `no` |
 | Solo la lista | Con `modo_mail` en `solo_lista`, un envío con un correo propio que no está en `correos_de_prueba` | No llega ningún mail |
-| Mail a terceros | Con `modo_mail` en `solo_lista`, tocar "Enviar por mail" 3 veces con el mismo correo de `correos_de_prueba` | Llega 1 mail |
+| Mail a terceros | Con `modo_mail` en `solo_lista`, tocar "Enviar por mail" en 3 envíos con respuestas distintas y el mismo correo de `correos_de_prueba` | Llega 1 mail |
 | Mail sin fila | Llamar a `enviarPerfilPorMail` desde la consola con datos válidos que no se guardaron | No llega ningún mail y el aviso es el mismo |
 | Robot rápido | Envío a los 10 segundos | Descartado |
 | Campo trampa | Completar el campo oculto | Descartado |
 | Acceso a la Sheet | Abrir su link con una cuenta ajena al equipo | Acceso denegado |
-| Envíos simultáneos | Varios envíos a la vez con la misma cédula | No se pasa del tope de 3 |
+| Envíos simultáneos | Varios envíos a la vez con la misma cédula y respuestas distintas | No se pasa del tope de 3 |
 | Fórmula con signo de ancho completo | Nombre que empieza con `＝1+1` | Se ve como texto en la Sheet y al exportar |
 | Fórmula al exportar | Exportar a CSV una fila con `=1+1` en el nombre y abrirla en Excel | No se ejecuta como fórmula |
 | HTML en un texto de la Sheet | Poner `<img src=x onerror=alert(1)>` en un texto de la pestaña Textos | Se ve como texto |

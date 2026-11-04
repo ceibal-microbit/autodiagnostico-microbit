@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 04/11/2026 · versión de la app: **0.3.0** · tags en GitHub: `v0.1.0`, `v0.2.0`, `v0.3.0`.
+Última actualización: 04/11/2026 · versión de la app: **0.4.0** · tags en GitHub: `v0.1.0`, `v0.2.0`, `v0.3.0` (`v0.4.0` se crea al mergear este cierre).
 
 Este archivo es el "pase de posta": resume dónde está el proyecto y qué se decidió conversando que todavía no figura en otro documento. Se actualiza al cerrar cada fase o cuando se toma una decisión nueva. Los documentos de referencia siguen siendo los de `CLAUDE.md`, en ese orden; si algo de acá contradice a `docs/DECISIONES.md`, manda `DECISIONES.md`.
 
@@ -11,8 +11,8 @@ Este archivo es el "pase de posta": resume dónde está el proyecto y qué se de
 | 1 — Preparación (v0.1.0) | Cerrada. Verificada en Google. |
 | 2 — Núcleo con tests (v0.2.0) | Cerrada. Mergeada. |
 | 3 — Sheet y catálogo (v0.3.0) | Cerrada. Probada a mano con el Universo real en la Sheet de prueba. |
-| 4 — Web app (v0.4.0) | **En curso.** Página y servidor programados. Pruebas en celular hechas (unos 8 segundos de carga, con la franja de Google). Faltan las pruebas en la Sheet de prueba. |
-| 5 — PDF y mail | Diseño acordado: botones de PDF y mail en el perfil, a pedido del docente (ver `DECISIONES.md`). Sin programar. |
+| 4 — Web app (v0.4.0) | Cerrada. Probada a mano en un Android y en la Sheet de prueba. Falta repetir la prueba en un iPhone (fase 6). |
+| 5 — PDF y mail (v0.5.0) | **Próxima.** Diseño acordado: botones de PDF y mail en el perfil, a pedido del docente (ver `DECISIONES.md`). Sin programar. |
 | 6 — Auditoría · 7 — Piloto | Pendientes. |
 
 **Qué existe hoy**
@@ -30,7 +30,7 @@ Cédula y correo
 Catálogo
 - El **tipo de centro** (escuela, jardín, liceo, UTU…) sale del nombre; "Tipo dependencia" solo se usa si el nombre no alcanza.
 - El número de escuelas y jardines públicos de DGEIP sale del código (`11` + departamento + 3 dígitos), solo si el centro es escuela o jardín.
-- Los departamentos fuera de Uruguay quedan en Centros marcados en `observacion`. Pendiente: no mostrarlos a los docentes en `obtenerDatosIniciales`.
+- Los departamentos fuera de Uruguay quedan en Centros marcados en `observacion`. No se les muestran a los docentes, y un envío con ellos se rechaza.
 - "Actualizar catálogo" escribe solo en Centros, usa el bloqueo del script, escribe primero y limpia después, y pide una **segunda confirmación si el catálogo baja más del 20%**.
 
 Textos
@@ -42,15 +42,16 @@ Macheo
 - En la versión 1, "No encuentro mi centro" guarda el texto libre como `pendiente de revisión`. El macheo automático es una ayuda para revisar esos casos y **no corre al enviar**. Confirmado.
 
 Config
-- Mientras se prueba, los topes quedan al mínimo (ver `DECISIONES.md`, "Mails y topes"). Hoy Config todavía tiene `max_envios_hora` vacío; la fase 4 agrega los parámetros que faltan.
+- Mientras se prueba, los topes quedan al mínimo (ver `DECISIONES.md`, "Mails y topes"). Si un tope está vacío o no es válido, el servidor usa el mínimo. Antes del piloto hay que subirlos en Config.
 
 Versiones
 - `VERSION` sube a la nueva versión **al cerrar la fase**, después de la prueba real, no antes. El tag `vX.Y.Z` se crea después del merge.
 
-## Qué sigue (fase 4)
+## Qué sigue (fase 5)
 
-La lista completa está en `docs/PLAN.md`. Lo que falta decidir:
-- Cómo conviven el formato "Texto sin formato" y el apóstrofo delante de `=`, `+`, `-`, `@` en Respuestas (se decide con la prueba de la sección 9 de `docs/SEGURIDAD.md`).
+La lista completa está en `docs/PLAN.md`. Programar los botones de PDF y de mail del perfil, detrás de la llave `modo_mail`. Lo que falta decidir: qué pasa si alguien corrige un correo mal escrito y repite las mismas respuestas en 10 minutos.
+
+Decidido en la fase 4: en Respuestas van a la vez el formato "Texto sin formato" y el apóstrofo; en la celda se ve el texto limpio y el apóstrofo queda en la barra de fórmulas.
 
 Pendiente de fases posteriores que no hay que perder: las cuatro pruebas manuales de la fase 3 que no se hicieron (están en la fase 6 del plan), subir los topes de prueba antes del piloto.
 

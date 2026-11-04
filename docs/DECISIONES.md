@@ -35,7 +35,7 @@
 - Nombre y apellido, cédula (validada con dígito verificador), correo electrónico (validado, con sugerencia ante errores de dominio como "gmial.com"), subsistema, departamento, localidad (salvo Montevideo) y centro educativo.
 - El correo sigue siendo obligatorio. Se usa para mandar el perfil en PDF si el docente lo pide.
 - No se muestran resultados anteriores por cédula, porque no hay inicio de sesión.
-- Cada envío es una fila nueva; un docente puede repetir el autodiagnóstico.
+- Cada envío es una fila nueva, salvo un reintento o una cédula que ya llegó a su límite del día (ver "Mails y topes"). Un docente puede repetir el autodiagnóstico.
 
 ## Centros educativos
 
@@ -83,8 +83,8 @@
 
 ## Mails y topes
 
-- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó.
-- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular.
+- **Pasado el límite de 3 envíos por cédula por día, el docente ve su perfil y no se guarda nada.** Un rechazo revelaría si esa cédula ya respondió hoy. Quien repita más de 3 veces en un día no se entera de que esa vez no se guardó. Riesgo aceptado: alguien que conozca una cédula puede cargar 3 envíos con ella y la respuesta real de ese día no se guardaría, sin aviso. Al revisar las respuestas, conviene mirar las cédulas con filas de nombres o correos distintos.
+- **Un reintento no suma otra fila:** si en los últimos 10 minutos ya hay una fila con la misma cédula y las mismas respuestas, el docente ve su perfil y no se guarda otra. Pasa cuando se guardó, pero con mala señal el aviso no llegó al celular. Solo compara cédula y respuestas: si alguien corrige su centro o su nombre y repite lo mismo en esos 10 minutos, queda la primera fila.
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
 - Un mail solo sale si hay una fila guardada hoy con esa cédula y ese correo, y como máximo uno por día a cada dirección. El aviso al docente es siempre el mismo, para que nadie pueda averiguar si una dirección ya recibió algo o si el envío fue descartado.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.

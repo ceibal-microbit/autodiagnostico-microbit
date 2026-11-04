@@ -314,7 +314,7 @@
       entrada.onkeydown = function (e) {
         var maximo = resultados.length + (hayOpcionLibre() ? 1 : 0) - 1;
         if (e.key === 'ArrowDown') { activo = Math.min(maximo, activo + 1); dibujar(); e.preventDefault(); }
-        else if (e.key === 'ArrowUp') { activo = Math.max(0, activo - 1); dibujar(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { activo = Math.max(Math.min(0, maximo), activo - 1); dibujar(); e.preventDefault(); }
         else if (e.key === 'Enter' && activo >= 0) { elegir(activo); e.preventDefault(); }
         else if (e.key === 'Escape') verLista(false);
       };

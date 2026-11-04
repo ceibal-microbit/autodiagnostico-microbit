@@ -272,6 +272,56 @@ test('un reintento con la misma cédula y las mismas respuestas no suma otra fil
   assert.ok(e.registro.some(r => /reintento/.test(r)));
 });
 
+test('con el tope por hora lleno todos reciben lo mismo: no se puede averiguar si una cédula llegó a su límite', () => {
+  const e = entorno({ config: { max_envios_hora: 1, max_envios_cedula_dia: 1 } });
+  const otraCedula = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
+  assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
+  const cedulaEnSuLimite = aPlano(e.guardarRespuesta(envioValido({ r: respuestasNumero(1) })));
+  const cedulaSinUsar = aPlano(e.guardarRespuesta(envioValido({ cedula: otraCedula })));
+  assert.deepStrictEqual(cedulaEnSuLimite, RECHAZO);
+  assert.deepStrictEqual(cedulaSinUsar, RECHAZO);
+  assert.strictEqual(filasGuardadas(e).length, 1);
+});
+
+test('un reintento con el tope por hora lleno igual ve su perfil, porque su fila ya está guardada', () => {
+  const e = entorno({ config: { max_envios_hora: 1 } });
+  assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
+  assert.strictEqual(e.guardarRespuesta(envioValido()).ok, true);
+  assert.strictEqual(filasGuardadas(e).length, 1);
+});
+
+test('el reintento funciona con una cédula de 7 dígitos, que se guarda con un cero adelante', () => {
+  const sieteDigitos = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
+  const e = entorno();
+  e.guardarRespuesta(envioValido({ cedula: sieteDigitos }));
+  e.guardarRespuesta(envioValido({ cedula: '0' + sieteDigitos }));
+  assert.strictEqual(filasGuardadas(e).length, 1);
+});
+
+test('el reintento reconoce los valores como puede devolverlos la Sheet: números y textos', () => {
+  const sieteDigitos = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
+  const datos = n.validarEnvio_(envioValido({ cedula: sieteDigitos }), VALIDOS).datos;
+  const ahora = Date.now();
+  const fila = n.filaDeRespuesta_(datos, new Date(ahora), 'no');
+  fila[columna('cedula')] = Number(sieteDigitos);
+  for (const c of ['ctx_1', 'ctx_2', 'ctx_3', 'd1_i1', 'd5_i3']) fila[columna(c)] = String(fila[columna(c)]);
+  assert.strictEqual(n.esReintento_([fila], datos, ahora), true);
+});
+
+test('cambiar una sola respuesta o un solo dato de contexto ya no es un reintento', () => {
+  const datos = n.validarEnvio_(envioValido(), VALIDOS).datos;
+  const ahora = Date.now();
+  const fila = n.filaDeRespuesta_(datos, new Date(ahora), 'no');
+  assert.strictEqual(n.esReintento_([fila], datos, ahora), true);
+  const columnas = ['ctx_1', 'ctx_2', 'ctx_3'];
+  for (const d of ['d1', 'd2', 'd3', 'd4', 'd5']) for (const i of [1, 2, 3]) columnas.push(d + '_i' + i);
+  for (const c of columnas) {
+    const distinta = fila.slice();
+    distinta[columna(c)] = Number(distinta[columna(c)]) === 1 ? 2 : 1;
+    assert.strictEqual(n.esReintento_([distinta], datos, ahora), false, c);
+  }
+});
+
 test('no es un reintento si cambia una respuesta, el contexto o la cédula', () => {
   const e = entorno({ config: { max_envios_cedula_dia: 50 } });
   const otraCedula = ['6123450', '6123451', '6123452', '6123453', '6123454', '6123455', '6123456', '6123457', '6123458', '6123459'].find(c => n.cedulaValida_(c));
