@@ -297,6 +297,9 @@
         if (hayOpcionLibre()) {
           lista.appendChild(el('li', { role: 'option', clase: 'none', id: 'o' + resultados.length, 'aria-selected': String(activo === resultados.length), onclick: function () { elegir(resultados.length); } },
             'No encuentro mi centro: registrar «' + consulta.trim() + '»'));
+        } else if (consulta.trim()) {
+          // Con 1 o 2 caracteres no alcanza para registrarlo (el servidor pide al menos 3): se explica cómo seguir.
+          lista.appendChild(el('li', { clase: 'empty', 'aria-disabled': 'true' }, 'No encuentro mi centro: escribí el nombre completo para poder registrarlo.'));
         }
         verLista(lista.childNodes.length > 0 && document.activeElement === entrada);
         if (activo >= 0) entrada.setAttribute('aria-activedescendant', 'o' + activo); else entrada.removeAttribute('aria-activedescendant');
