@@ -264,7 +264,7 @@ const nivel = s => s <= 7 ? "f" : s <= 11 ? "d" : "c";
 /* ---------- Utilidades ---------- */
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[º°]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const norm = s => String(s || "").replace(/(^|[^\p{L}\d])((?:\p{L}\.){2,}\p{L}?)/gu, (_, a, g) => a + g.replace(/\./g, "")).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[º°]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 const fmt1 = x => x.toFixed(1).replace(".", ",");
 const MVD = "Montevideo";
 
@@ -350,8 +350,8 @@ function buscar(q) {
       s += t * 40;
     }
     if (tipo) {
-      const grupo = (tipo === "esc" || tipo === "jar") ? ["esc", "jar"] : [tipo];
-      if (grupo.includes(c.tipo)) s += 15; else if (num === null && !resto) continue; else s -= 10;
+      const vecino = (tipo === "esc" && c.tipo === "jar") || (tipo === "jar" && c.tipo === "esc");
+      if (c.tipo === tipo) s += 15; else if (num === null && !resto) continue; else if (vecino) s += 5; else s -= 10;
     } else if (c.tipo === "anexo") s -= 8;
     if (!AULA.has(c.tipo) && c.tipo !== "anexo") s -= 6;
     out.push({ c, s });
