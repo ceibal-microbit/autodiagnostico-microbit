@@ -880,8 +880,155 @@ function filaDeRespuesta_(datos, fecha, mailEnviado) {
   return ENCABEZADOS_RESPUESTAS_.map(columna => valores[columna]);
 }
 
+// ---------------------------------------------------------------------------
+// 13. Perfil en HTML para el PDF (fase 5)
+// ---------------------------------------------------------------------------
+
+// Geometría del radar: es la misma de src/buscador.html (RADAR, puntoDelRadar, distanciaDePromedio).
+// test/perfil-pdf.test.js compara los puntos de las dos versiones y falla si difieren.
+const RADAR_ = { centroX: 160, centroY: 152, radio: 112, separacionNumeros: 17 };
+// Hasta qué promedio llega cada zona del radar (los niveles de docs/INSTRUMENTO.md), de afuera hacia adentro.
+const ZONAS_RADAR_ = [[5, '#93D2C9'], [3.8, '#CDE9E5'], [2.5, '#F6FBFA']];
+// Color de cada dimensión y su versión oscura (la paleta de src/estilos.html).
+const COLORES_DIMENSION_ = [['#7BCDC1', '#0E5F55'], ['#D17EB2', '#6E2357'], ['#F2E616', '#6B5F00'], ['#27B2D9', '#0B4F66'], ['#E6665D', '#7A1E17']];
+const VERDE_CEIBAL_ = '#00635D';
+const MORADO_ = '#5A2382';
+const NOMBRE_ARCHIVO_PERFIL_ = 'autodiagnostico-microbit.pdf';
+
+/** Escapa & < > " ' para insertar un texto dentro de HTML. Todo lo que viene del docente o de la Sheet pasa por acá. */
+function escaparHtml_(texto) {
+  return String(texto === null || texto === undefined ? '' : texto)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function puntoDelRadar_(i, distancia) {
+  const angulo = (-90 + i * 72) * Math.PI / 180;
+  return [RADAR_.centroX + distancia * Math.cos(angulo), RADAR_.centroY + distancia * Math.sin(angulo)];
+}
+
+/** Distancia al centro de un promedio: 1 queda en el centro y 5 en el borde. */
+function distanciaDePromedio_(promedio) {
+  return (promedio - 1) / 4 * RADAR_.radio;
+}
+
+/** Los cinco puntos de una forma, como los pide el atributo points de un polígono. */
+function puntosDelRadar_(promedios) {
+  return promedios.map((p, i) => puntoDelRadar_(i, distanciaDePromedio_(p)).map(v => v.toFixed(1)).join(',')).join(' ');
+}
+
+/** El radar como SVG, con tamaño fijo y colores en cada elemento (el conversor a PDF no lee bien las clases de CSS). */
+function armarRadarSvg_(dimensiones) {
+  const promedios = dimensiones.map(d => d.suma / 3);
+  const zonas = ZONAS_RADAR_.map(z => '<polygon points="' + puntosDelRadar_([z[0], z[0], z[0], z[0], z[0]]) + '" fill="' + z[1] + '" stroke="#FFFFFF" stroke-width="1.5"/>').join('');
+  const ejes = dimensiones.map((_, i) => {
+    const borde = puntoDelRadar_(i, RADAR_.radio);
+    return '<line x1="' + RADAR_.centroX + '" y1="' + RADAR_.centroY + '" x2="' + borde[0].toFixed(1) + '" y2="' + borde[1].toFixed(1) + '" stroke="#FFFFFF" stroke-width="1"/>';
+  }).join('');
+  const forma = '<polygon points="' + puntosDelRadar_(promedios) + '" fill="' + VERDE_CEIBAL_ + '" fill-opacity="0.22" stroke="' + VERDE_CEIBAL_ + '" stroke-width="2" stroke-linejoin="round"/>';
+  const marcas = dimensiones.map((_, i) => {
+    const punto = puntoDelRadar_(i, distanciaDePromedio_(promedios[i]));
+    const numero = puntoDelRadar_(i, RADAR_.radio + RADAR_.separacionNumeros);
+    return '<circle cx="' + punto[0].toFixed(1) + '" cy="' + punto[1].toFixed(1) + '" r="6" fill="' + COLORES_DIMENSION_[i][0] + '" stroke="' + VERDE_CEIBAL_ + '" stroke-width="1.5"/>' +
+      '<text x="' + numero[0].toFixed(1) + '" y="' + numero[1].toFixed(1) + '" dy="5" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#111111" text-anchor="middle">' + (i + 1) + '</text>';
+  }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="300" viewBox="0 0 320 300">' + zonas + ejes + forma + marcas + '</svg>';
+}
+
+/** Un cuadrito de color como SVG: el conversor a PDF ignora el background de CSS, pero dibuja bien el SVG. */
+function cuadritoSvg_(color, borde) {
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><rect x="0.5" y="0.5" width="13" height="13" rx="2" fill="' + color + '" stroke="' + (borde || color) + '"/></svg>';
+}
+
+/**
+ * Una franja de color con texto, como SVG. El conversor a PDF de Apps Script ignora los fondos de color
+ * (CSS y bgcolor) en celdas y párrafos, pero dibuja bien el SVG: por eso las franjas son imágenes.
+ * lineas: [{ texto, y, tamano, negrita }]. El texto se escapa acá.
+ */
+function franjaSvg_(ancho, alto, color, colorTexto, lineas) {
+  const textos = lineas.map(l => '<text x="14" y="' + l.y + '" font-family="Arial, sans-serif" font-size="' + l.tamano + '"' + (l.negrita ? ' font-weight="bold"' : '') + ' fill="' + colorTexto + '">' + escaparHtml_(l.texto) + '</text>').join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + ancho + '" height="' + alto + '" viewBox="0 0 ' + ancho + ' ' + alto + '"><rect x="0" y="0" width="' + ancho + '" height="' + alto + '" fill="' + color + '"/>' + textos + '</svg>';
+}
+
+/** Ancho de las tablas y franjas del PDF, en píxeles: lo que cabe entre los márgenes de la página. */
+const ANCHO_PDF_ = 660;
+
+/** Para mostrar el centro: el nombre del catálogo si lo eligió de la lista, o lo que escribió si no lo encontró. */
+function nombreDeCentroParaPerfil_(datos, centros) {
+  if (datos.centroCodigo !== null && Array.isArray(centros)) {
+    const centro = centros.find(c => c.codigo === datos.centroCodigo);
+    if (centro) return String(centro.nombre_visible);
+  }
+  return datos.centroTexto;
+}
+
+// Igual que conMayuscula de src/app.html (ahí es el navegador y acá el servidor); si cambia una, cambiar la otra.
+// Los textos fijos del PDF ("TU PERFIL", "Cada punta del radar…") están en armarHtmlPerfil_ y no en la pestaña Textos,
+// como en la página: el equipo no los puede editar desde la Sheet.
+function conMayuscula_(texto) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * El perfil como página HTML lista para convertir a PDF (y, en la fase 5b, para el mail).
+ * El conversor de Apps Script no dibuja fondos de color: las franjas son SVG y los bloques de texto
+ * se marcan con una barra de color a la izquierda (los bordes sí se dibujan).
+ * Nunca incluye la cédula ni el correo. Todo texto del docente y de la pestaña Textos se escapa.
+ * `textos` es el objeto clave → texto de la pestaña Textos; `opciones` lleva { fecha, version }.
+ */
+function armarHtmlPerfil_(datos, nombreCentro, textos, opciones) {
+  const textoPlano = clave => (Object.prototype.hasOwnProperty.call(textos, clave) ? String(textos[clave]) : '');
+  const texto = clave => escaparHtml_(textoPlano(clave));
+  const dimensiones = datos.perfil.dimensiones;
+  const nombreDimension = id => texto(id + '_nombre');
+  const primerNombre = datos.nombre.split(' ')[0];
+  const W = ANCHO_PDF_;
+
+  // Posición de cada nivel en ZONAS_RADAR_, que va de afuera hacia adentro: consolidada, en desarrollo, a fortalecer.
+  const ZONA_DE_NIVEL = { c: 0, d: 1, f: 2 };
+  const leyenda = ['f', 'd', 'c'].map(n => {
+    const zona = ZONAS_RADAR_[ZONA_DE_NIVEL[n]][1];
+    return '<td style="padding:0 12px 0 0;font-size:11px;">' + cuadritoSvg_(zona, '#6FB8AE') + ' ' + escaparHtml_(TEXTO_NIVEL_[n]) + '</td>';
+  }).join('');
+  const lista = dimensiones.map((d, i) =>
+    '<tr><td style="padding:6px 8px 6px 0;border-top:1px solid #E5E7EB;width:14px;">' + cuadritoSvg_(COLORES_DIMENSION_[i][0]) + '</td>' +
+    '<td style="padding:6px 8px 6px 0;border-top:1px solid #E5E7EB;font-size:13px;">' + (i + 1) + '. ' + nombreDimension(d.id) + '</td>' +
+    '<td style="padding:6px 0;border-top:1px solid #E5E7EB;font-size:13px;font-weight:bold;text-align:right;">' + formatearPromedio_(d.suma) + '</td></tr>').join('');
+
+  const tarjetas = dimensiones.map((d, i) =>
+    '<table width="' + W + '" cellspacing="0" cellpadding="0" style="margin:0 0 14px 0;border:1px solid #E5E7EB;">' +
+    '<tr><td style="padding:0;">' + franjaSvg_(W - 2, 58, COLORES_DIMENSION_[i][0], '#111111', [
+      { texto: (i + 1) + '. ' + textoPlano(d.id + '_nombre'), y: 25, tamano: 15, negrita: true },
+      { texto: TEXTO_NIVEL_[d.nivel] + '  ·  Promedio ' + formatearPromedio_(d.suma), y: 44, tamano: 12, negrita: true },
+    ]) + '</td></tr>' +
+    '<tr><td style="padding:12px 14px;font-size:13px;line-height:1.45;">' +
+    '<p style="margin:0 0 8px 0;">' + texto(d.id + '_' + d.nivel + '_texto') + '</p>' +
+    '<table cellspacing="0" cellpadding="0"><tr><td style="border-left:4px solid ' + COLORES_DIMENSION_[i][0] + ';padding:2px 0 2px 10px;font-size:13px;line-height:1.45;"><b style="color:' + VERDE_CEIBAL_ + ';">' + texto('rec_rotulo_' + d.nivel) + '</b><br/>' +
+    conMayuscula_(texto(d.id + '_' + d.nivel + '_rec')) + '</td></tr></table></td></tr></table>').join('');
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Autodiagnóstico docente micro:bit</title></head>' +
+    '<body style="font-family:Arial,Helvetica,sans-serif;color:#111111;margin:0;padding:0;">' +
+    franjaSvg_(W, 34, VERDE_CEIBAL_, '#FFFFFF', [{ texto: 'Autodiagnóstico docente micro:bit · Ceibal', y: 22, tamano: 13, negrita: true }]) +
+    '<div style="padding:18px 0;">' +
+    '<div style="font-size:11px;font-weight:bold;letter-spacing:1px;color:' + VERDE_CEIBAL_ + ';">TU PERFIL</div>' +
+    '<h1 style="font-size:21px;margin:4px 0 6px 0;">' + escaparHtml_(primerNombre) + ', este es el resultado de tu autodiagnóstico</h1>' +
+    '<p style="font-size:12px;color:#4B5563;margin:0 0 14px 0;">' + escaparHtml_(datos.nombre) + ' · ' + escaparHtml_(nombreCentro) + ' · ' + escaparHtml_(opciones.fecha) + '</p>' +
+    '<p style="font-size:13px;color:#4B5563;margin:0 0 8px 0;">Cada punta del radar es tu promedio en una dimensión: del centro (1) al borde (5).</p>' +
+    '<div style="text-align:center;margin:0 0 6px 0;">' + armarRadarSvg_(dimensiones) + '</div>' +
+    '<table cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 10px auto;"><tr>' + leyenda + '</tr></table>' +
+    '<table width="' + W + '" cellspacing="0" cellpadding="0" style="margin:0 0 18px 0;">' + lista + '</table>' +
+    tarjetas +
+    '<table width="' + W + '" cellspacing="0" cellpadding="0"><tr><td style="border-left:6px solid ' + MORADO_ + ';padding:6px 0 6px 14px;">' +
+    '<div style="font-size:16px;font-weight:bold;color:' + MORADO_ + ';margin:0 0 8px 0;">' + texto('cierre_titulo') + '</div>' +
+    '<p style="font-size:13px;line-height:1.45;margin:0 0 8px 0;">' + texto('cierre_1') + '</p>' +
+    '<p style="font-size:13px;line-height:1.45;margin:0;">' + texto('cierre_2') + '</p></td></tr></table>' +
+    '<p style="font-size:10px;color:#4B5563;margin:14px 0 0 0;text-align:center;">Autodiagnóstico docente micro:bit · versión ' + escaparHtml_(opciones.version) + '</p>' +
+    '</div></body></html>';
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
+    escaparHtml_, puntoDelRadar_, distanciaDePromedio_, puntosDelRadar_, armarRadarSvg_, cuadritoSvg_, franjaSvg_, nombreDeCentroParaPerfil_, armarHtmlPerfil_,
+    NOMBRE_ARCHIVO_PERFIL_, RADAR_, ZONAS_RADAR_,
     VERSION, VERSION_INSTRUMENTO,
     PESTANAS_, COLUMNAS_UNIVERSO_, ENCABEZADOS_TEXTOS_, ENCABEZADOS_CONFIG_, ENCABEZADOS_RESPUESTAS_,
     COLUMNAS_TEXTO_RESPUESTAS_, COLUMNAS_TEXTO_CENTROS_, CONFIG_INICIAL_, columnaALetra_,

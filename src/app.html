@@ -46,6 +46,7 @@
 
   var OBLIGATORIA = 'Esta pregunta es obligatoria.';
   var ERROR_DE_CONEXION = 'No pudimos enviar tus respuestas. Revisá tu conexión e intentá de nuevo. Lo que respondiste sigue acá.';
+  var ERROR_DE_PDF = 'No pudimos preparar el PDF. Revisá tu conexión e intentá de nuevo.';
   var CLAVE_AVANCE = 'autodiagnostico_avance';
 
   /* ---------- Estado ---------- */
@@ -542,10 +543,53 @@
           el('p', { clase: 'rec' }, el('b', {}, texto('rec_rotulo_' + d.nivel)), conMayuscula(texto(d.id + '_' + d.nivel + '_rec')))));
       }),
       el('div', { clase: 'cierre' }, el('h3', {}, texto('cierre_titulo')), el('p', {}, texto('cierre_1')), el('p', {}, texto('cierre_2'))),
-      el('div', { clase: 'btns' }, el('button', {
-        type: 'button', clase: 'btn ghost',
-        onclick: function () { perfil = null; tocadas = {}; valorTrampa = ''; S = estadoVacio(horaDelServidor()); irA(0); },
-      }, 'Empezar de nuevo')));
+      el('div', { clase: 'btns' },
+        el('button', { type: 'button', clase: 'btn', id: 'btn-pdf', onclick: pedirPdf }, 'Descargar en PDF'),
+        el('button', {
+          type: 'button', clase: 'btn ghost',
+          onclick: function () { perfil = null; tocadas = {}; valorTrampa = ''; S = estadoVacio(horaDelServidor()); irA(0); },
+        }, 'Empezar de nuevo')),
+      el('p', { clase: 'note', id: 'aviso-pdf', role: 'status' }, ''));
+  }
+
+  /** Pide el PDF al servidor con las mismas respuestas y lo baja. Un solo pedido a la vez. */
+  function pedirPdf() {
+    var boton = buscarEl('btn-pdf');
+    var aviso = buscarEl('aviso-pdf');
+    if (boton.disabled) return;
+    boton.disabled = true;
+    aviso.textContent = 'Preparando tu PDF…';
+    // Si el docente tocó "Empezar de nuevo" mientras tanto, estos elementos ya no están: no hay nada que actualizar.
+    var terminar = function (mensaje) {
+      if (!buscarEl('btn-pdf') || !buscarEl('aviso-pdf')) return;
+      boton.disabled = false;
+      aviso.textContent = mensaje;
+    };
+    google.script.run
+      .withSuccessHandler(function (r) {
+        if (!(r && r.ok && typeof r.pdf === 'string')) { terminar(r && r.mensaje ? r.mensaje : ERROR_DE_PDF); return; }
+        try {
+          bajarPdf(r.pdf, 'autodiagnostico-microbit.pdf');
+          terminar('Listo. Si no se descargó, revisá la carpeta de descargas de tu dispositivo.');
+        } catch (e) {
+          terminar('No pudimos descargar el PDF en este dispositivo. Probá desde una computadora.');
+        }
+      })
+      .withFailureHandler(function () { terminar(ERROR_DE_PDF); })
+      .descargarPerfil(armarEnvio(S, valorTrampa));
+  }
+
+  /** Convierte el base64 en un archivo y lo baja. El nombre es fijo: no sale nada del docente. */
+  function bajarPdf(base64, nombre) {
+    var binario = atob(base64);
+    var bytes = new Uint8Array(binario.length);
+    for (var i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    var enlace = el('a', { href: url, download: nombre });
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
   }
 
   /* ---------- Arranque ---------- */
