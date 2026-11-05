@@ -56,6 +56,8 @@ Algunos nombres de comandos cambian entre versiones de clasp. Si un comando no e
 4. Cuando prueba está bien, repetir los pasos 2 y 3 con `npm run entorno:produccion`. El script muestra un aviso grande al elegir producción.
 5. `clasp logout`.
 
+**Si la versión cambia cómo se normalizan los nombres de centros** (siglas, abreviaturas, tildes…): después de subir el código, correr en la Sheet *Autodiagnóstico → Actualizar catálogo*. La columna `nombre_normalizado` de Centros se calcula en ese momento y el buscador la usa tal cual; sin este paso los centros ya cargados siguen con la regla vieja. Hacerlo en prueba y en producción.
+
 ## Volver a una versión anterior
 
 En el editor del proyecto: *Implementar → Gestionar implementaciones* → lápiz de editar → en "Versión" elegir la anterior → *Implementar*. La URL no cambia.
