@@ -89,4 +89,7 @@
 - **Ningún mail puede salir durante las pruebas.** En la fase 4 el código no usa ningún servicio de correo.
 - Un mail solo sale si hay una fila guardada hoy con esa cédula y ese correo, y como máximo uno por día a cada dirección. El aviso al docente es siempre el mismo, para que nadie pueda averiguar si una dirección ya recibió algo o si el envío fue descartado.
 - Desde la fase 5, una llave `modo_mail` en Config decide: `apagado` (o vacío o cualquier valor no reconocido) no manda nada; `solo_lista` manda solo a `correos_de_prueba`; `activo` manda a los docentes y se usa recién en el piloto.
+- **Corregir un correo mal escrito (decidido el 05/11/2026):** si el reintento idéntico trae un correo distinto, se guarda igual como fila nueva (cuenta contra el límite de 3 por cédula por día). Así hay una fila con el correo nuevo y el mail puede salir.
+- **Sin alertas al equipo por ahora (05/11/2026):** no se programa el aviso por mail al superar el tope por hora. Sigue siendo obligatorio antes de publicar (fase 7); mientras tanto, el aviso queda en *Ejecuciones*.
+- **La ayuda del correo no cambia (05/11/2026):** sigue diciendo "Te vamos a enviar tu perfil a este correo." Se deja la decisión de cambiarla para más adelante.
 - Topes mínimos mientras se prueba: 20 envíos por hora, 10 mails por hora y 20 mails por día. Se suben en Config antes del piloto; la referencia para entonces es 300, 200 y 1.200.

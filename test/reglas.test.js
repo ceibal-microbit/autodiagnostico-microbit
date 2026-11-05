@@ -9,7 +9,7 @@ const SRC = path.join(__dirname, '..', 'src');
 const archivosJs = fs.readdirSync(SRC).filter(f => f.endsWith('.js'));
 
 test('solo las funciones permitidas son públicas (las demás terminan en guion bajo)', () => {
-  const permitidas = new Set(['doGet', 'obtenerDatosIniciales', 'guardarRespuesta', 'onOpen']);
+  const permitidas = new Set(['doGet', 'obtenerDatosIniciales', 'guardarRespuesta', 'descargarPerfil', 'onOpen']);
   const publicasDeMas = [];
   for (const f of archivosJs) {
     const codigo = fs.readFileSync(path.join(SRC, f), 'utf8');
