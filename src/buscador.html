@@ -240,6 +240,8 @@ function buscarCentros(candidatos, consulta) {
     if (numero !== null) {
       if (c.numero === numero) puntos += 60;
       else if (String(c.codigo) === palabraNumero) puntos += 80;
+      // Mientras escribe ("cea 1" camino a "cea 116"), también se ofrecen los que empiezan con esos dígitos, después del exacto.
+      else if (c.numero !== null && c.numero !== undefined && String(c.numero).indexOf(palabraNumero) === 0) puntos += 30;
       else return;
     }
     if (resto) {

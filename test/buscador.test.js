@@ -182,6 +182,18 @@ test('una sigla con puntos se encuentra escrita de cualquier forma', () => {
   }
 });
 
+test('mientras se escribe el número ("cea 1" camino a "cea 116") siguen apareciendo los que empiezan igual', () => {
+  const centros = [
+    centroDePrueba(901, 'C.E.A. Nº 116', 'otro', 116), centroDePrueba(902, 'C.E.A. Nº 1', 'otro', 1),
+    centroDePrueba(903, 'C.E.A. Nº 25', 'otro', 25), centroDePrueba(904, 'C.E.A. Nº 12', 'otro', 12),
+  ];
+  const codigos = consulta => aPlano(b.buscarCentros(centros, consulta)).map(c => c.codigo);
+  assert.deepStrictEqual(codigos('cea 1'), [902, 904, 901]);
+  assert.deepStrictEqual(codigos('cea 11'), [901]);
+  assert.deepStrictEqual(codigos('cea 116'), [901]);
+  assert.deepStrictEqual(codigos('cea 1160'), []);
+});
+
 test('juntar siglas no toca palabras con punto ni números', () => {
   assert.strictEqual(n.normalizarTexto_('C.e.a'), 'cea');
   assert.strictEqual(n.normalizarTexto_('U.T.U. Pando'), 'escuela tecnica pando');
