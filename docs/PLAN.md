@@ -64,6 +64,7 @@ Todo en `src/nucleo.js`, sin servicios de Google, con tests:
 ## Fase 5 — PDF y mail (v0.5.0)
 
 - [ ] Perfil en PDF con la identidad visual y el radar, generado en el servidor. Botón "Descargar en PDF" en el perfil. **Programado en la rama `fase-5a-pdf`. Probado a mano en la Sheet de prueba y en un Android (radar y colores bien, se descarga). Falta repetirlo en un iPhone (fase 6).** Se tilda al cerrar la fase.
+- [x] Reordenar las columnas de Respuestas (19/11/2026): centro, ubicación y datos del docente primero; `fecha_hora` después; versiones al final. Rama `fase-5b-orden-columnas`. Probado a mano en la Sheet de prueba con la URL `/dev`. **Al subirlo hay que borrar la pestaña Respuestas de prueba y correr "Preparar planilla"**, porque los encabezados viejos hacen rechazar los envíos.
 - [ ] Botón "Enviar por mail" en el perfil, que no excluye al de PDF. El mail sale solo si el docente lo pide.
 - [x] ~~Cambiar la ayuda del correo~~: decidido el 05/11/2026 que **no** se cambia (ver `docs/DECISIONES.md`).
 - [ ] Envío por mail detrás de la llave `modo_mail`, que viene en `apagado`, con el límite por dirección (contando el correo sin la parte `+...`), los topes globales de mails por hora y por día, y registro en `mail_enviado`. En las pruebas solo se usa `solo_lista` con correos propios.
