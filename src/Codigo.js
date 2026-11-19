@@ -13,8 +13,6 @@
 const MENSAJE_RECHAZO_ = 'No pudimos guardar tu respuesta. Intentá más tarde.';
 // Filas de Respuestas que se revisan para los topes: alcanza de sobra para el último día.
 const FILAS_A_REVISAR_ = 8000;
-// Columnas de Respuestas que hacen falta para los topes: de fecha_hora (1) a cedula (5).
-const COLUMNAS_A_REVISAR_ = 5;
 // Filas que se miran para detectar un reintento: las más recientes.
 const FILAS_PARA_REINTENTO_ = 200;
 
@@ -148,7 +146,11 @@ function filasParaLimites_(hoja) {
   const ultima = hoja.getLastRow();
   if (ultima < 2) return [];
   const desde = Math.max(2, ultima - FILAS_A_REVISAR_ + 1);
-  return hoja.getRange(desde, 1, ultima - desde + 1, COLUMNAS_A_REVISAR_).getValues().map(fila => [fila[0], fila[4]]);
+  // Se calcula acá y no al cargar el archivo: Apps Script carga Codigo.js antes que nucleo.js.
+  const posFecha = ENCABEZADOS_RESPUESTAS_.indexOf('fecha_hora');
+  const posCedula = ENCABEZADOS_RESPUESTAS_.indexOf('cedula');
+  const columnas = Math.max(posFecha, posCedula) + 1;
+  return hoja.getRange(desde, 1, ultima - desde + 1, columnas).getValues().map(fila => [fila[posFecha], fila[posCedula]]);
 }
 
 /** Las últimas filas de Respuestas, hasta la columna de la última afirmación. */

@@ -340,7 +340,7 @@ test('esReintento_: solo cuenta dentro de los 10 minutos y con fechas legibles',
   assert.strictEqual(n.esReintento_([fila(10)], datos, ahora), false);
   assert.strictEqual(n.esReintento_([], datos, ahora), false);
   const sinFecha = fila(1);
-  sinFecha[0] = 'texto';
+  sinFecha[columna('fecha_hora')] = 'texto';
   assert.strictEqual(n.esReintento_([sinFecha], datos, ahora), false);
   const otra = n.filaDeRespuesta_(Object.assign({}, datos, { cedula: '99999999' }), new Date(ahora), 'no');
   assert.strictEqual(n.esReintento_([otra], datos, ahora), false);
@@ -368,7 +368,7 @@ test('al llegar al tope por hora se rechaza y queda registrado', () => {
 test('si el tope por hora está vacío en Config se usa el mínimo, nunca "sin límite"', () => {
   const e = entorno({ config: { max_envios_hora: '', max_envios_cedula_dia: 500 } });
   const reciente = new Date();
-  const otras = Array.from({ length: n.TOPES_POR_DEFECTO_.max_envios_hora }, (_, i) => { const f = Array(5).fill(''); f[0] = reciente; f[4] = String(i).padStart(8, '0'); return f; });
+  const otras = Array.from({ length: n.TOPES_POR_DEFECTO_.max_envios_hora }, (_, i) => { const f = Array(n.ENCABEZADOS_RESPUESTAS_.length).fill(''); f[columna('fecha_hora')] = reciente; f[columna('cedula')] = String(i).padStart(8, '0'); return f; });
   e.hojas.Respuestas.datos.push(...otras);
   assert.deepStrictEqual(aPlano(e.guardarRespuesta(envioValido())), RECHAZO);
 });
@@ -463,7 +463,7 @@ test('filaDeRespuesta_ sigue el orden de las columnas y no deja huecos', () => {
   const fecha = new Date();
   const fila = n.filaDeRespuesta_(datos, fecha, 'no');
   assert.strictEqual(fila.length, n.ENCABEZADOS_RESPUESTAS_.length);
-  assert.strictEqual(fila[0], fecha);
+  assert.strictEqual(fila[columna('fecha_hora')], fecha);
   assert.ok(fila.every(v => v !== undefined));
   assert.strictEqual(fila[columna('ctx_3')], 3);
   assert.strictEqual(fila[columna('d5_i3')], 3);

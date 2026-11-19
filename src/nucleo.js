@@ -645,13 +645,13 @@ const TOPES_MAXIMOS_ = { max_envios_cedula_dia: 100, max_mails_destino_dia: 10, 
 
 function armarEncabezadosRespuestas_() {
   const columnas = [
-    'fecha_hora', 'version_app', 'version_instrumento', 'nombre', 'cedula', 'email', 'subsistema', 'departamento',
-    'localidad', 'centro_texto', 'centro_codigo', 'origen_macheo', 'ctx_1', 'ctx_2', 'ctx_3',
+    'centro_texto', 'centro_codigo', 'origen_macheo', 'departamento', 'localidad', 'subsistema', 'nombre', 'cedula', 'email',
+    'fecha_hora', 'ctx_1', 'ctx_2', 'ctx_3',
   ];
   for (const d of DIMENSIONES_) for (let i = 1; i <= 3; i++) columnas.push(d.id + '_i' + i);
   for (const d of DIMENSIONES_) columnas.push(d.id + '_suma');
   for (const d of DIMENSIONES_) columnas.push(d.id + '_nivel');
-  columnas.push('mail_enviado');
+  columnas.push('mail_enviado', 'version_app', 'version_instrumento');
   return columnas;
 }
 
@@ -842,11 +842,12 @@ function revisarLimites_(filas, cedula, ahora, topes) {
 function esReintento_(filas, datos, ahora) {
   const posicion = columna => ENCABEZADOS_RESPUESTAS_.indexOf(columna);
   const posCedula = posicion('cedula');
+  const posFecha = posicion('fecha_hora');
   const posContexto = posicion('ctx_1');
   const posRespuestas = posicion('d1_i1');
   const iguales = (fila, desde, valores) => valores.every((v, i) => Number(fila[desde + i]) === v);
   return filas.some(fila => {
-    const fecha = fila[0];
+    const fecha = fila[posFecha];
     if (!fecha || typeof fecha.getTime !== 'function' || isNaN(fecha.getTime())) return false;
     if (ahora - fecha.getTime() >= MINUTOS_DE_REINTENTO_ * 60000) return false;
     return String(quitarProteccion_(fila[posCedula])).padStart(8, '0') === datos.cedula &&
