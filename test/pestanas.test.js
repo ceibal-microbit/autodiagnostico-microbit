@@ -6,15 +6,15 @@ const universo = require('./fixtures/universo-sintetico.json');
 
 test('Respuestas: encabezados según docs/ARQUITECTURA.md', () => {
   const e = n.ENCABEZADOS_RESPUESTAS_;
-  assert.deepStrictEqual(e.slice(0, 15), [
-    'fecha_hora', 'version_app', 'version_instrumento', 'nombre', 'cedula', 'email', 'subsistema', 'departamento',
-    'localidad', 'centro_texto', 'centro_codigo', 'origen_macheo', 'ctx_1', 'ctx_2', 'ctx_3',
+  assert.deepStrictEqual(e.slice(0, 13), [
+    'centro_texto', 'centro_codigo', 'origen_macheo', 'departamento', 'localidad', 'subsistema', 'nombre', 'cedula', 'email',
+    'fecha_hora', 'ctx_1', 'ctx_2', 'ctx_3',
   ]);
-  assert.deepStrictEqual(e.slice(15, 18), ['d1_i1', 'd1_i2', 'd1_i3']);
-  assert.strictEqual(e[29], 'd5_i3');
-  assert.deepStrictEqual(e.slice(30, 35), ['d1_suma', 'd2_suma', 'd3_suma', 'd4_suma', 'd5_suma']);
-  assert.deepStrictEqual(e.slice(35, 40), ['d1_nivel', 'd2_nivel', 'd3_nivel', 'd4_nivel', 'd5_nivel']);
-  assert.strictEqual(e[40], 'mail_enviado');
+  assert.deepStrictEqual(e.slice(13, 16), ['d1_i1', 'd1_i2', 'd1_i3']);
+  assert.strictEqual(e[27], 'd5_i3');
+  assert.deepStrictEqual(e.slice(28, 33), ['d1_suma', 'd2_suma', 'd3_suma', 'd4_suma', 'd5_suma']);
+  assert.deepStrictEqual(e.slice(33, 38), ['d1_nivel', 'd2_nivel', 'd3_nivel', 'd4_nivel', 'd5_nivel']);
+  assert.deepStrictEqual(e.slice(38), ['mail_enviado', 'version_app', 'version_instrumento']);
   assert.strictEqual(e.length, 41);
   assert.strictEqual(new Set(e).size, e.length);
 });

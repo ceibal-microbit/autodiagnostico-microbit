@@ -108,7 +108,7 @@ Columnas de la pestaña: `clave` · `valor` · `descripcion`. "Preparar planilla
 
 ### Respuestas
 
-`fecha_hora` · `version_app` · `version_instrumento` · `nombre` · `cedula` · `email` · `subsistema` · `departamento` · `localidad` · `centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` (`no` al guardar; `sí` o `límite` según lo que pase si el docente pide el mail).
+`centro_texto` · `centro_codigo` · `origen_macheo` (`elegido por docente`, `pendiente de revisión`, `automático`, `revisado manualmente`) · `departamento` · `localidad` · `subsistema` · `nombre` · `cedula` · `email` · `fecha_hora` · `ctx_1`…`ctx_3` · `d1_i1`…`d5_i3` · `d1_suma`…`d5_suma` · `d1_nivel`…`d5_nivel` · `mail_enviado` · `version_app` · `version_instrumento` — mail_enviado: (`no` al guardar; `sí` o `límite` según lo que pase si el docente pide el mail).
 
 Las columnas de texto libre (`nombre`, `cedula`, `email`, `localidad`, `centro_texto`) y las de versión (`version_app`, `version_instrumento`) tienen formato "Texto sin formato" (la cédula también, para no perder el cero inicial; se guarda siempre con 8 dígitos). El correo se guarda en minúsculas.
 

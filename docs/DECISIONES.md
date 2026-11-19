@@ -41,6 +41,7 @@
 ## Centros educativos
 
 - Fuente: copia de la hoja "Universo 2026" (existe una Sheet maestra; por ahora se usa la copia).
+- Si se quiere tomar el Universo de la Sheet maestra sin copiar y pegar: usar una fórmula `IMPORTRANGE` en la pestaña "Universo original" (anotado el 19/11/2026, **a probar en la Sheet de prueba**). "Actualizar catálogo" sigue leyendo esa pestaña igual y su confirmación y el aviso de baja de más del 20% protegen de cambios inesperados. **No** abrir la maestra desde el script (`openById`): exigiría un scope más amplio que `spreadsheets.currentonly` y contradice `docs/SEGURIDAD.md`. Si más adelante se quiere eso, hay que consultarlo y actualizar `docs/ARQUITECTURA.md`.
 - Rubro = subsistema: DGEIP, DGES, DGETP, CFE.
 - Se mantienen todas las dependencias, incluidas inspecciones y administrativas. En las sugerencias van primero escuelas, jardines, liceos, UTU, IFD/CERP; después anexos; después el resto.
 - Montevideo: no se pide barrio; el centro se busca en todo el departamento.
